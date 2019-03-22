@@ -1,0 +1,14 @@
+**/build/
+mrpt/build/bin/mrpt-performance 
+mrpt/build/lib/libmrpt-pbmap-dbg.so.1.5.0 
+mrpt/build/lib/libmrpt-slam-dbg.so.1.5.0 
+mrpt/build/lib/libmrpt-vision-dbg.so.1.5.0 
+mrpt/build/lib/pymrpt-dbg.so 
+mrpt/build/tests/test_mrpt_base 
+pl_slam/build/CMakeFiles/plslam.dir/src/mapHandler.cpp.o 
+pl_slam/vocabulary/voc.tar.gz 
+wxWidgets/lib/libwx_gtk2u_core-3.1.so.3.0.0 
+mrpt/build/lib/libmrpt-base-dbg.so.1.5.0 
+pl_slam/vocabulary/mapir_lsd.yml 
+pl_slam/vocabulary/mapir_orb.yml 
+pl_slam/vocabulary/mapir_fld.yml
