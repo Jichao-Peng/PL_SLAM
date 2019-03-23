@@ -39,7 +39,7 @@ class PinholeStereoCamera
 {
 
 private:
-    int                 width, height;
+    int                 width, height; //ccd的宽度和高度
     double              fx, fy;
     double              cx, cy;
     double              b;
