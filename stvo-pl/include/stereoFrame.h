@@ -88,28 +88,28 @@ public:
     void lineDescriptorMAD( const vector<vector<DMatch>> matches, double &nn_mad, double &nn12_mad );
 
     Mat  plotStereoFrame();
+                    
+    int frame_idx;      //双目帧索引
+    Mat img_l, img_r;   //双目的左右图像
+    Matrix4d Tfw;       //双目帧的三维变换
+    Matrix4d DT;        //未知，但在其他类中也经常出现
 
-    int frame_idx;
-    Mat img_l, img_r;
-    Matrix4d Tfw;
-    Matrix4d DT;
-
-    Matrix6d Tfw_cov;
-    Vector6d Tfw_cov_eig;
+    Matrix6d Tfw_cov;   //三维变换的协方差矩阵
+    Vector6d Tfw_cov_eig;   //三维变换的协方差矩阵的对数映射
     double   entropy_first;
 
-    Matrix6d DT_cov;
-    Vector6d DT_cov_eig;
-    double   err_norm;
+    Matrix6d DT_cov;    //DT的协方差矩阵
+    Vector6d DT_cov_eig;    //DT的协方差矩阵的对数映射
+    double   err_norm;      //误差的范数
 
-    vector< PointFeature* > stereo_pt;
-    vector< LineFeature*  > stereo_ls;
+    vector<PointFeature*> stereo_pt;    //双目帧的点特征集
+    vector<LineFeature*>  stereo_ls;    //双目帧的线特征集
 
     vector<KeyPoint> points_l, points_r;
     vector<KeyLine>  lines_l,  lines_r;
-    Mat pdesc_l, pdesc_r, ldesc_l, ldesc_r;
+    Mat pdesc_l, pdesc_r, ldesc_l, ldesc_r;     //左右相机的点特征、线特征描述子
 
-    PinholeStereoCamera *cam;
+    PinholeStereoCamera* cam;   //相机模型
 
     double inv_width, inv_height; // grid cell
 };

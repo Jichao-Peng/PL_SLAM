@@ -1,12 +1,9 @@
-[Buildset]
-BuildItems=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x01\x00\x00\x00\x0e\x00s\x00t\x00v\x00o\x00-\x00p\x00l)
-
 [CMake]
 Build Directory Count=1
 Current Build Directory Index-Host System=0
 
 [CMake][CMake Build Directory 0]
-Build Directory Path=/home/zhijian/slam/PL_SLAM/stvo-pl/build
+Build Directory Path=/media/zhijian/文件/grow/slam/PL_SLAM/stvo-pl/build
 Build Type=
 CMake Binary=/usr/local/bin/cmake
 CMake Executable=/usr/local/bin/cmake

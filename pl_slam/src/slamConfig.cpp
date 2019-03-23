@@ -67,8 +67,8 @@ SlamConfig::SlamConfig()
     max_iters_lba         = 15;         // maximum number of iterations
 
     // Loop closure
-    vocabulary_p          = "/home/zhijian/slam/PL_SLAM/pl_slam/vocabulary/mapir_orb.yml";
-    vocabulary_l          = "/home/zhijian/slam/PL_SLAM/pl_slam/vocabulary/mapir_lsd.yml";
+    vocabulary_p          = "/media/zhijian/文件/grow/slam/PL_SLAM/pl_slam/vocabulary/mapir_orb.yml";
+    vocabulary_l          = "/media/zhijian/文件/grow/slam/PL_SLAM/pl_slam/vocabulary/mapir_lsd.yml";
 
     lc_res                = 1.0;        // maximum residue in relative pose estimation
     lc_unc                = 0.01;       // maximum uncertainty value in relative pose estimation
