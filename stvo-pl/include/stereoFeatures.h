@@ -46,11 +46,11 @@ public:
 
     PointFeature* safeCopy();
 
-    int idx;
-    Vector2d pl, pl_obs;
-    double   disp;
-    Vector3d P;
-    bool inlier;
+    int idx;                    //点特征索引
+    Vector2d pl, pl_obs;        //特征点的像素坐标系和观测到的像素坐标系
+    double   disp;              //特征点的像素视差
+    Vector3d P;                 //特征点的3D坐标
+    bool inlier;                //是否为内点
     int level;
     double sigma2 = 1.0;
     Matrix3d covP_an;

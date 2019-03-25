@@ -46,22 +46,35 @@ int main(int argc, char **argv)
     // read inputs
     string dataset_name, config_file;
     int frame_offset = 0, frame_number = 0, frame_step = 1;
+    /*
+     dataset_name 数据集名字 这里为zero
+     frame_offset 跳过前多少个图像帧
+     frame_number 只考虑这么多对帧
+     frame_step   每多少个帧处理一次
+     config_file 配置文件,默认配置为slamconfig
+     */
     if (!getInputArgs(argc, argv, dataset_name, frame_offset, frame_number, frame_step, config_file)) {
+        //参数检测错误时报错
         showHelp();
         return -1;
     }
+    
+    //显示传入参数
     cout << "" <<endl;
     for(int i=0;i<argc;i++)
         cout << i <<"  "<<argv[i] <<endl;
     
+    //传入配置文件的数据
     if (!config_file.empty()) SlamConfig::loadFromFile(config_file);
 
+    //传入点词典
     if (SlamConfig::hasPoints() &&
             (!boost::filesystem::exists(SlamConfig::dbowVocP()) || !boost::filesystem::is_regular_file(SlamConfig::dbowVocP()))) {
         cout << "Invalid vocabulary for points" << endl;
         return -1;
     }
 
+    //传入线词典
     if (SlamConfig::hasLines() &&
             (!boost::filesystem::exists(SlamConfig::dbowVocL()) || !boost::filesystem::is_regular_file(SlamConfig::dbowVocL()))) {
         cout << "Invalid vocabulary for lines" << endl;
@@ -76,6 +89,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    //添加具体数据集
     dataset_path /= dataset_name;
     if (!boost::filesystem::exists(dataset_path) || !boost::filesystem::is_directory(dataset_path)) {
         cout << "Invalid dataset path" << endl;
@@ -84,16 +98,20 @@ int main(int argc, char **argv)
     cout << endl << "Initializing PL-SLAM...." << flush;
 
     string dataset_dir = dataset_path.string();
+    //传入相机配置文件，建立相机模型
     PinholeStereoCamera*  cam_pin = new PinholeStereoCamera((dataset_path / "dataset_params.yaml").string());
+    //数据集类
     Dataset dataset(dataset_dir, *cam_pin, frame_offset, frame_number, frame_step);
 
-    // create scene
+    // create scene 
     string scene_cfg_name;
     if( (dataset_name.find("kitti")!=std::string::npos) ||
         (dataset_name.find("malaga")!=std::string::npos)  )
         scene_cfg_name = "../config/scene_config.ini";
     else
         scene_cfg_name = "../config/scene_config_indoor.ini";
+    
+    //场景类
     slamScene scene(scene_cfg_name);
     Matrix4d Tcw, Tfw = Matrix4d::Identity();
     Tcw = Matrix4d::Identity();
@@ -111,13 +129,14 @@ int main(int argc, char **argv)
     int frame_counter = 0;
     StereoFrameHandler* StVO = new StereoFrameHandler(cam_pin);
     Mat img_l, img_r;
+    //当数据集不空时
     while (dataset.nextFrame(img_l, img_r))
     {
         if( frame_counter == 0 ) // initialize
         {
+            //双目的初始化
             StVO->initialize(img_l,img_r,0);
             PLSLAM::KeyFrame* kf = new PLSLAM::KeyFrame( StVO->prev_frame, 0 );
-
             map->initialize( kf );
             // update scene
             scene.initViewports( img_l.cols, img_r.rows );

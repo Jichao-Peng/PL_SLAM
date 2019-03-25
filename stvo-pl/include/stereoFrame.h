@@ -67,7 +67,7 @@ public:
     StereoFrame(const Mat img_l_, const Mat img_r_, const int idx_, PinholeStereoCamera *cam_ );
     ~StereoFrame();
 
-    void extractStereoFeatures( double llength_th, int fast_th = 20 );
+    void extractStereoFeatures( double llength_th, int fast_th = 20 );          //对双目帧的特征提取
     void extractRGBDFeatures(   double llength_th, int fast_th = 20 );
 
     void detectStereoPoints(int fast_th = 20);
@@ -82,11 +82,15 @@ public:
     void filterLineSegmentDisparity(Vector2d spl, Vector2d epl, Vector2d spr, Vector2d epr , double &disp_s, double &disp_e);
     void filterLineSegmentDisparity(double &disp_s, double &disp_e);
 
+    //求线特征的观察线段和重投影线段的重合率
     double lineSegmentOverlapStereo( double spl_obs, double epl_obs, double spl_proj, double epl_proj  );
     double lineSegmentOverlap( Vector2d spl_obs, Vector2d epl_obs, Vector2d spl_proj, Vector2d epl_proj  );
+    //点特征的MAD中位数绝对偏差
     void pointDescriptorMAD( const vector<vector<DMatch>> matches, double &nn_mad, double &nn12_mad );
+    //线特征的MAD中位数绝对偏差
     void lineDescriptorMAD( const vector<vector<DMatch>> matches, double &nn_mad, double &nn12_mad );
 
+    //绘制双目帧中的点特征和线特征
     Mat  plotStereoFrame();
                     
     int frame_idx;      //双目帧索引

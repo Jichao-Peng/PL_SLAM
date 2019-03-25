@@ -383,7 +383,9 @@ double angDiff_d(double alpha, double beta){
 }
 
 /* Auxiliar functions and structs for vectors */
-
+// estimate mad standard deviation
+// 估计中位数绝对偏差，MAD——median absolute deviation，是单变量数据集中样本差异性的稳健度量。
+// MAD是一个健壮的统计量，对于数据集中异常值的处理比标准差更具有弹性，可以大大减少异常值对于数据集的影响
 void vector_mean_stdv_mad( vector<double> residues, double &mean, double &stdv )
 {
 

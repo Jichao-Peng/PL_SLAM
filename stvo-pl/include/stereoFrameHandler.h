@@ -59,8 +59,8 @@ public:
     void plotLeftPair();
 
     // adaptative fast
-    int orb_fast_th;
-    double llength_th;
+    int orb_fast_th;    //orb特征提取FAST的threshold（阈值）
+    double llength_th;  
 
     // slam-specific functions
     bool needNewKF();
@@ -68,19 +68,19 @@ public:
 
     //list< boost::shared_ptr<PointFeature> > matched_pt;
     //list< boost::shared_ptr<LineFeature>  > matched_ls;
-    list< PointFeature* > matched_pt;
-    list< LineFeature*  > matched_ls;
+    list< PointFeature* > matched_pt;   //匹配的特征点集合
+    list< LineFeature*  > matched_ls;   //匹配的线特征集合
 
-    StereoFrame* prev_frame;
-    StereoFrame* curr_frame;
-    PinholeStereoCamera *cam;
+    StereoFrame* prev_frame;            //前一帧
+    StereoFrame* curr_frame;            //当前帧
+    PinholeStereoCamera *cam;           //针孔相机模型
 
-    int  n_inliers, n_inliers_pt, n_inliers_ls;
+    int  n_inliers, n_inliers_pt, n_inliers_ls;     //内点数量
 
     // slam-specific variables
-    bool     prev_f_iskf;
-    double   entropy_first_prevKF;
-    Matrix4d T_prevKF;
+    bool     prev_f_iskf;                   //一个flag，前一帧是否为关键帧
+    double   entropy_first_prevKF;          //熵，论文中提到，将代表不确定性的协方差矩阵转换为一个标量，称之为entropy
+    Matrix4d T_prevKF;                      //前一个关键帧的位姿
     Matrix6d cov_prevKF_currF;
     int      N_prevKF_currF;
 

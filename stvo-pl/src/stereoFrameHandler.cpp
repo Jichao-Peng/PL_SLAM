@@ -31,34 +31,40 @@ StereoFrameHandler::StereoFrameHandler( PinholeStereoCamera *cam_ ) : cam(cam_) 
 StereoFrameHandler::~StereoFrameHandler(){}
 
 /*  main methods  */
-
+// 初始化函数，左右图像，帧数索引
+//就是把左右相机的首帧作为前一帧，并把它们的位姿初始化为单位矩阵。同时从config中获取ORB提取特征的threshold。
 void StereoFrameHandler::initialize(const Mat img_l_, const Mat img_r_ , const int idx_)
 {
     // variables for adaptative thresholds
-    orb_fast_th = Config::orbFastTh();
-    llength_th  = Config::minLineLength() * std::min( cam->getWidth(), cam->getHeight() ) ;
+    orb_fast_th = Config::orbFastTh();//初始化orb_fast_th
+    llength_th  = Config::minLineLength() * std::min( cam->getWidth(), cam->getHeight() ) ; //
     // define StereoFrame
-    prev_frame = new StereoFrame( img_l_, img_r_, idx_, cam );
+    //新建双目帧
+    prev_frame = new StereoFrame( img_l_, img_r_, idx_, cam ); 
+    //提取点特征和线特征
     prev_frame->extractStereoFeatures( llength_th, orb_fast_th );
+    //位姿是单位矩阵
     prev_frame->Tfw     = Matrix4d::Identity();
     prev_frame->Tfw_cov = Matrix6d::Identity();
     prev_frame->DT      = Matrix4d::Identity();
     curr_frame = prev_frame;
-    // SLAM variables for KF decision
+    // SLAM variables for KF decision  关键帧选择的量
     T_prevKF         = Matrix4d::Identity();
     cov_prevKF_currF = Matrix6d::Zero();
     prev_f_iskf      = true;
     N_prevKF_currF   = 0;
 }
 
+//创建当前帧以及帧间位姿跟踪
 void StereoFrameHandler::insertStereoPair(const Mat img_l_, const Mat img_r_ , const int idx_)
 {
     //curr_frame.reset( new StereoFrame( img_l_, img_r_, idx_, cam ) );
     curr_frame =  new StereoFrame( img_l_, img_r_, idx_, cam );
-    curr_frame->extractStereoFeatures( llength_th, orb_fast_th );
-    f2fTracking();
+    curr_frame->extractStereoFeatures( llength_th, orb_fast_th ); //提取特征
+    f2fTracking(); //帧间跟踪
 }
 
+//更新orb_fast_th，将当前帧作为上一帧，清除当前帧
 void StereoFrameHandler::updateFrame()
 {
 
@@ -102,7 +108,7 @@ void StereoFrameHandler::updateFrame()
 }
 
 /*  tracking methods  */
-
+//分为基于点特征的帧间跟踪和基于线特征的帧间跟踪。
 void StereoFrameHandler::f2fTracking()
 {
 
@@ -122,12 +128,18 @@ void StereoFrameHandler::f2fTracking()
         if (Config::hasPoints()) matchF2FPoints();
         if (Config::hasLines()) matchF2FLines();
     }
-
+    //最后内点的数量是点特征内点数量+线特征内点数量
     n_inliers_pt = matched_pt.size();
     n_inliers_ls = matched_ls.size();
     n_inliers    = n_inliers_pt + n_inliers_ls;
 }
-
+/*
+①匹配描述子时，使用暴力匹配，Hamming距离；
+②分别计算前一帧到当前帧的匹配 pmatches_12，和当前帧到前一帧的匹配 pmatches_21；
+③把以上两种匹配距离都以描述子距离从小到大的的方式排序；
+④然后，遍历匹配 pmatches_12，如果 pmatches_12 的询问点和  pmatches_21的训练点是一样的，并且 pmatches_12 的最佳匹配距离比次优匹配的距离大于Config::minRatio12P()，则认为这个点特征是内点，并把该点放到匹配点集 matched_pt中。
+当然，用不用这种互匹配方式来选择内点，可以根据参数 Config::bestLRMatches() 来选择。
+ */
 void StereoFrameHandler::matchF2FPoints()
 {
 
@@ -151,7 +163,12 @@ void StereoFrameHandler::matchF2FPoints()
         curr_frame->stereo_pt[i2]->idx = prev_frame->stereo_pt[i1]->idx; // prev idx
     }
 }
-
+/*
+①提取线特征方法：LSD——Line Segment Detector，具有高精确性和可重复性；
+②线特征描述子：用LBD——Line Band Descriptor方法，原文中是说：allows us to find correspondences between lines based on their local appearance。
+③确定内点的方法和点特征的类似，互相匹配检测，以及这个线特征是否有足够的意义；
+④利用线段提供的有用的几何信息来过滤出不同方向和长度的线条。
+ */
 void StereoFrameHandler::matchF2FLines()
 {
 
@@ -179,6 +196,7 @@ void StereoFrameHandler::matchF2FLines()
     }
 }
 
+//计算线特征的观测线段和投影线段的重合部分比率
 double StereoFrameHandler::f2fLineSegmentOverlap( Vector2d spl_obs, Vector2d epl_obs, Vector2d spl_proj, Vector2d epl_proj  )
 {
 
@@ -304,6 +322,7 @@ bool StereoFrameHandler::isGoodSolution( Matrix4d DT, Matrix6d DTcov, double err
     return true;
 }
 
+//位姿优化函数，高斯牛顿迭代法
 void StereoFrameHandler::optimizePose()
 {
 
@@ -390,7 +409,7 @@ void StereoFrameHandler::optimizePose()
         curr_frame->DT_cov_eig = Vector6d::Zero();
     }
 }
-
+//这个没有使用g2o的优化库，就是根据GN优化过程自己写的一段优化代码
 void StereoFrameHandler::gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov, double &err_, int max_iters)
 {
     Matrix6d H;
@@ -401,6 +420,7 @@ void StereoFrameHandler::gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov,
     for( iters = 0; iters < max_iters; iters++)
     {
         // estimate hessian and gradient (select)
+        //// 估计海森矩阵和梯度
         optimizeFunctions( DT, H, g, err );
         if (err > err_prev) {
             if (iters > 0)
@@ -447,9 +467,11 @@ void StereoFrameHandler::gaussNewtonOptimizationRobust(Matrix4d &DT, Matrix6d &D
         // estimate hessian and gradient (select)
         optimizeFunctionsRobust( DT, H, g, err );
         // if the difference is very small stop
+        // 如果计算出来的误差变化很小，就停止迭代
         if( ( fabs(err-err_prev) < Config::minErrorChange() ) || ( err < Config::minError()) )// || err > err_prev )
             break;
         // update step
+        // 更新步骤，就是求解delta(x)H=g
         ColPivHouseholderQR<Matrix6d> solver(H);
         DT_inc = solver.solve(g);
         if( solver.logAbsDeterminant() < 0.0 || solver.info() != Success )
@@ -545,7 +567,7 @@ void StereoFrameHandler::levenbergMarquardtOptimization(Matrix4d &DT, Matrix6d &
     DT_cov = H.inverse();  //DT_cov = Matrix6d::Identity();
     err_   = err;
 }
-
+//这个函数就主要是用于计算海森矩阵和雅克比矩阵以及残差
 void StereoFrameHandler::optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &g, double &e )
 {
 
@@ -985,6 +1007,7 @@ void StereoFrameHandler::setAsOutliers() {
     n_inliers    = 0;
 }
 
+//用于根据已知的转换矩阵，去除特征点和特征线中的外点
 void StereoFrameHandler::removeOutliers(Matrix4d DT)
 {
 
@@ -998,9 +1021,9 @@ void StereoFrameHandler::removeOutliers(Matrix4d DT)
         for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++, iter++)
         {
             // projection error
-            Vector3d P_ = DT.block(0,0,3,3) * (*it)->P + DT.col(3).head(3);
-            Vector2d pl_proj = cam->projection( P_ );
-            res_p.push_back( ( pl_proj - (*it)->pl_obs ).norm() * sqrt((*it)->sigma2) );
+            Vector3d P_ = DT.block(0,0,3,3) * (*it)->P + DT.col(3).head(3);     
+            Vector2d pl_proj = cam->projection( P_ );                          
+            res_p.push_back( ( pl_proj - (*it)->pl_obs ).norm() * sqrt((*it)->sigma2) );       
             //res_p.push_back( ( pl_proj - (*it)->pl_obs ).norm() );
         }
         // estimate robust parameters
@@ -1010,6 +1033,7 @@ void StereoFrameHandler::removeOutliers(Matrix4d DT)
         //inlier_th_p = sqrt(7.815);
         //cout << endl << p_mean << " " << p_stdv << "\t" << inlier_th_p << endl;
         // filter outliers
+        // 去除点特征集的外点
         iter = 0;
         for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++, iter++)
         {
@@ -1030,14 +1054,14 @@ void StereoFrameHandler::removeOutliers(Matrix4d DT)
         for( auto it = matched_ls.begin(); it!=matched_ls.end(); it++, iter++)
         {
             // projection error
-            Vector3d sP_ = DT.block(0,0,3,3) * (*it)->sP + DT.col(3).head(3);
-            Vector3d eP_ = DT.block(0,0,3,3) * (*it)->eP + DT.col(3).head(3);
-            Vector2d spl_proj = cam->projection( sP_ );
-            Vector2d epl_proj = cam->projection( eP_ );
+            Vector3d sP_ = DT.block(0,0,3,3) * (*it)->sP + DT.col(3).head(3);   //线特征的一个端点sP
+            Vector3d eP_ = DT.block(0,0,3,3) * (*it)->eP + DT.col(3).head(3);   //线特征的另一个端点eP
+            Vector2d spl_proj = cam->projection( sP_ );                         //3D点sP在图像平面上的投影spl_proj
+            Vector2d epl_proj = cam->projection( eP_ );                         //3D点sP在图像平面上的投影spl_proj   
             Vector3d l_obs    = (*it)->le_obs;
             Vector2d err_li;
-            err_li(0) = l_obs(0) * spl_proj(0) + l_obs(1) * spl_proj(1) + l_obs(2);
-            err_li(1) = l_obs(0) * epl_proj(0) + l_obs(1) * epl_proj(1) + l_obs(2);
+            err_li(0) = l_obs(0) * spl_proj(0) + l_obs(1) * spl_proj(1) + l_obs(2);     //投影点spl_proj到投影线的距离
+            err_li(1) = l_obs(0) * epl_proj(0) + l_obs(1) * epl_proj(1) + l_obs(2);     //投影点epl_proj到投影线的距离
             res_l.push_back( err_li.norm() * sqrt( (*it)->sigma2 ) );
             //res_l.push_back( err_li.norm() );
         }
@@ -1050,6 +1074,7 @@ void StereoFrameHandler::removeOutliers(Matrix4d DT)
         //cout << endl << l_mean << " " << l_stdv << "\t" << inlier_th_l << endl << endl;
 
         // filter outliers
+        // 去除线特征集的外点
         iter = 0;
         for( auto it = matched_ls.begin(); it!=matched_ls.end(); it++, iter++)
         {
@@ -1132,7 +1157,7 @@ void StereoFrameHandler::prefilterOutliers(Matrix4d DT)
 }
 
 /*  slam functions  */
-
+//判断是否需要一个新的关键帧
 bool StereoFrameHandler::needNewKF()
 {
 
@@ -1162,7 +1187,9 @@ bool StereoFrameHandler::needNewKF()
     Matrix6d adjTprevkf = adjoint_se3( T_prevKF );
     Matrix6d covDTinv   = uncTinv_se3( curr_frame->DT, curr_frame->DT_cov );
     cov_prevKF_currF += adjTprevkf * covDTinv * adjTprevkf.transpose();
+    //将代表不确定性的协方差转化为一个标量，称之为entropy
     double entropy_curr  = 3.0*(1.0+log(2.0*acos(-1))) + 0.5*log( cov_prevKF_currF.determinant() );
+    //计算当前帧的entropy和前面第一个关键帧的entropy的比值entropy_ratio
     double entropy_ratio = entropy_curr / entropy_first_prevKF;
 
     //cout << endl << curr_frame->DT     << endl << endl;
@@ -1170,6 +1197,7 @@ bool StereoFrameHandler::needNewKF()
     //cout << endl << cov_prevKF_currF   << endl << endl;
 
     // decide if a new KF is needed
+    //如果比值entropy_ratio是在实数范围内或者小于Config::minEntropyRatio()，就把当前帧作为一个新的关键帧插入到系统中：
     if( entropy_ratio < Config::minEntropyRatio() || std::isnan(entropy_ratio) || std::isinf(entropy_ratio) ||
         ( curr_frame->DT_cov == Matrix6d::Zero() && curr_frame->DT == Matrix4d::Identity() ) ||
         t > Config::maxKFTDist() || r > Config::maxKFRDist() || N_prevKF_currF > 10 )
@@ -1186,6 +1214,7 @@ bool StereoFrameHandler::needNewKF()
     }
 }
 
+//判断当前帧是否设为关键帧
 void StereoFrameHandler::currFrameIsKF()
 {
 
@@ -1206,10 +1235,12 @@ void StereoFrameHandler::currFrameIsKF()
     }
 
     // update KF
+    //// 把当前帧的位姿和协方差矩阵都设置为单位矩阵
     curr_frame->Tfw     = Matrix4d::Identity();
     curr_frame->Tfw_cov = Matrix6d::Identity();
 
     // update SLAM variables for KF decision
+    // 更新前一个关键帧的位姿，以及前一个关键帧到当前关键帧的协方差矩阵
     T_prevKF = curr_frame->Tfw;
     cov_prevKF_currF = Matrix6d::Zero();
     prev_f_iskf = true;
