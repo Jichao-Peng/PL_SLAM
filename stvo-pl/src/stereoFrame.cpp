@@ -58,9 +58,10 @@ StereoFrame::~StereoFrame()
 
 void StereoFrame::extractStereoFeatures( double llength_th, int fast_th )
 {
-
+    //是否点线同时参与
     if( Config::plInParallel() )
     {
+        //异步操作
         auto detect_p = async(launch::async, &StereoFrame::detectStereoPoints,        this, fast_th );
         auto detect_l = async(launch::async, &StereoFrame::detectStereoLineSegments,  this, llength_th );
         detect_p.wait();
@@ -83,8 +84,10 @@ void StereoFrame::detectStereoPoints( int fast_th )
         return;
 
     // detect and estimate each descriptor for both the left and right image
+    // true if detecting and matching features in parallel
     if( Config::lrInParallel() )
     {
+        //左右图像都检测和估计特征点和描述子
         auto detect_l = async(launch::async, &StereoFrame::detectPointFeatures, this, img_l, ref(points_l), ref(pdesc_l), fast_th );
         auto detect_r = async(launch::async, &StereoFrame::detectPointFeatures, this, img_r, ref(points_r), ref(pdesc_r), fast_th );
         detect_l.wait();
@@ -97,6 +100,7 @@ void StereoFrame::detectStereoPoints( int fast_th )
     }
 
     // perform the stereo matching
+    // 提取了特征点并计算了其3D坐标stereo_pt
     matchStereoPoints(points_l, points_r, pdesc_l, pdesc_r, (frame_idx==0) );
 
 }
@@ -106,12 +110,25 @@ void StereoFrame::detectPointFeatures( Mat img, vector<KeyPoint> &points, Mat &p
     // Detect point features
     if( Config::hasPoints() )
     {
-        int fast_th_ = Config::orbFastTh();
+        int fast_th_ = Config::orbFastTh();//default : 20
         if( fast_th != 0 )
             fast_th_ = fast_th;
+        /*
+         #  ORB detector
+            orb_nfeatures    : 800
+            orb_scale_factor : 1.2
+            orb_nlevels      : 4
+            orb_edge_th      : 19
+            orb_wta_k        : 2            # was set to 4
+            orb_score        : 1            # 0 - HARRIS  |  1 - FAST
+            orb_patch_size   : 31
+            orb_fast_th      : 20           # default FAST threshold
+         */
+        //Ptr正常指针
         Ptr<ORB> orb = ORB::create( Config::orbNFeatures(), Config::orbScaleFactor(), Config::orbNLevels(),
                                     Config::orbEdgeTh(), 0, Config::orbWtaK(), Config::orbScore(),
                                     Config::orbPatchSize(), fast_th_ );
+        //检测orb关键点并计算描述子
         orb->detectAndCompute( img, Mat(), points, pdesc, false);
     }
 
@@ -122,13 +139,16 @@ void StereoFrame::matchStereoPoints( vector<KeyPoint> points_l, vector<KeyPoint>
 
     // Points stereo matching
     // --------------------------------------------------------------------------------------------------------------------
+    //清空特征点集
     stereo_pt.clear();
     if (!Config::hasPoints() || points_l.empty() || points_r.empty())
         return;
 
     std::vector<point_2d> coords;
+    //reserve预存那么多元素
     coords.reserve(points_l.size());
     for (const KeyPoint &kp : points_l)
+        //转换成grid单位，然后存入coord
         coords.push_back(std::make_pair(kp.pt.x * inv_width, kp.pt.y * inv_height));
 
     //Fill in grid
@@ -142,6 +162,7 @@ void StereoFrame::matchStereoPoints( vector<KeyPoint> points_l, vector<KeyPoint>
     w.width = std::make_pair(Config::matchingSWs(), 0);
     w.height = std::make_pair(0, 0);
 
+    
     std::vector<int> matches_12;
     matchGrid(coords, pdesc_l, grid, pdesc_r, w, matches_12);
 //    match(pdesc_l, pdesc_r, Config::minRatio12P(), matches_12);
@@ -150,20 +171,23 @@ void StereoFrame::matchStereoPoints( vector<KeyPoint> points_l, vector<KeyPoint>
     Mat pdesc_l_aux;
     int pt_idx = 0;
     for (int i1 = 0; i1 < matches_12.size(); ++i1) {
+        //获得右图像的对应特征序列号
         const int i2 = matches_12[i1];
         if (i2 < 0) continue;
 
-        // check stereo epipolar constraint
+        // check stereo epipolar constraint  双目极限约束，严格来说，两个y应该相等
         if (std::abs(points_l[i1].pt.y - points_r[i2].pt.y) <= Config::maxDistEpip()) {
             // check minimal disparity
             double disp_ = points_l[i1].pt.x - points_r[i2].pt.x;
             if (disp_ >= Config::minDisp()){
                 pdesc_l_aux.push_back(pdesc_l_.row(i1));
                 Vector2d pl_(points_l[i1].pt.x, points_l[i1].pt.y);
+                //获得3D点坐标
                 Vector3d P_ = cam->backProjection(pl_(0), pl_(1), disp_);
                 if (initial)
                     stereo_pt.push_back(new PointFeature(pl_, disp_, P_, pt_idx++, points_l[i1].octave));
                 else
+                    //放到点特征集里 像素坐标，视差，3D点，对应特征点的金字塔层级
                     stereo_pt.push_back(new PointFeature(pl_, disp_, P_, -1, points_l[i1].octave));
             }
         }
@@ -672,10 +696,14 @@ void StereoFrame::extractRGBDFeatures( double llength_th, int fast_th )
     // Feature detection and description
     vector<KeyPoint> points_l;
     vector<KeyLine>  lines_l;
+    //判断是否用点和线
     if(  Config::hasPoints() && Config::hasLines() )
     {
+        //是否点线同时参与
         if( Config::plInParallel() )
         {
+            //异步操作
+            //输入左图像和阈值，获得特征点和描述子
             auto detect_p = async(launch::async, &StereoFrame::detectPointFeatures, this, img_l, ref(points_l), ref(pdesc_l), fast_th );
             auto detect_l = async(launch::async, &StereoFrame::detectLineFeatures,  this, img_l, ref(lines_l), ref(ldesc_l), llength_th );
             detect_p.wait();

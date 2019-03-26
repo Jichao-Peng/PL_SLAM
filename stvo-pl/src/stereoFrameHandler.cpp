@@ -116,6 +116,7 @@ void StereoFrameHandler::f2fTracking()
     matched_pt.clear();
     matched_ls.clear();
 
+    //判断是否有点，有线，是否共同使用
     if( Config::plInParallel() && Config::hasPoints() && Config::hasLines() )
     {
         auto detect_p = async(launch::async, &StereoFrameHandler::matchF2FPoints, this );
@@ -150,13 +151,15 @@ void StereoFrameHandler::matchF2FPoints()
         return;
 
     std::vector<int> matches_12;
+    //min_ratio_12_p    : 0.75       # min. ratio between the first and second best matches
+    //特征点匹配 从上一帧到当前帧
     match(prev_frame->pdesc_l, curr_frame->pdesc_l, Config::minRatio12P(), matches_12);
 
     // bucle around pmatches
     for (int i1 = 0; i1 < matches_12.size(); ++i1) {
         const int i2 = matches_12[i1];
         if (i2 < 0) continue;
-
+        /*执行匹配过程，并更新内点*/
         prev_frame->stereo_pt[i1]->pl_obs = curr_frame->stereo_pt[i2]->pl;
         prev_frame->stereo_pt[i1]->inlier = true;
         matched_pt.push_back( prev_frame->stereo_pt[i1]->safeCopy() );
@@ -331,13 +334,15 @@ void StereoFrameHandler::optimizePose()
     Matrix6d DT_cov;
     double   err = numeric_limits<double>::max(), e_prev;
     err = -1.0;
-
+    
     // set init pose (depending on the use of prior information or not, and on the goodness of previous solution)
+    //用运动模型估算位姿
     if( Config::useMotionModel() )
     {
         DT     = prev_frame->DT;
         DT_cov = prev_frame->DT_cov;
         e_prev = prev_frame->err_norm;
+        //判断先验信息的好坏
         if( !isGoodSolution(DT,DT_cov,e_prev) )
             DT = Matrix4d::Identity();
     }
@@ -1162,6 +1167,7 @@ bool StereoFrameHandler::needNewKF()
 {
 
     // if the previous KF was a KF, update the entropy_first_prevKF value
+    // 如果上一帧是关键帧，那么更新熵值
     if( prev_f_iskf )
     {
         if( curr_frame->DT_cov.determinant() != 0.0 )
@@ -1180,7 +1186,9 @@ bool StereoFrameHandler::needNewKF()
     // check geometric distances from previous KF
     Matrix4d DT = inverse_se3( curr_frame->Tfw ) * T_prevKF;
     Vector6d dX = logmap_se3( DT );
+
     double t = dX.head(3).norm();
+    //转换成角度
     double r = dX.tail(3).norm() * 180.f / CV_PI;
 
     // check cumulated covariance from previous KF
@@ -1214,7 +1222,7 @@ bool StereoFrameHandler::needNewKF()
     }
 }
 
-//判断当前帧是否设为关键帧
+// update KF in StVO
 void StereoFrameHandler::currFrameIsKF()
 {
 

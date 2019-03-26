@@ -121,18 +121,26 @@ Matrix4d inverse_se3(Matrix4d T){
     return Tinv;
 }
 
+/*
+ 返回Se3
+ */
 Matrix4d expmap_se3(Vector6d x){
     Matrix3d R, V, s, I = Matrix3d::Identity();
     Vector3d t, w;
     Matrix4d T = Matrix4d::Identity();
+    //旋转向量
     w = x.tail(3);
+    //位移
     t = x.head(3);
     double theta = w.norm();
     if( theta < 0.000001 )
         R = I;
     else{
+        //skew把向量转为叉乘矩阵
         s = skew(w)/theta;
+        //罗德里格斯公式
         R = I + s * sin(theta) + s * s * (1.0f-cos(theta));
+        //Se3上J的运算
         V = I + s * (1.0f - cos(theta)) / theta + s * s * (theta - sin(theta)) / theta;
         t = V * t;
     }
@@ -172,6 +180,7 @@ Vector6d logmap_se3(Matrix4d T){
     return x;
 }
 
+//Block of size (p,q), starting at (i,j)	 matrix.block(i,j,p,q);
 Matrix6d adjoint_se3(Matrix4d T){
     Matrix6d AdjT = Matrix6d::Zero();
     Matrix3d R = T.block(0,0,3,3);

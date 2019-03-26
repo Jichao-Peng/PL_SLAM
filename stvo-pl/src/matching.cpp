@@ -44,12 +44,15 @@ int matchNNR(const cv::Mat &desc1, const cv::Mat &desc2, float nnr, std::vector<
     matches_12.resize(desc1.rows, -1);
 
     std::vector<std::vector<cv::DMatch>> matches_;
+    //①匹配描述子时，使用暴力匹配，Hamming距离；
     cv::Ptr<cv::BFMatcher> bfm = cv::BFMatcher::create(cv::NORM_HAMMING, false); // cross-check
+    // 对每一个pdesc_1，在pdesc_2中寻找最近的2个描述子
     bfm->knnMatch(desc1, desc2, matches_, 2);
 
     if (desc1.rows != matches_.size())
         throw std::runtime_error("[matchNNR] Different size for matches and descriptors!");
 
+    /*遍历匹配 pmatches_12，如果 pmatches_12 的询问点和  pmatches_21的训练点是一样的，并且 pmatches_12 的最佳匹配距离比次优匹配的距离大于Config::minRatio12P()，则认为这个点特征是内点，并把该点放到匹配点集 matched_pt中。*/
     for (int idx = 0; idx < desc1.rows; ++idx) {
         if (matches_[idx][0].distance < matches_[idx][1].distance * nnr) {
             matches_12[idx] = matches_[idx][0].trainIdx;
@@ -60,12 +63,16 @@ int matchNNR(const cv::Mat &desc1, const cv::Mat &desc2, float nnr, std::vector<
     return matches;
 }
 
+//nnr minRatio12P
 int match(const cv::Mat &desc1, const cv::Mat &desc2, float nnr, std::vector<int> &matches_12) {
 
+    //true if double-checking the matches between the two images
     if (Config::bestLRMatches()) {
         int matches;
         std::vector<int> matches_21;
+        //是否同时点线
         if (Config::lrInParallel()) {
+            /*std::ref 用于包装按引用传递的值。 std::cref 用于包装按const引用传递的值。*/
             auto match_12 = std::async(std::launch::async, &matchNNR,
                                   std::cref(desc1), std::cref(desc2), nnr, std::ref(matches_12));
             auto match_21 = std::async(std::launch::async, &matchNNR,
