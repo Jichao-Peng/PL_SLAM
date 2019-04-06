@@ -96,13 +96,13 @@ public:
     static double&  lsMinDispRatio()    { return getInstance().ls_min_disp_ratio; }
 
     // optimization
-    static double&  homogTh()           { return getInstance().homog_th; }
+    static double&  homogTh()           { return getInstance().homog_th; }  //1e-7        # avoid points in the infinite
     static int&     minFeatures()       { return getInstance().min_features; }
     static int&     maxIters()          { return getInstance().max_iters; }
     static int&     maxItersRef()       { return getInstance().max_iters_ref; } //最大迭代100次
     static double&  minError()          { return getInstance().min_error; }
     static double&  minErrorChange()    { return getInstance().min_error_change; }
-    static double&  inlierK()           { return getInstance().inlier_k; }
+    static double&  inlierK()           { return getInstance().inlier_k; }  //1.0
 
     // SLAM parameters (keyframe selection)
     double min_entropy_ratio;

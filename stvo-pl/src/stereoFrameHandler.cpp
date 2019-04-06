@@ -334,7 +334,7 @@ void StereoFrameHandler::optimizePose()
 
     // definitions
     Matrix4d DT, DT_;//DT_是没有移除外点时求得的位姿相对量
-    Matrix6d DT_cov;
+    Matrix6d DT_cov; //协方差矩阵就是海塞矩阵的逆
     double   err = numeric_limits<double>::max(), e_prev;
     err = -1.0;
     
@@ -360,6 +360,7 @@ void StereoFrameHandler::optimizePose()
     {
         // optimize
         DT_ = DT;
+        //P_ = Pc_current = DT * Pc_previous
         if( mode == 0 )      gaussNewtonOptimization(DT_,DT_cov,err,Config::maxIters());
         else if( mode == 1 ) gaussNewtonOptimizationRobust(DT_,DT_cov,err,Config::maxIters());
         else if( mode == 2 ) levenbergMarquardtOptimization(DT_,DT_cov,err,Config::maxIters());
@@ -369,6 +370,7 @@ void StereoFrameHandler::optimizePose()
         {
             removeOutliers(DT_);
             // refine without outliers
+            // 去除外点之后，再进行一次优化
             if( n_inliers >= Config::minFeatures() )
             {
                 if( mode == 0 )      gaussNewtonOptimization(DT,DT_cov,err,Config::maxItersRef());
@@ -398,10 +400,15 @@ void StereoFrameHandler::optimizePose()
     // set estimated pose
     if( isGoodSolution(DT,DT_cov,err) && DT != Matrix4d::Identity() )
     {
+        //expmap_se3(logmap_se3这里好像不是很有意义
+        //curr_frame->DT=Tk_k+1； Pc_previous=curr_frame->DT*Pc_current
         curr_frame->DT       = expmap_se3(logmap_se3( inverse_se3(DT) ));
+        //更新Tk_k+1的协方差矩阵
         curr_frame->DT_cov   = DT_cov;
         curr_frame->err_norm = err;
+        //更新Twc的协方差矩阵
         curr_frame->Tfw      = expmap_se3(logmap_se3( prev_frame->Tfw * curr_frame->DT ));
+        //更新Twc的协方差矩阵
         curr_frame->Tfw_cov  = unccomp_se3( prev_frame->Tfw, prev_frame->Tfw_cov, DT_cov );
         SelfAdjointEigenSolver<Matrix6d> eigensolver(DT_cov);
         curr_frame->DT_cov_eig = eigensolver.eigenvalues();
@@ -428,7 +435,9 @@ void StereoFrameHandler::gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov,
     for( iters = 0; iters < max_iters; iters++)
     {
         // estimate hessian and gradient (select)
-        //// 估计海森矩阵和梯度
+        // 估计海森矩阵和梯度
+        // 用的是扰动模型
+        //P_ = Pc_current = DT * Pc_previous
         optimizeFunctions( DT, H, g, err );
         if (err > err_prev) {
             if (iters > 0)
@@ -445,8 +454,10 @@ void StereoFrameHandler::gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov,
         // update step
         ColPivHouseholderQR<Matrix6d> solver(H);
         DT_inc = solver.solve(g);
+        // 右乘 这里求的DT_inc是Tk_k+1（也就是current->DT）的增量,不过这里的DT和current->DT互逆
         DT  << DT * inverse_se3( expmap_se3(DT_inc) );
         // if the parameter change is small stop
+        //1e-7        # min. error change to stop the optimization
         if( DT_inc.head(3).norm() < Config::minErrorChange() && DT_inc.tail(3).norm() < Config::minErrorChange()) {
             cout << "[StVO] Small optimization solution variance" << endl;
             break;
@@ -455,7 +466,7 @@ void StereoFrameHandler::gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov,
         err_prev = err;
     }
 
-    DT_cov = H.inverse();  //DT_cov = Matrix6d::Identity();
+    DT_cov = H.inverse();  //DT_cov = Matrix6d::Identity(); 协方差矩阵就是海塞矩阵的逆
     err_   = err;
 }
 
@@ -591,13 +602,17 @@ void StereoFrameHandler::optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &g
     // point features
     int N_p = 0;
 
+    //对上一帧的特征点进行遍历
     for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++)
     {
         if( (*it)->inlier )
         {
+            //P_ = Pc_current = DT * Pc_previous
             Vector3d P_ = DT.block(0,0,3,3) * (*it)->P + DT.col(3).head(3);
+            //h(Pc_current)
             Vector2d pl_proj = cam->projection( P_ );
-            // projection error
+            // projection error;
+            //h(Pc_current)-z
             Vector2d err_i    = pl_proj - (*it)->pl_obs;
             double err_i_norm = err_i.norm();
             // estimate variables for J, H, and g
@@ -605,7 +620,7 @@ void StereoFrameHandler::optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &g
             double gy   = P_(1);
             double gz   = P_(2);
             double gz2  = gz*gz;
-            double fgz2 = cam->getFx() / std::max(Config::homogTh(),gz2);
+            double fgz2 = cam->getFx() / std::max(Config::homogTh(),gz2);//fx fy 相等
             double dx   = err_i(0);
             double dy   = err_i(1);
             // jacobian
@@ -618,9 +633,10 @@ void StereoFrameHandler::optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &g
                      + fgz2 * ( gx*gz*dy - gy*gz*dx );
             J_aux = J_aux / std::max(Config::homogTh(),err_i_norm);
             // define the residue
-            double s2 = (*it)->sigma2;
+            double s2 = (*it)->sigma2;//s2=1
             double r = err_i_norm * sqrt(s2);
             // if employing robust cost function
+            //设置权重，残差越大，权重越小
             double w  = 1.0;
             w = robustWeightCauchy(r) ;
 
@@ -1025,6 +1041,7 @@ void StereoFrameHandler::removeOutliers(Matrix4d DT)
     if (Config::hasPoints()) {
         // point features
         vector<double> res_p;
+        //按照非线性优化的结果重新把每个特征点的投影误差计算一下
         res_p.reserve(matched_pt.size());
         int iter = 0;
         for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++, iter++)
@@ -1038,12 +1055,14 @@ void StereoFrameHandler::removeOutliers(Matrix4d DT)
         // estimate robust parameters
         double p_stdv, p_mean, inlier_th_p;
         vector_mean_stdv_mad( res_p, p_mean, p_stdv );
+        //default 1.0
         inlier_th_p = Config::inlierK() * p_stdv;
         //inlier_th_p = sqrt(7.815);
         //cout << endl << p_mean << " " << p_stdv << "\t" << inlier_th_p << endl;
         // filter outliers
         // 去除点特征集的外点
         iter = 0;
+        //一σ原则
         for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++, iter++)
         {
             if( (*it)->inlier && fabs(res_p[iter]-p_mean) > inlier_th_p )
