@@ -398,9 +398,7 @@ void StereoFrameHandler::optimizePose()
     // set estimated pose
     if( isGoodSolution(DT,DT_cov,err) && DT != Matrix4d::Identity() )
     {
-        curr_frame->DT       = expmap_se3(logmap_se3( inverse_se3( 
-            
-        ) ));
+        curr_frame->DT       = expmap_se3(logmap_se3( inverse_se3(DT) ));
         curr_frame->DT_cov   = DT_cov;
         curr_frame->err_norm = err;
         curr_frame->Tfw      = expmap_se3(logmap_se3( prev_frame->Tfw * curr_frame->DT ));
