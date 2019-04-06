@@ -1210,13 +1210,13 @@ bool StereoFrameHandler::needNewKF()
         ( curr_frame->DT_cov == Matrix6d::Zero() && curr_frame->DT == Matrix4d::Identity() ) ||
         t > Config::maxKFTDist() || r > Config::maxKFRDist() || N_prevKF_currF > 10 )
     {
-        cout << endl << "Entropy ratio: " << entropy_ratio   << "\t" << t << " " << r << " " << N_prevKF_currF << endl;
+//         cout << endl << "Entropy ratio: " << entropy_ratio   << "\t" << t << " " << r << " " << N_prevKF_currF << endl;
         return true;
     }
     else
     {
-        cout << endl << "No new KF needed: " << entropy_ratio << "\t" << entropy_curr << " " << entropy_first_prevKF
-             << " " << cov_prevKF_currF.determinant() << "\t" << t << " " << r << " " << N_prevKF_currF << endl << endl;
+//         cout << endl << "No new KF needed: " << entropy_ratio << "\t" << entropy_curr << " " << entropy_first_prevKF
+//              << " " << cov_prevKF_currF.determinant() << "\t" << t << " " << r << " " << N_prevKF_currF << endl << endl;
         N_prevKF_currF++;
         return false;
     }

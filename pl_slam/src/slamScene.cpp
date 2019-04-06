@@ -81,7 +81,7 @@ slamScene::slamScene(string configFile){
     sazim           = config.read_double("Scene","sazim",-135.f);
     sfrust          = config.read_double("Scene","sfrust",0.2f);
     slinef          = config.read_double("Scene","slinef",1.f);
-    win             = new CDisplayWindow3D("3D Scene",1920,1080);
+    win             = new CDisplayWindow3D("3D Scene",1280,800);
 
     hasText         = config.read_bool("Scene","hasText",true);
     hasAxes         = config.read_bool("Scene","hasAxes",true);
@@ -98,6 +98,7 @@ slamScene::slamScene(string configFile){
 
     Matrix4d x_cw;
     x_cw << 1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1;
+    //Matrix4d 转换成 CMatrixDouble
     CPose3D x_aux(getPoseFormat(x_cw));
     pose_ini = x_aux;
 
@@ -204,7 +205,8 @@ void slamScene::initViewports(int W, int H){
     setHelp();
     setLegend();
     image = theScene->createViewport("image");
-    image->setViewportPosition(20, 20, W/2, H/2);
+    //W H 设置图像窗口的宽度和高度
+    image->setViewportPosition(20, 20, W, H);
 
     // Re-paint the scene
     win->unlockAccess3DScene();

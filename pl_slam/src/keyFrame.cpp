@@ -60,9 +60,9 @@ KeyFrame::KeyFrame( const StereoFrame* sf, int kf_idx_ )
     T_kf_w    = sf->Tfw;
     x_kf_w    = logmap_se3( T_kf_w );
     xcov_kf_w = sf->Tfw_cov;
-    cout<<"1"<<endl;
+
     stereo_frame = new StereoFrame( sf->img_l, sf->img_r, kf_idx, sf->cam );
-    cout<<"2"<<endl;
+
     stereo_frame->pdesc_l   = sf->pdesc_l;
     stereo_frame->pdesc_r   = sf->pdesc_r;
     stereo_frame->ldesc_l   = sf->ldesc_l;

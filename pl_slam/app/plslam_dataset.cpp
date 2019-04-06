@@ -82,7 +82,7 @@ int main(int argc, char **argv)
     }
 
     // read dataset root dir fron environment variable
-    boost::filesystem::path dataset_path(string( "/home/zhijian/slam/dataSet/KITTI/color"));
+    boost::filesystem::path dataset_path(string( "/media/zhijian/文件/grow/slam/slamDataSet/KITTI/color"));
     
     if (!boost::filesystem::exists(dataset_path) || !boost::filesystem::is_directory(dataset_path)) {
         cout << "Check your DATASETS_DIR environment variable" << endl;
@@ -107,10 +107,13 @@ int main(int argc, char **argv)
     string scene_cfg_name;
     if( (dataset_name.find("kitti")!=std::string::npos) ||
         (dataset_name.find("malaga")!=std::string::npos)  )
+    {
         scene_cfg_name = "../config/scene_config.ini";
-    else
+    }
+    else{
+        //执行这一步
         scene_cfg_name = "../config/scene_config_indoor.ini";
-    
+    }
     //场景类
     slamScene scene(scene_cfg_name);
     Matrix4d Tcw, Tfw = Matrix4d::Identity();
@@ -150,17 +153,17 @@ int main(int argc, char **argv)
             StVO->insertStereoPair( img_l, img_r, frame_counter );
             StVO->optimizePose();
             double t1 = timer.stop(); //ms
-            cout << "------------------------------------------   Frame #" << frame_counter
-                 << "   ----------------------------------------" << endl;
-            cout << endl << "VO Runtime: " << t1 << endl;
+//             cout << "------------------------------------------   Frame #" << frame_counter
+//                  << "   ----------------------------------------" << endl;
+//             cout << endl << "VO Runtime: " << t1 << endl;
 
             // check if a new keyframe is needed
             if( StVO->needNewKF() )
             {
-                cout <<         "#KeyFrame:     " << map->max_kf_idx + 1;
-                cout << endl << "#Points:       " << map->map_points.size();
-                cout << endl << "#Segments:     " << map->map_lines.size();
-                cout << endl << endl;
+//                 cout <<         "#KeyFrame:     " << map->max_kf_idx + 1;
+//                 cout << endl << "#Points:       " << map->map_points.size();
+//                 cout << endl << "#Segments:     " << map->map_lines.size();
+//                 cout << endl << endl;
 
                 // grab StF and update KF in StVO (the StVO thread can continue after this point)
                 PLSLAM::KeyFrame* curr_kf = new PLSLAM::KeyFrame( StVO->curr_frame );
