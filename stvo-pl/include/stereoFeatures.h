@@ -47,7 +47,7 @@ public:
     PointFeature* safeCopy();
 
     int idx;                    //点特征索引
-    Vector2d pl, pl_obs;        //特征点的像素坐标系和观测到的像素坐标系
+    Vector2d pl, pl_obs;        //特征点在当前帧和在匹配帧的像素坐标
     double   disp;              //特征点的像素视差
     Vector3d P;                 //特征点的3D坐标
     bool inlier;                //是否为内点

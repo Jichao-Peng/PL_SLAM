@@ -44,7 +44,10 @@ StereoFrame::StereoFrame(const Mat img_l_, const Mat img_r_ , const int idx_, Pi
     if (img_l_.size != img_r_.size)
         throw std::runtime_error("[StereoFrame] Left and right images have different sizes");
 
+    //这里的cols和rows就是相机宽高的像素数目
+    //这里把像素单位转换为栅格单位（为了更快的找到左右图像对应的匹配点）
     inv_width  = GRID_COLS / static_cast<double>(img_l.cols);
+   //  cout<<"qiao: col:"<<img_l.cols<<" rows:"<<img_l.rows<<endl;
     inv_height = GRID_ROWS / static_cast<double>(img_l.rows);
 }
 
@@ -79,7 +82,7 @@ void StereoFrame::extractStereoFeatures( double llength_th, int fast_th )
 
 void StereoFrame::detectStereoPoints( int fast_th )
 {
-
+    //是否用点
     if( !Config::hasPoints() )
         return;
 
@@ -87,7 +90,8 @@ void StereoFrame::detectStereoPoints( int fast_th )
     // true if detecting and matching features in parallel
     if( Config::lrInParallel() )
     {
-        //左右图像都检测和估计特征点和描述子
+        //这一步的作用是检测关键点和提取描述子，分别放入左右图像的vector和mat里
+        //points_l，pdesc_l是该双目帧的成员变量，vector<KeyPoint>和Mat
         auto detect_l = async(launch::async, &StereoFrame::detectPointFeatures, this, img_l, ref(points_l), ref(pdesc_l), fast_th );
         auto detect_r = async(launch::async, &StereoFrame::detectPointFeatures, this, img_r, ref(points_r), ref(pdesc_r), fast_th );
         detect_l.wait();
@@ -100,7 +104,8 @@ void StereoFrame::detectStereoPoints( int fast_th )
     }
 
     // perform the stereo matching
-    // 提取了特征点并计算了其3D坐标stereo_pt
+    // 传入左右图像提取的特征，并会改变左图像的描述子
+    // 最终建立了该帧的特征点（2D坐标，3D坐标，金字塔层级，视差，索引）集合以及描述子矩阵。
     matchStereoPoints(points_l, points_r, pdesc_l, pdesc_r, (frame_idx==0) );
 
 }
@@ -129,6 +134,7 @@ void StereoFrame::detectPointFeatures( Mat img, vector<KeyPoint> &points, Mat &p
                                     Config::orbEdgeTh(), 0, Config::orbWtaK(), Config::orbScore(),
                                     Config::orbPatchSize(), fast_th_ );
         //检测orb关键点并计算描述子
+        //关键点的个数和描述子的行数一样多
         orb->detectAndCompute( img, Mat(), points, pdesc, false);
     }
 
@@ -139,30 +145,42 @@ void StereoFrame::matchStereoPoints( vector<KeyPoint> points_l, vector<KeyPoint>
 
     // Points stereo matching
     // --------------------------------------------------------------------------------------------------------------------
-    //清空特征点集
+    //清空双目的点特征集
     stereo_pt.clear();
     if (!Config::hasPoints() || points_l.empty() || points_r.empty())
         return;
-
+    
+    //typedef std::pair<int, int> point_2d;
+    //左图像的关键点在栅格坐标系中的坐标
     std::vector<point_2d> coords;
-    //reserve预存那么多元素
+    //reserve预存那么多元素，以左图像的关键点数为准
     coords.reserve(points_l.size());
     for (const KeyPoint &kp : points_l)
         //转换成grid单位，然后存入coord
+    {
+        //存入coords时，向下取整
         coords.push_back(std::make_pair(kp.pt.x * inv_width, kp.pt.y * inv_height));
-
-    //Fill in grid
+    }
+    
+    //把右图像关键点归类到栅格里，每个栅格存放着对应关键点们的序号
     GridStructure grid(GRID_ROWS, GRID_COLS);
+    //++idx 和 idx++没啥区别
     for (int idx = 0; idx < points_r.size(); ++idx) {
         const KeyPoint &kp = points_r[idx];
         grid.at(kp.pt.x * inv_width, kp.pt.y * inv_height).push_back(idx);
     }
 
+    /*
+     struct GridWindow {
+        std::pair<int, int> width, height;
+        };
+     */
     GridWindow w;
+    // 10
     w.width = std::make_pair(Config::matchingSWs(), 0);
     w.height = std::make_pair(0, 0);
 
-    
+    //match_12有左图像关键点个数那么多的元素，每个元素存着右图像对应关键点的索引，如果没有，则为-1
     std::vector<int> matches_12;
     matchGrid(coords, pdesc_l, grid, pdesc_r, w, matches_12);
 //    match(pdesc_l, pdesc_r, Config::minRatio12P(), matches_12);
@@ -177,22 +195,27 @@ void StereoFrame::matchStereoPoints( vector<KeyPoint> points_l, vector<KeyPoint>
 
         // check stereo epipolar constraint  双目极限约束，严格来说，两个y应该相等
         if (std::abs(points_l[i1].pt.y - points_r[i2].pt.y) <= Config::maxDistEpip()) {
-            // check minimal disparity
+            // check minimal disparity 像素视差
             double disp_ = points_l[i1].pt.x - points_r[i2].pt.x;
+            //默认值大于1
             if (disp_ >= Config::minDisp()){
                 pdesc_l_aux.push_back(pdesc_l_.row(i1));
                 Vector2d pl_(points_l[i1].pt.x, points_l[i1].pt.y);
-                //获得3D点坐标
+                //获得3D点坐标 相机坐标系下的
                 Vector3d P_ = cam->backProjection(pl_(0), pl_(1), disp_);
+                //更新双目的点特征集
+                //initial frame_idx==0
+                //如果是第一帧初始化，对每个特征点进行标号，如果不是就先作为-1，之后再选择？
                 if (initial)
+                    //放到点特征集里 像素坐标，视差，3D点，对应特征点的金字塔层级（int）
                     stereo_pt.push_back(new PointFeature(pl_, disp_, P_, pt_idx++, points_l[i1].octave));
                 else
-                    //放到点特征集里 像素坐标，视差，3D点，对应特征点的金字塔层级
                     stereo_pt.push_back(new PointFeature(pl_, disp_, P_, -1, points_l[i1].octave));
             }
         }
     }
 
+    //更新该帧的点描述子
     pdesc_l_ = pdesc_l_aux;
 }
 

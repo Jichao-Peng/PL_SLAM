@@ -359,6 +359,7 @@ double diffManifoldError(Matrix4d T1, Matrix4d T2){
     return ( logmap_se3(T1)-logmap_se3(T2) ).norm();
 }
 
+//all()返回所有逻辑值的并集
 bool is_finite(const MatrixXd x){
     return ((x - x).array() == (x - x).array()).all();
 }

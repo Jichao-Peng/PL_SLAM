@@ -58,7 +58,7 @@ PinholeStereoCamera::PinholeStereoCamera(const string &params_file) {
             vector<double> R_ = cam_config["R"].as<vector<double>>();
             vector<double> t_ = cam_config["t"].as<vector<double>>();
             R = Mat::eye(3,3,CV_64F);
-            t = Mat::eye(3,1,CV_64F);
+            t = Mat::eye(3,1,CV_64F);   // [1;0;0]
             int k = 0;
             for( int i = 0; i < 3; i++ )
             {

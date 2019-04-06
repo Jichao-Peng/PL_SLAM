@@ -46,13 +46,13 @@ public:
     static bool&    useFLDLines()       { return getInstance().use_fld_lines; }
     static bool&    lrInParallel()      { return getInstance().lr_in_parallel; }
     static bool&    plInParallel()      { return getInstance().pl_in_parallel; }
-    static bool&    bestLRMatches()     { return getInstance().best_lr_matches; }
+    static bool&    bestLRMatches()     { return getInstance().best_lr_matches; }//true if double-checking the matches between the two images
     static bool&    adaptativeFAST()    { return getInstance().adaptative_fast; }
     static bool&    useMotionModel()    { return getInstance().use_motion_model; }
 
     // points detection and matching
     static int&     matchingStrategy()  { return getInstance().matching_strategy; }
-    static int&     matchingSWs()       { return getInstance().matching_s_ws; }
+    static int&     matchingSWs()       { return getInstance().matching_s_ws; } //10
     static int&     matchingF2FWs()     { return getInstance().matching_f2f_ws; }
 
 
@@ -70,8 +70,8 @@ public:
     static int&     fastFeatTh()        { return getInstance().fast_feat_th; }
     static double&  fastErrTh()         { return getInstance().fast_err_th; }
     static double&  maxDistEpip()       { return getInstance().max_dist_epip; }
-    static double&  minDisp()           { return getInstance().min_disp; }
-    static double&  minRatio12P()       { return getInstance().min_ratio_12_p; }
+    static double&  minDisp()           { return getInstance().min_disp; } //1
+    static double&  minRatio12P()       { return getInstance().min_ratio_12_p; } //0.75
 
     static double&  rgbdMinDepth()      { return getInstance().rgbd_min_depth; }
     static double&  rgbdMaxDepth()      { return getInstance().rgbd_max_depth; }
@@ -88,7 +88,7 @@ public:
     static double&  lsdDensityTh()      { return getInstance().lsd_density_th; }
     static int&     lsdNBins()          { return getInstance().lsd_n_bins; }
     static double&  lineHorizTh()       { return getInstance().line_horiz_th; }
-    static double&  minLineLength()     { return getInstance().min_line_length; }
+    static double&  minLineLength()     { return getInstance().min_line_length; }//0.025
     static double&  minRatio12L()       { return getInstance().min_ratio_12_l; }
     static double&  stereoOverlapTh()   { return getInstance().stereo_overlap_th; }
     static double&  f2fOverlapTh()      { return getInstance().f2f_overlap_th; }
@@ -99,7 +99,7 @@ public:
     static double&  homogTh()           { return getInstance().homog_th; }
     static int&     minFeatures()       { return getInstance().min_features; }
     static int&     maxIters()          { return getInstance().max_iters; }
-    static int&     maxItersRef()       { return getInstance().max_iters_ref; }
+    static int&     maxItersRef()       { return getInstance().max_iters_ref; } //最大迭代100次
     static double&  minError()          { return getInstance().min_error; }
     static double&  minErrorChange()    { return getInstance().min_error_change; }
     static double&  inlierK()           { return getInstance().inlier_k; }

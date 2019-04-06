@@ -40,6 +40,8 @@ using namespace PLSLAM;
 void showHelp();
 bool getInputArgs(int argc, char **argv, std::string &dataset_name, int &frame_offset, int &frame_number, int &frame_step, std::string &config_file);
 
+#define NO_SECENE
+
 int main(int argc, char **argv)
 {
 
@@ -115,11 +117,16 @@ int main(int argc, char **argv)
         scene_cfg_name = "../config/scene_config_indoor.ini";
     }
     //场景类
-    slamScene scene(scene_cfg_name);
+    #ifndef NO_SECENE
+        slamScene scene(scene_cfg_name);
+    #endif
     Matrix4d Tcw, Tfw = Matrix4d::Identity();
     Tcw = Matrix4d::Identity();
-    scene.setStereoCalibration( cam_pin->getK(), cam_pin->getB() );
-    scene.initializeScene(Tfw);
+    
+    #ifndef NO_SECENE
+        scene.setStereoCalibration( cam_pin->getK(), cam_pin->getB() );
+        scene.initializeScene(Tfw);
+    #endif
 
     // create PLSLAM object
     PLSLAM::MapHandler* map = new PLSLAM::MapHandler(cam_pin);
@@ -139,17 +146,23 @@ int main(int argc, char **argv)
         {
             //双目的初始化
             StVO->initialize(img_l,img_r,0);
+            //第一帧肯定是关键帧
             PLSLAM::KeyFrame* kf = new PLSLAM::KeyFrame( StVO->prev_frame, 0 );
+            //地图初始化
             map->initialize( kf );
             // update scene
-            scene.initViewports( img_l.cols, img_r.rows );
-            scene.setImage(StVO->prev_frame->plotStereoFrame());
-            scene.updateSceneSafe( map );
+            #ifndef NO_SECENE
+                scene.initViewports( img_l.cols, img_r.rows );
+                //更新raw image
+                scene.setImage(StVO->prev_frame->plotStereoFrame());
+                scene.updateSceneSafe( map );
+            #endif
         }
         else // run
         {
             // PL-StVO
             timer.start();
+            //frame_counter>0
             StVO->insertStereoPair( img_l, img_r, frame_counter );
             StVO->optimizePose();
             double t1 = timer.stop(); //ms
@@ -171,14 +184,18 @@ int main(int argc, char **argv)
                 StVO->currFrameIsKF();
                 map->addKeyFrame( curr_kf );
                 // update scene
-                scene.setImage(StVO->curr_frame->plotStereoFrame());
-                scene.updateSceneSafe( map );
+                #ifndef NO_SECENE
+                    scene.setImage(StVO->curr_frame->plotStereoFrame());
+                    scene.updateSceneSafe( map );
+                #endif
             }
             else
             {
-                scene.setImage(StVO->curr_frame->plotStereoFrame());
-                scene.setPose( StVO->curr_frame->DT );
-                scene.updateScene();
+                #ifndef NO_SECENE
+                    scene.setImage(StVO->curr_frame->plotStereoFrame());
+                    scene.setPose( StVO->curr_frame->DT );
+                    scene.updateScene();
+                #endif
             }
 
             // update StVO
@@ -190,16 +207,22 @@ int main(int argc, char **argv)
 
     // finish SLAM
     map->finishSLAM();
-    scene.updateScene( map );
-
+    
+    #ifndef NO_SECENE
+        scene.updateScene( map );
+    #endif
     // perform GBA
     cout << endl << "Performing Global Bundle Adjustment..." ;
     map->globalBundleAdjustment();
     cout << " ... done." << endl;
-    scene.updateSceneGraphs( map );
+    #ifndef NO_SECENE
+        scene.updateSceneGraphs( map );
+    #endif
 
     // wait until the scene is closed
-    while( scene.isOpen() );
+    #ifndef NO_SECENE
+        while( scene.isOpen() );
+    #endif
 
     return 0;
 }

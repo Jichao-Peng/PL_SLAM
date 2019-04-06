@@ -77,8 +77,8 @@ public:
     Vector2d nonHomogeneous( Vector3d x);                                           //归一化坐标
 
     // Getters
-    inline const int getWidth()             const { return width; };
-    inline const int getHeight()            const { return height; };
+    inline const int getWidth()             const { return width; };    //kitti 1241
+    inline const int getHeight()            const { return height; };   //kitti 376
     inline const Matrix3d&    getK()        const { return K; };
     inline const double       getB()        const { return b; };
     inline const Matrix<double,5,1> getD()  const { return d; };

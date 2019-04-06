@@ -37,9 +37,9 @@ void StereoFrameHandler::initialize(const Mat img_l_, const Mat img_r_ , const i
 {
     // variables for adaptative thresholds
     orb_fast_th = Config::orbFastTh();//初始化orb_fast_th
-    llength_th  = Config::minLineLength() * std::min( cam->getWidth(), cam->getHeight() ) ; //
+    llength_th  = Config::minLineLength() * std::min( cam->getWidth(), cam->getHeight() ) ; // 确定直线的最短距离
     // define StereoFrame
-    //新建双目帧
+    //新建双目帧 左右图像，序列号，相机模型，然后建立像素和栅格的转换关系
     prev_frame = new StereoFrame( img_l_, img_r_, idx_, cam ); 
     //提取点特征和线特征
     prev_frame->extractStereoFeatures( llength_th, orb_fast_th );
@@ -55,7 +55,7 @@ void StereoFrameHandler::initialize(const Mat img_l_, const Mat img_r_ , const i
     N_prevKF_currF   = 0;
 }
 
-//创建当前帧以及帧间位姿跟踪
+//更新特征以及匹配关系l
 void StereoFrameHandler::insertStereoPair(const Mat img_l_, const Mat img_r_ , const int idx_)
 {
     //curr_frame.reset( new StereoFrame( img_l_, img_r_, idx_, cam ) );
@@ -108,11 +108,11 @@ void StereoFrameHandler::updateFrame()
 }
 
 /*  tracking methods  */
-//分为基于点特征的帧间跟踪和基于线特征的帧间跟踪。
+//更新matched_pt，内点数量，当前帧和上一帧的匹配关系和部分成员变量，如pl_obs，idx，inlier
 void StereoFrameHandler::f2fTracking()
 {
 
-    // feature matching
+    // feature matching 这个是值两帧之间的匹配，不是左右图像
     matched_pt.clear();
     matched_ls.clear();
 
@@ -152,17 +152,19 @@ void StereoFrameHandler::matchF2FPoints()
 
     std::vector<int> matches_12;
     //min_ratio_12_p    : 0.75       # min. ratio between the first and second best matches
-    //特征点匹配 从上一帧到当前帧
+    //获得 matches_12 上一帧所有特征点对应的当前帧的匹配点的索引集合
     match(prev_frame->pdesc_l, curr_frame->pdesc_l, Config::minRatio12P(), matches_12);
 
     // bucle around pmatches
     for (int i1 = 0; i1 < matches_12.size(); ++i1) {
+        //i2是当前帧对应上一帧i1的匹配特征的索引
         const int i2 = matches_12[i1];
-        if (i2 < 0) continue;
+        if (i2 < 0) continue;//i2=-1
         /*执行匹配过程，并更新内点*/
         prev_frame->stereo_pt[i1]->pl_obs = curr_frame->stereo_pt[i2]->pl;
         prev_frame->stereo_pt[i1]->inlier = true;
         matched_pt.push_back( prev_frame->stereo_pt[i1]->safeCopy() );
+        //以先前帧为标准，当前帧和上一帧的匹配点索引相同
         curr_frame->stereo_pt[i2]->idx = prev_frame->stereo_pt[i1]->idx; // prev idx
     }
 }
@@ -315,9 +317,10 @@ bool StereoFrameHandler::isGoodSolution( Matrix4d DT, Matrix6d DTcov, double err
     SelfAdjointEigenSolver<Matrix6d> eigensolver(DTcov);
     Vector6d DT_cov_eig = eigensolver.eigenvalues();
 
+    //特征值大于1或者小于0意味着什么？
     if( DT_cov_eig(0)<0.0 || DT_cov_eig(5)>1.0 || err < 0.0 || err > 1.0 || !is_finite(DT) )
     {
-        cout << endl << DT_cov_eig(0) << "\t" << DT_cov_eig(5) << "\t" << err << endl;
+       // cout << endl << DT_cov_eig(0) << "\t" << DT_cov_eig(5) << "\t" << err << endl;
         return false;
     }
 
@@ -330,13 +333,13 @@ void StereoFrameHandler::optimizePose()
 {
 
     // definitions
-    Matrix4d DT, DT_;
+    Matrix4d DT, DT_;//DT_是没有移除外点时求得的位姿相对量
     Matrix6d DT_cov;
     double   err = numeric_limits<double>::max(), e_prev;
     err = -1.0;
     
     // set init pose (depending on the use of prior information or not, and on the goodness of previous solution)
-    //用运动模型估算位姿
+    //用恒速运动模型估算位姿
     if( Config::useMotionModel() )
     {
         DT     = prev_frame->DT;
@@ -395,7 +398,9 @@ void StereoFrameHandler::optimizePose()
     // set estimated pose
     if( isGoodSolution(DT,DT_cov,err) && DT != Matrix4d::Identity() )
     {
-        curr_frame->DT       = expmap_se3(logmap_se3( inverse_se3( DT ) ));
+        curr_frame->DT       = expmap_se3(logmap_se3( inverse_se3( 
+            
+        ) ));
         curr_frame->DT_cov   = DT_cov;
         curr_frame->err_norm = err;
         curr_frame->Tfw      = expmap_se3(logmap_se3( prev_frame->Tfw * curr_frame->DT ));
@@ -418,7 +423,7 @@ void StereoFrameHandler::optimizePose()
 void StereoFrameHandler::gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov, double &err_, int max_iters)
 {
     Matrix6d H;
-    Vector6d g, DT_inc;
+    Vector6d g, DT_inc;//DT_inc是Hx=g的解
     double err, err_prev = 999999999.9;
 
     int iters;
@@ -430,7 +435,8 @@ void StereoFrameHandler::gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov,
         if (err > err_prev) {
             if (iters > 0)
                 break;
-            err_ = -1.0;
+            cout<<"never"<<endl;
+            err_ = -1.0;//这句可能进行到？
             return;
         }
         // if the difference is very small stop

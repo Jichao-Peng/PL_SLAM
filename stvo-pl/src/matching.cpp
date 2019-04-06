@@ -64,6 +64,7 @@ int matchNNR(const cv::Mat &desc1, const cv::Mat &desc2, float nnr, std::vector<
 }
 
 //nnr minRatio12P
+//传入 上一帧，当前帧的描述子矩阵，参数，结果
 int match(const cv::Mat &desc1, const cv::Mat &desc2, float nnr, std::vector<int> &matches_12) {
 
     //true if double-checking the matches between the two images
@@ -115,47 +116,59 @@ int distance(const cv::Mat &a, const cv::Mat &b) {
     return dist;
 }
 
+//matchGrid(coords, pdesc_l, grid, pdesc_r, w, matches_12);
+//此时左图像是栅格坐标点，右图像是每个栅格有哪些关键点
 int matchGrid(const std::vector<point_2d> &points1, const cv::Mat &desc1, const GridStructure &grid, const cv::Mat &desc2, const GridWindow &w, std::vector<int> &matches_12) {
 
     if (points1.size() != desc1.rows)
         throw std::runtime_error("[matchGrid] Each point needs a corresponding descriptor!");
 
     int matches = 0;
+    // 有描述子的行数那么多//关键点的个数和描述子的行数一样多，默认每个都是-1
     matches_12.resize(desc1.rows, -1);
 
     int best_d, best_d2, best_idx;
+    //图像2（右图像）的匹配向量
     std::vector<int> matches_21, distances;
 
     if (Config::bestLRMatches()) {
+        //默认值-1代表无匹配点
         matches_21.resize(desc2.rows, -1);
+        //默认无穷远（int最大值）
         distances.resize(desc2.rows, std::numeric_limits<int>::max());
     }
 
     for (int i1 = 0; i1 < points1.size(); ++i1) {
 
+        //最短距离和倒数第二短的距离
         best_d = std::numeric_limits<int>::max();
         best_d2 = std::numeric_limits<int>::max();
         best_idx = -1;
 
+        //对于第i1个左关键点（栅格坐标）
+        //points1就是之前算好的coords序列
         const std::pair<int, int> &coords = points1[i1];
         cv::Mat desc = desc1.row(i1);
 
+        //取对应的右图像的栅格的关键点
         std::unordered_set<int> candidates;
         grid.get(coords.first, coords.second, w, candidates);
 
         if (candidates.empty()) continue;
         for (const int &i2 : candidates) {
             if (i2 < 0 || i2 >= desc2.rows) continue;
-
+            //计算描述子距离
             const int d = distance(desc, desc2.row(i2));
 
             if (Config::bestLRMatches()) {
                 if (d < distances[i2]) {
                     distances[i2] = d;
+                    //matches_21中第i2个右关键点对应左图像的第i1个关键点
                     matches_21[i2] = i1;
                 } else continue;
             }
 
+            //更新best_d best_d2
             if (d < best_d) {
                 best_d2 = best_d;
                 best_d = d;
@@ -164,12 +177,14 @@ int matchGrid(const std::vector<point_2d> &points1, const cv::Mat &desc1, const 
                 best_d2 = d;
         }
 
+        //最短的比第二短的0.75还短，那更新左图像第i1个特征点对应的匹配点
         if (best_d < best_d2 * Config::minRatio12P()) {
             matches_12[i1] = best_idx;
             matches++;
         }
     }
 
+    //最后对匹配结果进行遍历，如果不互为最有匹配，则放弃。  从算法来看，存在不互为匹配的情况？？？
     if (Config::bestLRMatches()) {
         for (int i1 = 0; i1 < matches_12.size(); ++i1) {
             int &i2 = matches_12[i1];
@@ -180,6 +195,7 @@ int matchGrid(const std::vector<point_2d> &points1, const cv::Mat &desc1, const 
         }
     }
 
+    //匹配点个数
     return matches;
 }
 
