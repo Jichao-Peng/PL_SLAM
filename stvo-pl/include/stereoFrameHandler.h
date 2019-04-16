@@ -68,7 +68,8 @@ public:
 
     //list< boost::shared_ptr<PointFeature> > matched_pt;
     //list< boost::shared_ptr<LineFeature>  > matched_ls;
-    list< PointFeature* > matched_pt;   //匹配的特征点集合
+
+    list< PointFeature* > matched_pt;   //匹配的特征点集合 
     list< LineFeature*  > matched_ls;   //匹配的线特征集合
 
     StereoFrame* prev_frame;            //前一帧
@@ -89,6 +90,8 @@ public:
 private:
 
     void prefilterOutliers( Matrix4d DT );
+    // good point features selection
+    void gfPointSeclet(Matrix4d DT);
     void removeOutliers( Matrix4d DT );
     void gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov, double &err_, int max_iters);
     void gaussNewtonOptimizationRobust(Matrix4d &DT, Matrix6d &DT_cov, double &err_, int max_iters);

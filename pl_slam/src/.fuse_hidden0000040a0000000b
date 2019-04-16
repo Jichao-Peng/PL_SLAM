@@ -119,7 +119,6 @@ void MapHandler::addKeyFrame( KeyFrame *curr_kf )
 {
     Timer timer;
 
-    
     this->prev_kf = this->curr_kf;
     this->curr_kf = curr_kf;
 
@@ -162,13 +161,11 @@ void MapHandler::addKeyFrame( KeyFrame *curr_kf )
 
     // expand graphs
     timer.start();
-    //full graph(int) confusion matrix(float)两个图，都延展一下
     expandGraphs();
     time(0) = timer.stop(); //ms
 
     // select previous keyframe
     KeyFrame* prev_kf;
-    //获得map_keyframes 末尾的引用
     prev_kf = map_keyframes.back();
     max_kf_idx++;
     curr_kf->kf_idx = max_kf_idx;

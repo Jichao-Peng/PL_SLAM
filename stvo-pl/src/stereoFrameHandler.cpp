@@ -61,7 +61,7 @@ void StereoFrameHandler::insertStereoPair(const Mat img_l_, const Mat img_r_ , c
     //curr_frame.reset( new StereoFrame( img_l_, img_r_, idx_, cam ) );
     curr_frame =  new StereoFrame( img_l_, img_r_, idx_, cam );
     curr_frame->extractStereoFeatures( llength_th, orb_fast_th ); //提取特征
-    f2fTracking(); //帧间跟踪
+    f2fTracking(); //帧间跟踪 （并不计算位姿，只是建立匹配关系）
 }
 
 //更新orb_fast_th，将当前帧作为上一帧，清除当前帧
@@ -138,7 +138,7 @@ void StereoFrameHandler::f2fTracking()
 ①匹配描述子时，使用暴力匹配，Hamming距离；
 ②分别计算前一帧到当前帧的匹配 pmatches_12，和当前帧到前一帧的匹配 pmatches_21；
 ③把以上两种匹配距离都以描述子距离从小到大的的方式排序；
-④然后，遍历匹配 pmatches_12，如果 pmatches_12 的询问点和  pmatches_21的训练点是一样的，并且 pmatches_12 的最佳匹配距离比次优匹配的距离大于Config::minRatio12P()，则认为这个点特征是内点，并把该点放到匹配点集 matched_pt中。
+④然后，遍历匹配 pmatches_12，如果 pmatches_12 的询问点和  pmatches_21的训练点是一样的，并且 pmatches_12 的最佳匹配距离比次优匹配的距离的Config::minRatio12P()还小，则认为这个点特征是内点，并把该点放到匹配点集 matched_pt中。
 当然，用不用这种互匹配方式来选择内点，可以根据参数 Config::bestLRMatches() 来选择。
  */
 void StereoFrameHandler::matchF2FPoints()
@@ -153,6 +153,7 @@ void StereoFrameHandler::matchF2FPoints()
     std::vector<int> matches_12;
     //min_ratio_12_p    : 0.75       # min. ratio between the first and second best matches
     //获得 matches_12 上一帧所有特征点对应的当前帧的匹配点的索引集合
+    ////不用坐标信息吗？还是已经包含了坐标信息
     match(prev_frame->pdesc_l, curr_frame->pdesc_l, Config::minRatio12P(), matches_12);
 
     // bucle around pmatches
@@ -183,6 +184,7 @@ void StereoFrameHandler::matchF2FLines()
         return;
 
     std::vector<int> matches_12;
+    //不用坐标信息吗？还是已经包含了坐标信息
     match(prev_frame->ldesc_l, curr_frame->ldesc_l, Config::minRatio12L(), matches_12);
 
     // bucle around pmatches
@@ -369,6 +371,7 @@ void StereoFrameHandler::optimizePose()
         if( isGoodSolution(DT_,DT_cov,err) )
         {
             removeOutliers(DT_);
+            
             // refine without outliers
             // 去除外点之后，再进行一次优化
             if( n_inliers >= Config::minFeatures() )
@@ -624,6 +627,7 @@ void StereoFrameHandler::optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &g
             double dx   = err_i(0);
             double dy   = err_i(1);
             // jacobian
+            //转变成了一维的雅克比矩阵
             Vector6d J_aux;
             J_aux << + fgz2 * dx * gz,
                      + fgz2 * dy * gz,
@@ -654,10 +658,12 @@ void StereoFrameHandler::optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &g
 
     // line segment features
     int N_l = 0;
+    //matched_ls 存储的是上一帧的线特征
     for( auto it = matched_ls.begin(); it!=matched_ls.end(); it++)
     {
         if( (*it)->inlier )
         {
+            //
             Vector3d sP_ = DT.block(0,0,3,3) * (*it)->sP + DT.col(3).head(3);
             Vector2d spl_proj = cam->projection( sP_ );
             Vector3d eP_ = DT.block(0,0,3,3) * (*it)->eP + DT.col(3).head(3);
@@ -665,6 +671,7 @@ void StereoFrameHandler::optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &g
             Vector3d l_obs = (*it)->le_obs;
             // projection error
             Vector2d err_i;
+            //计算点线距离误差
             err_i(0) = l_obs(0) * spl_proj(0) + l_obs(1) * spl_proj(1) + l_obs(2);
             err_i(1) = l_obs(0) * epl_proj(0) + l_obs(1) * epl_proj(1) + l_obs(2);
             double err_i_norm = err_i.norm();
@@ -699,6 +706,7 @@ void StereoFrameHandler::optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &g
                       - fgz2 * ( gx*gy*lx + gy*gy*ly + gz*gz*ly ),
                       + fgz2 * ( gx*gx*lx + gz*gz*lx + gx*gy*ly ),
                       + fgz2 * ( gx*gz*ly - gy*gz*lx );
+            //综合两个雅克比矩阵
             // jacobian
             J_aux = ( Js_aux * ds + Je_aux * de ) / std::max(Config::homogTh(),err_i_norm);
 
@@ -1114,9 +1122,42 @@ void StereoFrameHandler::removeOutliers(Matrix4d DT)
             }
         }
     }
+    
+        cout<<"qiao"<<n_inliers_pt<<" line "<<n_inliers_ls<<endl;
 
     if (n_inliers != (n_inliers_pt + n_inliers_ls))
         throw runtime_error("[StVO; stereoFrameHandler] Assetion failed: n_inliers != (n_inliers_pt + n_inliers_ls)");
+}
+
+void StereoFrameHandler::gfPointSeclet(Matrix4d DT)
+{
+    if (Config::hasPoints()) {
+        // point features
+        vector<double> res_p;
+
+        res_p.reserve(matched_pt.size());
+        int iter = 0;
+        for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++, iter++)
+        {
+            // projection error
+            Vector3d P_ = DT.block(0,0,3,3) * (*it)->P + DT.col(3).head(3);     
+            Vector2d pl_proj = cam->projection( P_ );                          
+            res_p.push_back( ( pl_proj - (*it)->pl_obs ).norm() * sqrt((*it)->sigma2) );    
+        }
+
+        iter = 0;
+        //一σ原则
+        for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++, iter++)
+        {
+            if( (*it)->inlier && fabs(0) > 1.0 )
+            {
+                (*it)->inlier = false;
+                n_inliers--;
+                n_inliers_pt--;
+            }
+        }
+    }    
+    
 }
 
 void StereoFrameHandler::prefilterOutliers(Matrix4d DT)
@@ -1190,7 +1231,7 @@ bool StereoFrameHandler::needNewKF()
 {
 
     // if the previous KF was a KF, update the entropy_first_prevKF value
-    // 如果上一帧是关键帧，那么更新熵值
+    // 如果上一帧是关键帧，那么更新熵值 计算h(i,i+1)的熵值，参见论文
     if( prev_f_iskf )
     {
         if( curr_frame->DT_cov.determinant() != 0.0 )
@@ -1203,10 +1244,10 @@ bool StereoFrameHandler::needNewKF()
             entropy_first_prevKF = -999999999.99;
             prev_f_iskf = false;
         }
-
     }
 
     // check geometric distances from previous KF
+    //DT是T_prevKF_curr 和类里的DT不同
     Matrix4d DT = inverse_se3( curr_frame->Tfw ) * T_prevKF;
     Vector6d dX = logmap_se3( DT );
 
@@ -1215,8 +1256,11 @@ bool StereoFrameHandler::needNewKF()
     double r = dX.tail(3).norm() * 180.f / CV_PI;
 
     // check cumulated covariance from previous KF
+    //求上一个关键帧的伴随
     Matrix6d adjTprevkf = adjoint_se3( T_prevKF );
+    //？？？不是很懂，用DT的逆的伴随去更新协方差
     Matrix6d covDTinv   = uncTinv_se3( curr_frame->DT, curr_frame->DT_cov );
+    //这个量原来是累加得到的，一直累加到满足条件为止，别处有复位（currFrameIsKF()）
     cov_prevKF_currF += adjTprevkf * covDTinv * adjTprevkf.transpose();
     //将代表不确定性的协方差转化为一个标量，称之为entropy
     double entropy_curr  = 3.0*(1.0+log(2.0*acos(-1))) + 0.5*log( cov_prevKF_currF.determinant() );
@@ -1272,7 +1316,7 @@ void StereoFrameHandler::currFrameIsKF()
 
     // update SLAM variables for KF decision
     // 更新前一个关键帧的位姿，以及前一个关键帧到当前关键帧的协方差矩阵
-    T_prevKF = curr_frame->Tfw;
+    T_prevKF = curr_frame->Tfw; //这里岂不是一直是单位矩阵了？？？有没有问题
     cov_prevKF_currF = Matrix6d::Zero();
     prev_f_iskf = true;
     N_prevKF_currF = 0;

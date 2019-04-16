@@ -34,11 +34,14 @@ namespace StVO {
 LineIterator::LineIterator(const double x1_, const double y1_, const double x2_, const double y2_)
     : x1(x1_), y1(y1_), x2(x2_), y2(y2_), steep(std::abs(y2_ - y1_) > std::abs(x2_ - x1_)) {
 
+    //steep 是成员变量，如果δy大于δx，说明很陡峭，steep为1
     if (steep) {
+        //交换x1和y1的值
         std::swap(x1, y1);
         std::swap(x2, y2);
     }
 
+    //使起点是在终点“前面”的
     if(x1 > x2) {
         std::swap(x1, x2);
         std::swap(y1, y2);
@@ -48,8 +51,10 @@ LineIterator::LineIterator(const double x1_, const double y1_, const double x2_,
     dy = std::abs(y2 - y1);
 
     error = dx / 2.0;
+    //如果y1小于y2，ystep为1
     ystep = (y1 < y2) ? 1 : -1;
 
+    //向下取整
     x = static_cast<int>(x1);
     y = static_cast<int>(y1);
 

@@ -37,6 +37,7 @@ KeyFrame::KeyFrame( const StereoFrame* sf )
     T_kf_w    = sf->Tfw ;
     xcov_kf_w = sf->Tfw_cov;
 
+    //这里并没有直接使用指针赋值，而是把内容复制了一遍
     stereo_frame = new StereoFrame( sf->img_l, sf->img_r, kf_idx, sf->cam );
     stereo_frame->pdesc_l   = sf->pdesc_l;
     stereo_frame->pdesc_r   = sf->pdesc_r;

@@ -65,6 +65,11 @@ public:
     int       f_idx;
     string    img_name;
 
+    /*
+    x_kf_w    = logmap_se3( T_kf_w );
+    T_kf_w    = sf->Tfw ;
+    xcov_kf_w = sf->Tfw_cov;
+    */
     int      kf_idx;
     Matrix4d T_kf_w;
     Vector6d x_kf_w;
@@ -72,6 +77,7 @@ public:
 
     DBoW2::BowVector descDBoW_P, descDBoW_L;
 
+    //这里并没有直接使用指针赋值，而是把内容复制了一遍
     StVO::StereoFrame* stereo_frame;
 
 

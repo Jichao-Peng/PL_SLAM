@@ -78,7 +78,7 @@ public:
 
 
     // lines detection and matching
-    static int&     lsdNFeatures()      { return getInstance().lsd_nfeatures; }
+    static int&     lsdNFeatures()      { return getInstance().lsd_nfeatures; }//# default 100;set to 0 if keeping all lines
     static int&     lsdRefine()         { return getInstance().lsd_refine; }
     static double&  lsdScale()          { return getInstance().lsd_scale; }
     static double&  lsdSigmaScale()     { return getInstance().lsd_sigma_scale; }

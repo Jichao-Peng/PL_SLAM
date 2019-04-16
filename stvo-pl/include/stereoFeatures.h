@@ -49,7 +49,7 @@ public:
     int idx;                    //点特征索引
     Vector2d pl, pl_obs;        //特征点在当前帧和在匹配帧的像素坐标
     double   disp;              //特征点的像素视差
-    Vector3d P;                 //特征点的3D坐标
+    Vector3d P;                 //特征点的3D坐标 相机坐标系下的
     bool inlier;                //是否为内点
     int level;
     double sigma2 = 1.0;
@@ -105,10 +105,10 @@ public:
     LineFeature* safeCopy();
 
     int idx;
-    Vector2d spl,epl, spl_obs, epl_obs;
+    Vector2d spl,epl, spl_obs, epl_obs;//端点坐标和匹配帧看到的端点坐标
     double   sdisp, edisp, angle, sdisp_obs, edisp_obs;
     Vector3d sP,eP;
-    Vector3d le, le_obs;
+    Vector3d le, le_obs;//线段参数
     bool inlier;
 
     int level;

@@ -242,6 +242,7 @@ void StereoFrame::detectStereoLineSegments(double llength_th)
     }
     else
     {
+        //更新了左右图像的lines_l和ldesc_l
         detectLineFeatures( img_l, lines_l, ldesc_l, llength_th );
         detectLineFeatures( img_r, lines_r, ldesc_r, llength_th );
     }
@@ -256,16 +257,19 @@ void StereoFrame::detectLineFeatures( Mat img, vector<KeyLine> &lines, Mat &ldes
 
     // Detect line features
     lines.clear();
+    //创建二进制描述子LBD
     Ptr<BinaryDescriptor>   lbd = BinaryDescriptor::createBinaryDescriptor();
     if( Config::hasLines() )
     {
-
+        //true if using FLD detector flast line detector
+        //这句if不执行
         if( !Config::useFLDLines() )
         {
+            //创建LSD
             Ptr<line_descriptor::LSDDetectorC> lsd = line_descriptor::LSDDetectorC::createLSDDetectorC();
             // lsd parameters
             line_descriptor::LSDDetectorC::LSDOptions opts;
-            opts.refine       = Config::lsdRefine();
+            opts.refine       = Config::lsdRefine();   
             opts.scale        = Config::lsdScale();
             opts.sigma_scale  = Config::lsdSigmaScale();
             opts.quant        = Config::lsdQuant();
@@ -274,11 +278,12 @@ void StereoFrame::detectLineFeatures( Mat img, vector<KeyLine> &lines, Mat &ldes
             opts.density_th   = Config::lsdDensityTh();
             opts.n_bins       = Config::lsdNBins();
             opts.min_length   = min_line_length;
+            //lines 左右图像的vector<KeyLine> scale 1.2 1：金字塔
             lsd->detect( img, lines, Config::lsdScale(), 1, opts);
-            // filter lines
+            // filter lines 如果提取总数大于阈值（100），则从中提取100个线特征
             if( lines.size()>Config::lsdNFeatures() && Config::lsdNFeatures()!=0  )
             {
-                // sort lines by their response
+                // sort lines by their response KeyLine.response
                 sort( lines.begin(), lines.end(), sort_lines_by_response() );
                 //sort( lines.begin(), lines.end(), sort_lines_by_length() );
                 lines.resize(Config::lsdNFeatures());
@@ -286,13 +291,16 @@ void StereoFrame::detectLineFeatures( Mat img, vector<KeyLine> &lines, Mat &ldes
                 for( int i = 0; i < Config::lsdNFeatures(); i++  )
                     lines[i].class_id = i;
             }
+            //计算LSB描述子
             lbd->compute( img, lines, ldesc);
         }
         else
         {
             Mat fld_img, img_gray;
+            //typedef Vec<float, 4> Vec4f;
             vector<Vec4f> fld_lines;
 
+            //转成灰度图，再转成fld图
             if( img.channels() != 1 )
             {
                 cv::cvtColor( img, img_gray, CV_RGB2GRAY );
@@ -301,10 +309,11 @@ void StereoFrame::detectLineFeatures( Mat img, vector<KeyLine> &lines, Mat &ldes
             else
                 img.convertTo( fld_img, CV_8UC1 );
 
+            //设置直线最小长度，用fld提取线段
             Ptr<cv::ximgproc::FastLineDetector> fld = cv::ximgproc::createFastLineDetector(min_line_length);
             fld->detect( fld_img, fld_lines );
 
-            // filter lines
+            // 如果线段过多，则用长度挑选出其中前100个
             if( fld_lines.size()>Config::lsdNFeatures() && Config::lsdNFeatures()!=0  )
             {
                 // sort lines by their response
@@ -320,25 +329,35 @@ void StereoFrame::detectLineFeatures( Mat img, vector<KeyLine> &lines, Mat &ldes
                 double octaveScale = 1.f;
                 int    octaveIdx   = 0;
 
+                //计算起点和终点
                 kl.startPointX     = fld_lines[i][0] * octaveScale;
                 kl.startPointY     = fld_lines[i][1] * octaveScale;
                 kl.endPointX       = fld_lines[i][2] * octaveScale;
                 kl.endPointY       = fld_lines[i][3] * octaveScale;
 
+                //计算金字塔里的起点和终点
                 kl.sPointInOctaveX = fld_lines[i][0];
                 kl.sPointInOctaveY = fld_lines[i][1];
                 kl.ePointInOctaveX = fld_lines[i][2];
                 kl.ePointInOctaveY = fld_lines[i][3];
 
+                //计算金字塔里的线长
                 kl.lineLength = (float) sqrt( pow( fld_lines[i][0] - fld_lines[i][2], 2 ) + pow( fld_lines[i][1] - fld_lines[i][3], 2 ) );
 
+                //线的方向角度
                 kl.angle    = atan2( ( kl.endPointY - kl.startPointY ), ( kl.endPointX - kl.startPointX ) );
+                //id
                 kl.class_id = i;
+                //金字塔
                 kl.octave   = octaveIdx;
+                //占用面积
                 kl.size     = ( kl.endPointX - kl.startPointX ) * ( kl.endPointY - kl.startPointY );
+                //中点
                 kl.pt       = Point2f( ( kl.endPointX + kl.startPointX ) / 2, ( kl.endPointY + kl.startPointY ) / 2 );
 
+                //线的响应，相应越大越不平行或垂直
                 kl.response = kl.lineLength / max( fld_img.cols, fld_img.rows );
+                //计算包含的像素
                 cv::LineIterator li( fld_img, Point2f( fld_lines[i][0], fld_lines[i][1] ), Point2f( fld_lines[i][2], fld_lines[i][3] ) );
                 kl.numOfPixels = li.count;
 
@@ -362,6 +381,7 @@ void StereoFrame::matchStereoLines( vector<KeyLine> lines_l, vector<KeyLine> lin
     if (!Config::hasLines() || lines_l.empty() || lines_r.empty())
         return;
 
+    //转换成栅格单位的线
     std::vector<line_2d> coords;
     coords.reserve(lines_l.size());
     for (const KeyLine &kl : lines_l)
@@ -376,10 +396,13 @@ void StereoFrame::matchStereoLines( vector<KeyLine> lines_l, vector<KeyLine> lin
         const KeyLine &kl = lines_r[idx];
 
         std::pair<double, double> &v = directions[idx];
+        //转为向量
         v = std::make_pair((kl.endPointX - kl.startPointX) * inv_width, (kl.endPointY - kl.startPointY) * inv_height);
+        //归一化向量
         normalize(v);
-
+        //得到line_coords，线上每一个点的栅格坐标
         getLineCoords(kl.startPointX * inv_width, kl.startPointY * inv_height, kl.endPointX * inv_width, kl.endPointY * inv_height, line_coords);
+        //给线占用的栅格里标记上该线的id
         for (const std::pair<int, int> &p : line_coords)
             grid.at(p.first, p.second).push_back(idx);
     }
@@ -388,6 +411,7 @@ void StereoFrame::matchStereoLines( vector<KeyLine> lines_l, vector<KeyLine> lin
     w.width = std::make_pair(Config::matchingSWs(), 0);
     w.height = std::make_pair(0, 0);
 
+    //匹配线段，得到匹配结果matches_12，总数是左图线特征数量，是右图到左图的匹配，依次存储的是对应右图匹配线特征的id
     std::vector<int> matches_12;
     matchGrid(coords, ldesc_l, grid, ldesc_r, directions, w, matches_12);
 //    match(ldesc_l, ldesc_r, Config::minRatio12P(), matches_12);
@@ -402,13 +426,14 @@ void StereoFrame::matchStereoLines( vector<KeyLine> lines_l, vector<KeyLine> lin
         // estimate the disparity of the endpoints
         Vector3d sp_l; sp_l << lines_l[i1].startPointX, lines_l[i1].startPointY, 1.0;
         Vector3d ep_l; ep_l << lines_l[i1].endPointX,   lines_l[i1].endPointY,   1.0;
-        Vector3d le_l; le_l << sp_l.cross(ep_l); le_l = le_l / std::sqrt( le_l(0)*le_l(0) + le_l(1)*le_l(1) );
+        Vector3d le_l; le_l << sp_l.cross(ep_l); le_l = le_l / std::sqrt( le_l(0)*le_l(0) + le_l(1)*le_l(1) );//计算线段参数
         Vector3d sp_r; sp_r << lines_r[i2].startPointX, lines_r[i2].startPointY, 1.0;
         Vector3d ep_r; ep_r << lines_r[i2].endPointX,   lines_r[i2].endPointY,   1.0;
-        Vector3d le_r; le_r << sp_r.cross(ep_r);
+        Vector3d le_r; le_r << sp_r.cross(ep_r);//计算右图像线段的参数向量
 
+        ////返还两条线段在y方向上的重叠比率
         double overlap = lineSegmentOverlapStereo( sp_l(1), ep_l(1), sp_r(1), ep_r(1) );
-
+        
         double disp_s, disp_e;
         sp_r << ( sp_r(0)*( sp_l(1) - ep_r(1) ) + ep_r(0)*( sp_r(1) - sp_l(1) ) ) / ( sp_r(1)-ep_r(1) ) , sp_l(1) ,  1.0;
         ep_r << ( sp_r(0)*( ep_l(1) - ep_r(1) ) + ep_r(0)*( sp_r(1) - ep_l(1) ) ) / ( sp_r(1)-ep_r(1) ) , ep_l(1) ,  1.0;
@@ -416,6 +441,7 @@ void StereoFrame::matchStereoLines( vector<KeyLine> lines_l, vector<KeyLine> lin
 
         // check minimal disparity
         if( disp_s >= Config::minDisp() && disp_e >= Config::minDisp()
+            //线的水平距离大于一定阈值 parameter to avoid horizontal lines (pixels)
             && std::abs( sp_l(1)-ep_l(1) ) > Config::lineHorizTh()
             && std::abs( sp_r(1)-ep_r(1) ) > Config::lineHorizTh()
             && overlap > Config::stereoOverlapTh() )
@@ -423,6 +449,7 @@ void StereoFrame::matchStereoLines( vector<KeyLine> lines_l, vector<KeyLine> lin
             Vector3d sP_; sP_ = cam->backProjection( sp_l(0), sp_l(1), disp_s);
             Vector3d eP_; eP_ = cam->backProjection( ep_l(0), ep_l(1), disp_e);
             double angle_l = lines_l[i1].angle;
+            //如果是初始化第一帧
             if( initial )
             {
                 ldesc_l_aux.push_back( ldesc_l_.row(i1) );
@@ -434,13 +461,15 @@ void StereoFrame::matchStereoLines( vector<KeyLine> lines_l, vector<KeyLine> lin
             else
             {
                 ldesc_l_aux.push_back( ldesc_l_.row(i1) );
+                //不是初始化状态时，线特征索引先不填写
+                //存储了起始点和终止点的2D坐标，3D坐标，视差，金字塔层级，索引
                 stereo_ls.push_back( new LineFeature(Vector2d(sp_l(0),sp_l(1)),disp_s,sP_,
                                                      Vector2d(ep_l(0),ep_l(1)),disp_e,eP_,
                                                      le_l,angle_l,-1,lines_l[i1].octave) );
             }
         }
     }
-
+    //传递给成员变量，左线特征的描述子矩阵
     ldesc_l_aux.copyTo(ldesc_l_);
 }
 
@@ -517,6 +546,7 @@ void StereoFrame::lineDescriptorMAD( const vector<vector<DMatch>> matches, doubl
 
 }
 
+//返还两条线段在y方向上的重叠比率
 double StereoFrame::lineSegmentOverlapStereo( double spl_obs, double epl_obs, double spl_proj, double epl_proj  )
 {
 
