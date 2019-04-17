@@ -1109,7 +1109,7 @@ void StereoFrameHandler::removeOutliers(Matrix4d DT)
             err_li(1) = l_obs(0) * epl_proj(0) + l_obs(1) * epl_proj(1) + l_obs(2);     //投影点epl_proj到投影线的距离
             res_l.push_back( err_li.norm() * sqrt( (*it)->sigma2 ) );
             //res_l.push_back( err_li.norm() );
-        }/1616165
+        }
 
         // estimate robust parameters
         double l_stdv, l_mean, inlier_th_l;
