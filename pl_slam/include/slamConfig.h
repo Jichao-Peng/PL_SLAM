@@ -38,6 +38,7 @@ public:
     static SlamConfig& getInstance();
 
     // SLAM parameters
+    // 都可以查到
     static double&  maxKFEpipP()        { return getInstance().max_kf_epip_p; }
     static double&  maxKFEpipL()        { return getInstance().max_kf_epip_l; }
     static int&     minLMEssGraph()     { return getInstance().min_lm_ess_graph; }
@@ -71,7 +72,7 @@ public:
     static double&  kfInlierRatio()     { return getInstance().kf_inlier_ratio; }
     static bool&    fastMatching()      { return getInstance().fast_matching; }
     static bool&    hasRefinement()     { return getInstance().has_refinement; }
-    static bool&    multithreadSLAM()   { return getInstance().mutithread_slam; }   //kitti：false
+    static bool&    multithreadSLAM()   { return getInstance().mutithread_slam; }  
 
     // SLAM parameters
     int    max_kf_num_frames;

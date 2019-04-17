@@ -47,7 +47,7 @@ using namespace Eigen;
 #include <stereoFeatures.h>
 #include <pinholeStereoCamera.h>
 #include <auxiliar.h>
-
+#include "customLog.h"
 #define GRID_ROWS 48
 #define GRID_COLS 64
 
@@ -99,8 +99,8 @@ public:
                     
     int frame_idx;      //双目帧索引
     Mat img_l, img_r;   //双目的左右图像
-    Matrix4d Tfw;       //Twc Pw=Twc*Pc 描述了相机坐标系是世界坐标系旋转平移Tfw得到的
-    Matrix4d DT;        //Tk_k+1 Pc_previous=DT*Pc_current 描述了当前帧是上一帧旋转平移DT得到的
+    Matrix4d Tfw;       //两帧间的相对位姿  应该是Tk_k+1
+    Matrix4d DT;        //
 
     Matrix6d Tfw_cov;   //三维变换的协方差矩阵
     Vector6d Tfw_cov_eig;   //三维变换的协方差矩阵的对数映射

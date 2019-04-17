@@ -40,7 +40,7 @@ using namespace PLSLAM;
 void showHelp();
 bool getInputArgs(int argc, char **argv, std::string &dataset_name, int &frame_offset, int &frame_number, int &frame_step, std::string &config_file);
 
-#define NO_SECENE
+//#define NO_SECENE
 
 int main(int argc, char **argv)
 {
@@ -67,7 +67,11 @@ int main(int argc, char **argv)
         cout << i <<"  "<<argv[i] <<endl;
     
     //传入配置文件的数据
-    if (!config_file.empty()) SlamConfig::loadFromFile(config_file);
+    if (!config_file.empty()) 
+    {
+        SlamConfig::loadFromFile(config_file);
+        cout<<config_file<<endl;
+    }
 
     //传入点词典
     if (SlamConfig::hasPoints() &&
@@ -139,6 +143,7 @@ int main(int argc, char **argv)
     int frame_counter = 0;
     StereoFrameHandler* StVO = new StereoFrameHandler(cam_pin);
     Mat img_l, img_r;
+    ofstream fout("/media/zhijian/文件/grow/slam/PL_SLAM/log.txt");
     //当数据集不空时
     while (dataset.nextFrame(img_l, img_r))
     {
@@ -170,7 +175,12 @@ int main(int argc, char **argv)
 //                  << "   ----------------------------------------" << endl;
 //             cout << endl << "VO Runtime: " << t1 << endl;
 
-            // check if a new keyframe is needed
+            // check if a new keyframe is 
+            
+            fout<<"write something"<<endl;
+            
+            
+
             if( StVO->needNewKF() )
             {
 //                 cout <<         "#KeyFrame:     " << map->max_kf_idx + 1;
@@ -197,14 +207,15 @@ int main(int argc, char **argv)
                     scene.updateScene();
                 #endif
             }
-
+        
             // update StVO
-            StVO->updateFrame();
+        StVO->updateFrame();
         }
 
         frame_counter++;
     }
 
+    fout.close();
     // finish SLAM
     map->finishSLAM();
     

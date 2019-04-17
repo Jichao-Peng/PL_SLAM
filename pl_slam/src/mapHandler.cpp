@@ -133,8 +133,14 @@ void MapHandler::addKeyFrame( KeyFrame *curr_kf )
         max_kf_idx++;
         curr_kf->kf_idx = max_kf_idx;
         curr_kf->local  = true;
-        // update pose of current keyframe wrt previous one (in case of LC)
+        // update pose of current keyframe wrt previous one (in case of LC local closure)
+        //curr_kf->T_kf_w是一个小值
         Matrix4d T_curr_w = prev_kf->T_kf_w * curr_kf->T_kf_w;
+        
+//         cout<<"qiao1"<<endl;
+//         logT(prev_kf->T_kf_w);
+//         logT(curr_kf->T_kf_w);
+        
         curr_kf->x_kf_w = logmap_se3(T_curr_w);
         curr_kf->T_kf_w = expmap_se3(curr_kf->x_kf_w);
         // Estimates Twf
@@ -175,7 +181,9 @@ void MapHandler::addKeyFrame( KeyFrame *curr_kf )
     curr_kf->local  = true;
 
     // update pose of current keyframe wrt previous one (in case of LC)
+    // wrt with respect to
     Matrix4d T_curr_w = prev_kf->T_kf_w * curr_kf->T_kf_w;
+    
     curr_kf->x_kf_w = logmap_se3(T_curr_w);
     curr_kf->T_kf_w = expmap_se3(curr_kf->x_kf_w);
 

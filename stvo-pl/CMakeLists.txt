@@ -69,6 +69,7 @@ list(APPEND SOURCEFILES
   src/stereoFrame.cpp
   src/stereoFrameHandler.cpp
   src/timer.cpp
+  src/customLog.cpp
 )
 
 # List all files (headers) contained by StVO-PL library

@@ -341,9 +341,11 @@ void StereoFrameHandler::optimizePose()
     err = -1.0;
     
     // set init pose (depending on the use of prior information or not, and on the goodness of previous solution)
-    //用恒速运动模型估算位姿
+    //用恒速运动模型估算位姿 （并不使用）
+    // optimize 因为默认不使用恒速模型，这里初始值DT和DT_都是单位矩阵 
     if( Config::useMotionModel() )
     {
+        //prev_frame->DT;一直是单位矩阵啊
         DT     = prev_frame->DT;
         DT_cov = prev_frame->DT_cov;
         e_prev = prev_frame->err_norm;
@@ -352,7 +354,9 @@ void StereoFrameHandler::optimizePose()
             DT = Matrix4d::Identity();
     }
     else
+    {
         DT = Matrix4d::Identity();
+    }
 
     // optimization mode
     int mode = 0;   // GN - GNR - LM
@@ -360,7 +364,7 @@ void StereoFrameHandler::optimizePose()
     // solver
     if( n_inliers >= Config::minFeatures() )
     {
-        // optimize
+        // 这里DT_的作用是为下面剔除外点提供一个位姿
         DT_ = DT;
         //P_ = Pc_current = DT * Pc_previous
         if( mode == 0 )      gaussNewtonOptimization(DT_,DT_cov,err,Config::maxIters());
@@ -376,6 +380,7 @@ void StereoFrameHandler::optimizePose()
             // 去除外点之后，再进行一次优化
             if( n_inliers >= Config::minFeatures() )
             {
+                //这里的DT初始值还是单位矩阵（不使用恒速模型）
                 if( mode == 0 )      gaussNewtonOptimization(DT,DT_cov,err,Config::maxItersRef());
                 else if( mode == 1 ) gaussNewtonOptimizationRobust(DT,DT_cov,err,Config::maxItersRef());
                 else if( mode == 2 ) levenbergMarquardtOptimization(DT,DT_cov,err,Config::maxItersRef());
@@ -404,17 +409,22 @@ void StereoFrameHandler::optimizePose()
     if( isGoodSolution(DT,DT_cov,err) && DT != Matrix4d::Identity() )
     {
         //expmap_se3(logmap_se3这里好像不是很有意义
-        //curr_frame->DT=Tk_k+1； Pc_previous=curr_frame->DT*Pc_current
+        //curr_frame->DT=Tk_k+1
         curr_frame->DT       = expmap_se3(logmap_se3( inverse_se3(DT) ));
         //更新Tk_k+1的协方差矩阵
         curr_frame->DT_cov   = DT_cov;
         curr_frame->err_norm = err;
-        //更新Twc的协方差矩阵
+        //更新 prev_frame->Tfw在updateFrame里更新，但每当关键帧插入时都会变成单位矩阵
         curr_frame->Tfw      = expmap_se3(logmap_se3( prev_frame->Tfw * curr_frame->DT ));
-        //更新Twc的协方差矩阵
+        //更新Twc的协方差矩阵？？？
         curr_frame->Tfw_cov  = unccomp_se3( prev_frame->Tfw, prev_frame->Tfw_cov, DT_cov );
         SelfAdjointEigenSolver<Matrix6d> eigensolver(DT_cov);
         curr_frame->DT_cov_eig = eigensolver.eigenvalues();
+        
+//         cout<<"qiao"<<endl;
+//         logT(curr_frame->DT);
+//         logT(curr_frame->Tfw);
+
     }
     else
     {
@@ -438,8 +448,7 @@ void StereoFrameHandler::gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov,
     for( iters = 0; iters < max_iters; iters++)
     {
         // estimate hessian and gradient (select)
-        // 估计海森矩阵和梯度
-        // 用的是扰动模型
+        // 使用所有的匹配特征估计海森矩阵和梯度；用的是扰动模型
         //P_ = Pc_current = DT * Pc_previous
         optimizeFunctions( DT, H, g, err );
         if (err > err_prev) {
@@ -457,7 +466,7 @@ void StereoFrameHandler::gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov,
         // update step
         ColPivHouseholderQR<Matrix6d> solver(H);
         DT_inc = solver.solve(g);
-        // 右乘 这里求的DT_inc是Tk_k+1（也就是current->DT）的增量,不过这里的DT和current->DT互逆
+        // 增量更新 无论怎样，这里算出来的是Tk+1_k
         DT  << DT * inverse_se3( expmap_se3(DT_inc) );
         // if the parameter change is small stop
         //1e-7        # min. error change to stop the optimization
@@ -627,7 +636,7 @@ void StereoFrameHandler::optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &g
             double dx   = err_i(0);
             double dy   = err_i(1);
             // jacobian
-            //转变成了一维的雅克比矩阵
+            // jacobian 这一处，把误差转为一维了也就是err_i_norm，err_i_norm对err_i求导再乘上原来二维的雅克比矩阵就变成了现在的一维的。
             Vector6d J_aux;
             J_aux << + fgz2 * dx * gz,
                      + fgz2 * dy * gz,
@@ -635,23 +644,23 @@ void StereoFrameHandler::optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &g
                      - fgz2 * ( gx*gy*dx + gy*gy*dy + gz*gz*dy ),
                      + fgz2 * ( gx*gx*dx + gz*gz*dx + gx*gy*dy ),
                      + fgz2 * ( gx*gz*dy - gy*gz*dx );
+            //除以一个公因子，按照上一句注释求一下导就知道了
             J_aux = J_aux / std::max(Config::homogTh(),err_i_norm);
             // define the residue
             double s2 = (*it)->sigma2;//s2=1
-            double r = err_i_norm * sqrt(s2);
             // if employing robust cost function
             //设置权重，残差越大，权重越小
-            double w  = 1.0;
-            w = robustWeightCauchy(r) ;
+            double w  = 1.0 / ( 1.0 + err_i_norm * err_i_norm * s2 );//robustWeightCauchy
 
             // if down-weighting far samples
             //double zdist   = P_(2) * 1.0 / ( cam->getB()*cam->getFx());
             //if( false ) w *= 1.0 / ( s2 + zdist * zdist );
 
             // update hessian, gradient, and error
+            //这里J本是列向量
             H_p += J_aux * J_aux.transpose() * w;
-            g_p += J_aux * r * w;
-            e_p += r * r * w;
+            g_p += J_aux * err_i_norm * sqrt(s2) * w;
+            e_p += err_i_norm * err_i_norm * s2 * w;
             N_p++;
         }
     }
@@ -1100,7 +1109,7 @@ void StereoFrameHandler::removeOutliers(Matrix4d DT)
             err_li(1) = l_obs(0) * epl_proj(0) + l_obs(1) * epl_proj(1) + l_obs(2);     //投影点epl_proj到投影线的距离
             res_l.push_back( err_li.norm() * sqrt( (*it)->sigma2 ) );
             //res_l.push_back( err_li.norm() );
-        }
+        }/1616165
 
         // estimate robust parameters
         double l_stdv, l_mean, inlier_th_l;
@@ -1123,7 +1132,7 @@ void StereoFrameHandler::removeOutliers(Matrix4d DT)
         }
     }
     
-        cout<<"qiao"<<n_inliers_pt<<" line "<<n_inliers_ls<<endl;
+    //    cout<<"qiao"<<n_inliers_pt<<" line "<<n_inliers_ls<<endl;
 
     if (n_inliers != (n_inliers_pt + n_inliers_ls))
         throw runtime_error("[StVO; stereoFrameHandler] Assetion failed: n_inliers != (n_inliers_pt + n_inliers_ls)");
@@ -1248,6 +1257,7 @@ bool StereoFrameHandler::needNewKF()
 
     // check geometric distances from previous KF
     //DT是T_prevKF_curr 和类里的DT不同
+    //这里的T_prevKF一直是单位矩阵
     Matrix4d DT = inverse_se3( curr_frame->Tfw ) * T_prevKF;
     Vector6d dX = logmap_se3( DT );
 
@@ -1484,6 +1494,7 @@ void StereoFrameHandler::optimizePoseDebug()
 
     // set init pose
     DT     = prev_frame->DT;
+    
     DT_cov = prev_frame->DT_cov;
 
     DT = Matrix4d::Identity();

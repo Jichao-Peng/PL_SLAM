@@ -71,7 +71,7 @@ public:
     xcov_kf_w = sf->Tfw_cov;
     */
     int      kf_idx;
-    Matrix4d T_kf_w;
+    Matrix4d T_kf_w;    //这个是相对于世界坐标系的
     Vector6d x_kf_w;
     Matrix6d xcov_kf_w;
 
