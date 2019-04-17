@@ -1,0 +1,628 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="PL-SLAM"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\opt\;CMake Files\..\..\..\..\..\opt\opencv3\;CMake Files\..\..\..\..\..\opt\opencv3\share\;CMake Files\..\..\..\..\..\opt\opencv3\share\OpenCV\;CMake Files\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\usr\local\;CMake Files\..\..\..\..\..\usr\local\share\;CMake Files\..\..\..\..\..\usr\local\share\mrpt\;CMake Files\cmake_modules\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="plstvo_mod">
+				<Option output="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/build/plstvo_mod" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DHAS_MRPT"/>
+					<Add option="-DOPENCV_TRAITS_ENABLE_DEPRECATED"/>
+					<Add directory="/usr/include/eigen3"/>
+					<Add directory="/usr/local/include/mrpt/mrpt-config"/>
+					<Add directory="/usr/include/suitesparse"/>
+					<Add directory="/usr/local/include/mrpt/base/include"/>
+					<Add directory="/usr/local/include/mrpt/opengl/include"/>
+					<Add directory="/usr/local/include/mrpt/gui/include"/>
+					<Add directory="/usr/local/include/mrpt/maps/include"/>
+					<Add directory="/usr/local/include/mrpt/obs/include"/>
+					<Add directory="/usr/local/include/mrpt/vision/include"/>
+					<Add directory="/usr/local/include/mrpt/hwdrivers/include"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include"/>
+					<Add directory="/opt/opencv3/include"/>
+					<Add directory="/opt/opencv3/include/opencv"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DBoW2"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/line_descriptor/include"/>
+					<Add directory="/opt/g2o/include"/>
+					<Add directory="/opt/ros/indigo/include"/>
+					<Add directory="/usr/include/c++/4.8"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/4.8"/>
+					<Add directory="/usr/include/c++/4.8/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 plstvo_mod"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="plstvo_mod/fast">
+				<Option output="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/build/plstvo_mod" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DHAS_MRPT"/>
+					<Add option="-DOPENCV_TRAITS_ENABLE_DEPRECATED"/>
+					<Add directory="/usr/include/eigen3"/>
+					<Add directory="/usr/local/include/mrpt/mrpt-config"/>
+					<Add directory="/usr/include/suitesparse"/>
+					<Add directory="/usr/local/include/mrpt/base/include"/>
+					<Add directory="/usr/local/include/mrpt/opengl/include"/>
+					<Add directory="/usr/local/include/mrpt/gui/include"/>
+					<Add directory="/usr/local/include/mrpt/maps/include"/>
+					<Add directory="/usr/local/include/mrpt/obs/include"/>
+					<Add directory="/usr/local/include/mrpt/vision/include"/>
+					<Add directory="/usr/local/include/mrpt/hwdrivers/include"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include"/>
+					<Add directory="/opt/opencv3/include"/>
+					<Add directory="/opt/opencv3/include/opencv"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DBoW2"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/line_descriptor/include"/>
+					<Add directory="/opt/g2o/include"/>
+					<Add directory="/opt/ros/indigo/include"/>
+					<Add directory="/usr/include/c++/4.8"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/4.8"/>
+					<Add directory="/usr/include/c++/4.8/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 plstvo_mod/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="plstvo_dataset">
+				<Option output="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/build/plstvo_dataset" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DHAS_MRPT"/>
+					<Add option="-DOPENCV_TRAITS_ENABLE_DEPRECATED"/>
+					<Add directory="/usr/include/eigen3"/>
+					<Add directory="/usr/local/include/mrpt/mrpt-config"/>
+					<Add directory="/usr/include/suitesparse"/>
+					<Add directory="/usr/local/include/mrpt/base/include"/>
+					<Add directory="/usr/local/include/mrpt/opengl/include"/>
+					<Add directory="/usr/local/include/mrpt/gui/include"/>
+					<Add directory="/usr/local/include/mrpt/maps/include"/>
+					<Add directory="/usr/local/include/mrpt/obs/include"/>
+					<Add directory="/usr/local/include/mrpt/vision/include"/>
+					<Add directory="/usr/local/include/mrpt/hwdrivers/include"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include"/>
+					<Add directory="/opt/opencv3/include"/>
+					<Add directory="/opt/opencv3/include/opencv"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DBoW2"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/line_descriptor/include"/>
+					<Add directory="/opt/g2o/include"/>
+					<Add directory="/opt/ros/indigo/include"/>
+					<Add directory="/usr/include/c++/4.8"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/4.8"/>
+					<Add directory="/usr/include/c++/4.8/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 plstvo_dataset"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="plstvo_dataset/fast">
+				<Option output="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/build/plstvo_dataset" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DHAS_MRPT"/>
+					<Add option="-DOPENCV_TRAITS_ENABLE_DEPRECATED"/>
+					<Add directory="/usr/include/eigen3"/>
+					<Add directory="/usr/local/include/mrpt/mrpt-config"/>
+					<Add directory="/usr/include/suitesparse"/>
+					<Add directory="/usr/local/include/mrpt/base/include"/>
+					<Add directory="/usr/local/include/mrpt/opengl/include"/>
+					<Add directory="/usr/local/include/mrpt/gui/include"/>
+					<Add directory="/usr/local/include/mrpt/maps/include"/>
+					<Add directory="/usr/local/include/mrpt/obs/include"/>
+					<Add directory="/usr/local/include/mrpt/vision/include"/>
+					<Add directory="/usr/local/include/mrpt/hwdrivers/include"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include"/>
+					<Add directory="/opt/opencv3/include"/>
+					<Add directory="/opt/opencv3/include/opencv"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DBoW2"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/line_descriptor/include"/>
+					<Add directory="/opt/g2o/include"/>
+					<Add directory="/opt/ros/indigo/include"/>
+					<Add directory="/usr/include/c++/4.8"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/4.8"/>
+					<Add directory="/usr/include/c++/4.8/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 plstvo_dataset/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="plslam_mod">
+				<Option output="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/build/plslam_mod" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DHAS_MRPT"/>
+					<Add option="-DOPENCV_TRAITS_ENABLE_DEPRECATED"/>
+					<Add directory="/usr/include/eigen3"/>
+					<Add directory="/usr/local/include/mrpt/mrpt-config"/>
+					<Add directory="/usr/include/suitesparse"/>
+					<Add directory="/usr/local/include/mrpt/base/include"/>
+					<Add directory="/usr/local/include/mrpt/opengl/include"/>
+					<Add directory="/usr/local/include/mrpt/gui/include"/>
+					<Add directory="/usr/local/include/mrpt/maps/include"/>
+					<Add directory="/usr/local/include/mrpt/obs/include"/>
+					<Add directory="/usr/local/include/mrpt/vision/include"/>
+					<Add directory="/usr/local/include/mrpt/hwdrivers/include"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include"/>
+					<Add directory="/opt/opencv3/include"/>
+					<Add directory="/opt/opencv3/include/opencv"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DBoW2"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/line_descriptor/include"/>
+					<Add directory="/opt/g2o/include"/>
+					<Add directory="/opt/ros/indigo/include"/>
+					<Add directory="/usr/include/c++/4.8"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/4.8"/>
+					<Add directory="/usr/include/c++/4.8/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 plslam_mod"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="plslam_mod/fast">
+				<Option output="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/build/plslam_mod" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DHAS_MRPT"/>
+					<Add option="-DOPENCV_TRAITS_ENABLE_DEPRECATED"/>
+					<Add directory="/usr/include/eigen3"/>
+					<Add directory="/usr/local/include/mrpt/mrpt-config"/>
+					<Add directory="/usr/include/suitesparse"/>
+					<Add directory="/usr/local/include/mrpt/base/include"/>
+					<Add directory="/usr/local/include/mrpt/opengl/include"/>
+					<Add directory="/usr/local/include/mrpt/gui/include"/>
+					<Add directory="/usr/local/include/mrpt/maps/include"/>
+					<Add directory="/usr/local/include/mrpt/obs/include"/>
+					<Add directory="/usr/local/include/mrpt/vision/include"/>
+					<Add directory="/usr/local/include/mrpt/hwdrivers/include"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include"/>
+					<Add directory="/opt/opencv3/include"/>
+					<Add directory="/opt/opencv3/include/opencv"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DBoW2"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/line_descriptor/include"/>
+					<Add directory="/opt/g2o/include"/>
+					<Add directory="/opt/ros/indigo/include"/>
+					<Add directory="/usr/include/c++/4.8"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/4.8"/>
+					<Add directory="/usr/include/c++/4.8/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 plslam_mod/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="plslam_dataset">
+				<Option output="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/build/plslam_dataset" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DHAS_MRPT"/>
+					<Add option="-DOPENCV_TRAITS_ENABLE_DEPRECATED"/>
+					<Add directory="/usr/include/eigen3"/>
+					<Add directory="/usr/local/include/mrpt/mrpt-config"/>
+					<Add directory="/usr/include/suitesparse"/>
+					<Add directory="/usr/local/include/mrpt/base/include"/>
+					<Add directory="/usr/local/include/mrpt/opengl/include"/>
+					<Add directory="/usr/local/include/mrpt/gui/include"/>
+					<Add directory="/usr/local/include/mrpt/maps/include"/>
+					<Add directory="/usr/local/include/mrpt/obs/include"/>
+					<Add directory="/usr/local/include/mrpt/vision/include"/>
+					<Add directory="/usr/local/include/mrpt/hwdrivers/include"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include"/>
+					<Add directory="/opt/opencv3/include"/>
+					<Add directory="/opt/opencv3/include/opencv"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DBoW2"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/line_descriptor/include"/>
+					<Add directory="/opt/g2o/include"/>
+					<Add directory="/opt/ros/indigo/include"/>
+					<Add directory="/usr/include/c++/4.8"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/4.8"/>
+					<Add directory="/usr/include/c++/4.8/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 plslam_dataset"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="plslam_dataset/fast">
+				<Option output="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/build/plslam_dataset" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/build"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DHAS_MRPT"/>
+					<Add option="-DOPENCV_TRAITS_ENABLE_DEPRECATED"/>
+					<Add directory="/usr/include/eigen3"/>
+					<Add directory="/usr/local/include/mrpt/mrpt-config"/>
+					<Add directory="/usr/include/suitesparse"/>
+					<Add directory="/usr/local/include/mrpt/base/include"/>
+					<Add directory="/usr/local/include/mrpt/opengl/include"/>
+					<Add directory="/usr/local/include/mrpt/gui/include"/>
+					<Add directory="/usr/local/include/mrpt/maps/include"/>
+					<Add directory="/usr/local/include/mrpt/obs/include"/>
+					<Add directory="/usr/local/include/mrpt/vision/include"/>
+					<Add directory="/usr/local/include/mrpt/hwdrivers/include"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include"/>
+					<Add directory="/opt/opencv3/include"/>
+					<Add directory="/opt/opencv3/include/opencv"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DBoW2"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/line_descriptor/include"/>
+					<Add directory="/opt/g2o/include"/>
+					<Add directory="/opt/ros/indigo/include"/>
+					<Add directory="/usr/include/c++/4.8"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/4.8"/>
+					<Add directory="/usr/include/c++/4.8/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 plslam_dataset/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="plslam">
+				<Option output="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/lib/libplslam.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DHAS_MRPT"/>
+					<Add option="-DOPENCV_TRAITS_ENABLE_DEPRECATED"/>
+					<Add directory="/usr/include/eigen3"/>
+					<Add directory="/usr/local/include/mrpt/mrpt-config"/>
+					<Add directory="/usr/include/suitesparse"/>
+					<Add directory="/usr/local/include/mrpt/base/include"/>
+					<Add directory="/usr/local/include/mrpt/opengl/include"/>
+					<Add directory="/usr/local/include/mrpt/gui/include"/>
+					<Add directory="/usr/local/include/mrpt/maps/include"/>
+					<Add directory="/usr/local/include/mrpt/obs/include"/>
+					<Add directory="/usr/local/include/mrpt/vision/include"/>
+					<Add directory="/usr/local/include/mrpt/hwdrivers/include"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include"/>
+					<Add directory="/opt/opencv3/include"/>
+					<Add directory="/opt/opencv3/include/opencv"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DBoW2"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/line_descriptor/include"/>
+					<Add directory="/opt/g2o/include"/>
+					<Add directory="/opt/ros/indigo/include"/>
+					<Add directory="/usr/include/c++/4.8"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/4.8"/>
+					<Add directory="/usr/include/c++/4.8/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 plslam"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="plslam/fast">
+				<Option output="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/lib/libplslam.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DHAS_MRPT"/>
+					<Add option="-DOPENCV_TRAITS_ENABLE_DEPRECATED"/>
+					<Add directory="/usr/include/eigen3"/>
+					<Add directory="/usr/local/include/mrpt/mrpt-config"/>
+					<Add directory="/usr/include/suitesparse"/>
+					<Add directory="/usr/local/include/mrpt/base/include"/>
+					<Add directory="/usr/local/include/mrpt/opengl/include"/>
+					<Add directory="/usr/local/include/mrpt/gui/include"/>
+					<Add directory="/usr/local/include/mrpt/maps/include"/>
+					<Add directory="/usr/local/include/mrpt/obs/include"/>
+					<Add directory="/usr/local/include/mrpt/vision/include"/>
+					<Add directory="/usr/local/include/mrpt/hwdrivers/include"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include"/>
+					<Add directory="/opt/opencv3/include"/>
+					<Add directory="/opt/opencv3/include/opencv"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DBoW2"/>
+					<Add directory="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/line_descriptor/include"/>
+					<Add directory="/opt/g2o/include"/>
+					<Add directory="/opt/ros/indigo/include"/>
+					<Add directory="/usr/include/c++/4.8"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/4.8"/>
+					<Add directory="/usr/include/c++/4.8/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/4.8/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 plslam/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="plslam_includes">
+				<Option working_dir="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 plslam_includes"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DBoW2/BowVector.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DBoW2/FClass.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DBoW2/FORB.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DBoW2/FeatureVector.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DBoW2/ScoringObject.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DBoW2/TemplatedVocabulary.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DUtils/Random.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/DBoW2/DUtils/Timestamp.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/line_descriptor/include/line_descriptor/descriptor_custom.hpp">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/line_descriptor/include/line_descriptor_custom.hpp">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/line_descriptor/src/bitarray_custom.hpp">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/line_descriptor/src/bitops_custom.hpp">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/line_descriptor/src/precomp_custom.hpp">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/3rdparty/line_descriptor/src/types_custom.hpp">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/app/plslam_dataset.cpp">
+			<Option target="plslam_dataset"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/app/plslam_mod.cpp">
+			<Option target="plslam_mod"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/app/plstvo_dataset.cpp">
+			<Option target="plstvo_dataset"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/app/plstvo_mod.cpp">
+			<Option target="plstvo_mod"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include/auxiliar.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include/config.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include/keyFrame.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include/linespec.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include/mapFeatures.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include/mapHandler.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include/pinholeStereoCamera.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include/slamScene.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include/stereoFeatures.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include/stereoFrame.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include/stereoFrameHandler.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/include/voScene.h">
+			<Option target="plslam_includes"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/src/auxiliar.cpp">
+			<Option target="plslam"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/src/config.cpp">
+			<Option target="plslam"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/src/keyFrame.cpp">
+			<Option target="plslam"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/src/linespec.cpp">
+			<Option target="plslam"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/src/mapFeatures.cpp">
+			<Option target="plslam"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/src/mapHandler.cpp">
+			<Option target="plslam"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/src/pinholeStereoCamera.cpp">
+			<Option target="plslam"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/src/slamScene.cpp">
+			<Option target="plslam"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/src/stereoFeatures.cpp">
+			<Option target="plslam"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/src/stereoFrame.cpp">
+			<Option target="plslam"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/src/stereoFrameHandler.cpp">
+			<Option target="plslam"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/src/voScene.cpp">
+			<Option target="plslam"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/../../../../../opt/opencv3/share/OpenCV/OpenCVConfig-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\opt\opencv3\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/../../../../../opt/opencv3/share/OpenCV/OpenCVConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\opt\opencv3\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/../../../../../opt/opencv3/share/OpenCV/OpenCVModules.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\opt\opencv3\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/../../../../../opt/opencv3/share/OpenCV/OpenCVModules-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\opt\opencv3\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/../../../../../usr/local/share/mrpt/MRPTConfig-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\share\mrpt\"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/../../../../../usr/local/share/mrpt/MRPTConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\share\mrpt\"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/cmake_modules/FindEigen3.cmake">
+			<Option virtualFolder="CMake Files\cmake_modules\"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/cmake_modules/FindG2O.cmake">
+			<Option virtualFolder="CMake Files\cmake_modules\"/>
+		</Unit>
+		<Unit filename="/home/yipuzhao/Codes/LineSLAM/GF_PL_SLAM/cmake_modules/FindCholmod.cmake">
+			<Option virtualFolder="CMake Files\cmake_modules\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

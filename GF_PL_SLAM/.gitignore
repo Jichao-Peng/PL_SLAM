@@ -1,0 +1,10 @@
+vocabulary/*.yml
+lib/*
+build/*
+3rdparty/DBoW2/build/*
+3rdparty/line_descriptor/build/*
+3rdparty/DBoW2/lib/*
+3rdparty/line_descriptor/lib/*
+simu/line_cut/*
+config/aux/*
+CMakeLists.txt.user
