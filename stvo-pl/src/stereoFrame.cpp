@@ -698,6 +698,7 @@ Mat StereoFrame::plotStereoFrame()
     // create new image to modify it
     Mat img_l_aux;
     img_l.copyTo( img_l_aux );
+    //转成彩色图
     if( img_l_aux.channels() == 1 )
         cvtColor(img_l_aux, img_l_aux, CV_GRAY2BGR, 3);
     else if (img_l_aux.channels() == 4)
@@ -718,7 +719,7 @@ Mat StereoFrame::plotStereoFrame()
     {
         if( (*pt_it)->inlier )
         {
-            g = 200;
+            r = 0; g = 0; b=200;
             p = cv::Point( int((*pt_it)->pl(0)), int((*pt_it)->pl(1)) );
             circle( img_l_aux, p, radius, Scalar(b,g,r), thick);
         }
@@ -729,7 +730,7 @@ Mat StereoFrame::plotStereoFrame()
     {
         if( (*ls_it)->inlier )
         {
-            g = 200;
+            r = 0; g = 200; b = 0;
             p = cv::Point( int((*ls_it)->spl(0)), int((*ls_it)->spl(1)) );
             q = cv::Point( int((*ls_it)->epl(0)), int((*ls_it)->epl(1)) );
             line( img_l_aux, p, q, Scalar(b,g,r), thick);

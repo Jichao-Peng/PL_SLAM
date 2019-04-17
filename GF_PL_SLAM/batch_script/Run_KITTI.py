@@ -40,7 +40,7 @@ for iteration in range(0, Num_Repeating):
         else:
             File_Setting = '../config/kitti/kitti04-10.yaml'
         
-        File_stereo  = '/home/zhijian/slam/dataSet/' + SeqIdx
+        File_stereo  = '/media/zhijian/Document/grow/slam/slamDataSet/KITTI/color/' + SeqIdx
         File_traj = Experiment_dir + '/' + SeqIdx
 
         cmd_slam   = str('../build/plslam_mod ' + 'kitti' + ' ' + File_Setting + ' ' + File_stereo + ' ' + File_traj)

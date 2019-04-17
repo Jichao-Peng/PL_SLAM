@@ -88,7 +88,7 @@ int main(int argc, char **argv)
     }
 
     // read dataset root dir fron environment variable
-    boost::filesystem::path dataset_path(string( "/media/zhijian/文件/grow/slam/slamDataSet/KITTI/color"));
+    boost::filesystem::path dataset_path(string( "/media/zhijian/Document/grow/slam/slamDataSet/KITTI/color"));
     
     if (!boost::filesystem::exists(dataset_path) || !boost::filesystem::is_directory(dataset_path)) {
         cout << "Check your DATASETS_DIR environment variable" << endl;
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
     int frame_counter = 0;
     StereoFrameHandler* StVO = new StereoFrameHandler(cam_pin);
     Mat img_l, img_r;
-    ofstream fout("/media/zhijian/文件/grow/slam/PL_SLAM/log.txt");
+    ofstream fout("/media/zhijian/Document/grow/slam/slamDataSet/KITTI/data_odometry_poses/dataset/poses/my00.txt");
     //当数据集不空时
     while (dataset.nextFrame(img_l, img_r))
     {
@@ -177,9 +177,6 @@ int main(int argc, char **argv)
 
             // check if a new keyframe is 
             
-            fout<<"write something"<<endl;
-            
-            
 
             if( StVO->needNewKF() )
             {
@@ -195,9 +192,13 @@ int main(int argc, char **argv)
                 map->addKeyFrame( curr_kf );
                 // update scene
                 #ifndef NO_SECENE
+                    // plotStereoFrame() 把点线特征给画上去
                     scene.setImage(StVO->curr_frame->plotStereoFrame());
                     scene.updateSceneSafe( map );
                 #endif
+                    
+            fout<<setiosflags(ios::scientific)<<setprecision(6)<<curr_kf->T_kf_w.block(0,0,1,3)<<' '<<curr_kf->T_kf_w.block(1,0,1,3)<<' '
+                <<curr_kf->T_kf_w.block(2,0,1,3)<<' '<<curr_kf->T_kf_w.block(0,3,3,1).transpose()<<endl;
             }
             else
             {
@@ -206,6 +207,9 @@ int main(int argc, char **argv)
                     scene.setPose( StVO->curr_frame->DT );
                     scene.updateScene();
                 #endif
+                    
+            fout<<setiosflags(ios::scientific)<<setprecision(6)<<StVO->curr_frame->Tfw.block(0,0,1,3)<<' '<<StVO->curr_frame->Tfw.block(1,0,1,3)<<' '
+                <<StVO->curr_frame->Tfw.block(2,0,1,3)<<' '<<StVO->curr_frame->Tfw.block(0,3,3,1).transpose()<<endl;
             }
         
             // update StVO
