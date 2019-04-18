@@ -88,6 +88,7 @@ public:
     CMatrixDouble33 getCovFormat(MatrixXd cov_);
     CPose3D getPoseXYZ(VectorXd x);
 
+    //窗口
     CDisplayWindow3D*           win;
     COpenGLScenePtr             theScene;
     COpenGLViewportPtr          image, legend, help;

@@ -64,7 +64,11 @@ int main(int argc, char **argv) {
              << "path_to_image path_to_results" << endl;
         return -1;
     }
-
+    
+    cout << "" <<endl;
+    for(int i=0;i<argc;i++)
+        cout << i <<"  "<<argv[i] <<endl;
+    
     // Load Settings and Check
     string strSettingsFile = argv[2];
     std::cout << "Load settings and check " << strSettingsFile << std::endl;
@@ -290,7 +294,7 @@ int main(int argc, char **argv) {
     std::cout << std::endl << "Saving AllFrame Trajectory to " << fNameAllFrameTrack << std::endl;
     fAllFrameTrack.open(fNameAllFrameTrack.c_str());
     fAllFrameTrack << fixed;
-    fAllFrameTrack << "#TimeStamp Tx Ty Tz Qx Qy Qz Qw" << std::endl;
+    //fAllFrameTrack << "#TimeStamp Tx Ty Tz Qx Qy Qz Qw" << std::endl;
 
 
     ofstream fLog;
@@ -298,7 +302,7 @@ int main(int argc, char **argv) {
     std::cout << std::endl << "Saving Log Info to " << fNameLog << std::endl;
     fLog.open(fNameLog.c_str());
     fLog << fixed;
-    fLog << "#TimeStamp Tx Ty Tz Qx Qy Qz Qw" << std::endl;
+    //fLog << "#TimeStamp Tx Ty Tz Qx Qy Qz Qw" << std::endl;
 
 
 
@@ -485,7 +489,7 @@ int main(int argc, char **argv) {
                 Matrix3d R = Tfw.block(0,0,3,3).transpose();
                 vector<float> q = toQuaternion(R);
 
-                fAllFrameTrack << setprecision(6) << time_stamp << setprecision(7) << " "
+                fAllFrameTrack << setprecision(7) << " "
                                << Tfw(0, 3) << " " << Tfw(1, 3) << " " << Tfw(2, 3) << " "
                                << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
             }
@@ -541,7 +545,7 @@ int main(int argc, char **argv) {
     std::string fNameKeyFrameTrack = std::string(argv[4]) + "_KeyFrameTrajectory.txt";
     fKeyFrameTrack.open(fNameKeyFrameTrack.c_str());
     fKeyFrameTrack << fixed;
-    fKeyFrameTrack << "#TimeStamp Tx Ty Tz Qx Qy Qz Qw" << std::endl;
+    //fKeyFrameTrack << "#TimeStamp Tx Ty Tz Qx Qy Qz Qw" << std::endl;
 
     for(size_t i=0; i<map->map_keyframes.size(); i++)
     {
@@ -556,7 +560,10 @@ int main(int argc, char **argv) {
             Matrix3d R = T_kf_w.block(0,0,3,3);
             vector<float> q = toQuaternion(R);
 
-            fKeyFrameTrack << setprecision(6) << time_stamp << setprecision(7) << " "
+//             fKeyFrameTrack << setprecision(6) << time_stamp << setprecision(7) << " "
+//                            << T_kf_w(0, 3) << " " << T_kf_w(1, 3) << " " << T_kf_w(2, 3) << " "
+//                            << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
+                fKeyFrameTrack << setprecision(7) << " "
                            << T_kf_w(0, 3) << " " << T_kf_w(1, 3) << " " << T_kf_w(2, 3) << " "
                            << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
 

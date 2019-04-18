@@ -196,9 +196,9 @@ int main(int argc, char **argv)
                     scene.setImage(StVO->curr_frame->plotStereoFrame());
                     scene.updateSceneSafe( map );
                 #endif
-                    
-            fout<<setiosflags(ios::scientific)<<setprecision(6)<<curr_kf->T_kf_w.block(0,0,1,3)<<' '<<curr_kf->T_kf_w.block(1,0,1,3)<<' '
-                <<curr_kf->T_kf_w.block(2,0,1,3)<<' '<<curr_kf->T_kf_w.block(0,3,3,1).transpose()<<endl;
+                Matrix3d R = curr_kf->T_kf_w.block(0,0,3,3).transpose();
+                vector<float> q = toQuaternion(R);
+                fout << setprecision(7) << " "<< curr_kf->T_kf_w(0, 3) << " " << curr_kf->T_kf_w(1, 3) << " " << curr_kf->T_kf_w(2, 3) << " "<< q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;    
             }
             else
             {
@@ -207,9 +207,9 @@ int main(int argc, char **argv)
                     scene.setPose( StVO->curr_frame->DT );
                     scene.updateScene();
                 #endif
-                    
-            fout<<setiosflags(ios::scientific)<<setprecision(6)<<StVO->curr_frame->Tfw.block(0,0,1,3)<<' '<<StVO->curr_frame->Tfw.block(1,0,1,3)<<' '
-                <<StVO->curr_frame->Tfw.block(2,0,1,3)<<' '<<StVO->curr_frame->Tfw.block(0,3,3,1).transpose()<<endl;
+                Matrix3d R = StVO->curr_frame->Tfw.block(0,0,3,3).transpose();
+                vector<float> q = toQuaternion(R);
+                fout << setprecision(7) << " "<< StVO->curr_frame->Tfw(0, 3) << " " << StVO->curr_frame->Tfw(1, 3) << " " << StVO->curr_frame->Tfw(2, 3) << " "<< q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
             }
         
             // update StVO

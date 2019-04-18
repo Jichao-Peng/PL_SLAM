@@ -82,7 +82,7 @@ double vector_stdv(vector<double> v, double v_mean);
 void vector_mean_stdv_mad( vector<double> residues, double &mean, double &stdv );
 
 double robustWeightCauchy(double norm_res);
-
+std::vector<float> toQuaternion(const Matrix3d &M);
 struct compare_descriptor_by_NN_dist
 {
     inline bool operator()(const vector<DMatch>& a, const vector<DMatch>& b){

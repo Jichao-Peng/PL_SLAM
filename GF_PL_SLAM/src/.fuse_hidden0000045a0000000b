@@ -117,7 +117,6 @@ void voScene::initializeScene(Matrix4d x_0, bool has_gt){
     win->setCameraElevationDeg(selev);
     win->setCameraAzimuthDeg(sazim);
     win->setCameraZoom(szoom);
-    //得到窗口对象win.get3DSceneAndLock();并且锁住，防止渲染的时候被修改。
     theScene = win->get3DSceneAndLock();
 
     hasGT = has_gt;
@@ -142,7 +141,6 @@ void voScene::initializeScene(Matrix4d x_0, bool has_gt){
     {
         bbObj->setPose(pose_0);
         bbObj->setScale(sbb);
-        //渲染生成的场景，就是修改属性，比如位置，姿态，记得插入OpenGLSence，语法theScene->insert( xxxxx )。
         theScene->insert(bbObj);
     }
     srefObj = opengl::stock_objects::CornerXYZSimple();

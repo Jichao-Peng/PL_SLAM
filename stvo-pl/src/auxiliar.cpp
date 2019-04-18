@@ -595,7 +595,19 @@ double robustWeightCauchy( double norm_res )
 }
 
 
+std::vector<float> toQuaternion(const Matrix3d &M)
+{
+//    Eigen::Matrix<double,3,3> eigMat = toMatrix3d(M);
+    Eigen::Quaterniond q(M);
 
+    std::vector<float> v(4);
+    v[0] = q.x();
+    v[1] = q.y();
+    v[2] = q.z();
+    v[3] = q.w();
+
+    return v;
+}
 
 
 

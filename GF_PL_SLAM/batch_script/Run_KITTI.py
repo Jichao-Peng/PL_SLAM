@@ -6,7 +6,7 @@ import time
 import signal
 
 SeqIdxList =  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 99];
-Result_root = '/mnt/DATA/tmp/KITTI/PL_SLAM/Cut_PointLine_0.1/'
+Result_root = '/media/zhijian/Document/grow/slam/slamDataSet/KITTI/data_odometry_poses/dataset/poses/'
 Num_Repeating = 5 # 1 # 10 # 20 # 
 
 #----------------------------------------------------------------------------------------------------------------------

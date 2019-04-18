@@ -905,6 +905,7 @@ void StereoFrameHandler::updateFrame_ECCV18( const Matrix4d T_base )
 
     // predict the rel motion of current frame with constant velocity model
     //    curr_frame->DT = prev_frame->Tfw.inverse() * curr_frame->Tfw;
+    //  T_base prev_kf->T_kf_w
     Matrix4d T_curr_w = T_base * prev_frame->Tfw;
 
     delete prev_frame;

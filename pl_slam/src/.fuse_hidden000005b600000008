@@ -50,8 +50,7 @@ slamScene::slamScene(){
     selev   = 0.f;
     sazim   = -90.f;
     sfrust  = 0.2f;
-    slinef  = 0.1f;
-    //初始化一个窗口，大小是1920，,1080
+    slinef  = 1.f;
     win     = new CDisplayWindow3D("3D Scene",1920,1080);
 
     hasText         = true;
@@ -66,30 +65,23 @@ slamScene::slamScene(){
     isKitti         = true;
 
 }
-/* pl-slam config_indoor.ini
-hasGT           = true
-hasComparison 	= true
-hasImg     	= true
-szoom           = 10.0
-sfrust          = 0.06
-*/
+
 slamScene::slamScene(string configFile){
 
     CConfigFile config(configFile);
-    sbb             = config.read_double("Scene","sbb",1.f);//xyz三个轴的尺度
+    sbb             = config.read_double("Scene","sbb",1.f);
     sref            = config.read_double("Scene","sref",0.2f);
     srad            = config.read_double("Scene","srad",0.005f);
     sline           = config.read_double("Scene","sline",2.f);
     saxis           = config.read_double("Scene","saxis",0.5f);
     sfreq           = config.read_double("Scene","sfreq",3.f);
-    szoom           = config.read_double("Scene","szoom",3.f);//缩放，数值越大缩放却多（整个窗口的初试缩放，后来还能自己调节）
+    szoom           = config.read_double("Scene","szoom",3.f);
     selli           = config.read_double("Scene","selli",1.f);
-    selev           = config.read_double("Scene","selev",30.f);//观测高度
-    sazim           = config.read_double("Scene","sazim",-135.f);//观测方位角
+    selev           = config.read_double("Scene","selev",30.f);
+    sazim           = config.read_double("Scene","sazim",-135.f);
     sfrust          = config.read_double("Scene","sfrust",0.2f);
-    slinef          = config.read_double("Scene","slinef",0.1f);
-    //初始化一个窗口，大小是1920，,1080
-    win             = new CDisplayWindow3D("3D Scene",1920,1080);
+    slinef          = config.read_double("Scene","slinef",1.f);
+    win             = new CDisplayWindow3D("3D Scene",1280,800);
 
     hasText         = config.read_bool("Scene","hasText",true);
     hasAxes         = config.read_bool("Scene","hasAxes",true);
@@ -122,9 +114,7 @@ void slamScene::initializeScene(Matrix4d x_0){
 
     // Initialize the scene and window
     win->setCameraElevationDeg(selev);
-    //观测方位角
     win->setCameraAzimuthDeg(sazim);
-    //缩放？
     win->setCameraZoom(szoom);
     theScene = win->get3DSceneAndLock();
 
@@ -169,6 +159,7 @@ void slamScene::initializeScene(Matrix4d x_0){
         axesObj->setFrequency(sfreq);
         axesObj->enableTickMarks(false);
         axesObj->setAxisLimits(-saxis,-saxis,-saxis, saxis,saxis,saxis);
+        axesObj->setColor(0.0,0.0,0.0);
         //theScene->insert( axesObj );
     }
 
@@ -200,7 +191,7 @@ void slamScene::initializeScene(Matrix4d x_0){
     pointObj_local->setColor(200,0,0);
     theScene->insert( pointObj_local );
 
-    // 解锁对象win.unlockAccess3DScene();，然后绘图win.repaint();
+    // Re-paint the scene
     win->unlockAccess3DScene();
     win->repaint();
 
@@ -215,7 +206,7 @@ void slamScene::initViewports(int W, int H){
     setLegend();
     image = theScene->createViewport("image");
     //W H 设置图像窗口的宽度和高度
-    image->setViewportPosition(20, 20, W/2, H/2);
+    image->setViewportPosition(20, 20, W, H);
 
     // Re-paint the scene
     win->unlockAccess3DScene();
@@ -1003,15 +994,11 @@ void slamScene::setLines(CMatrixFloat lData_){
 
 void slamScene::setKF(Matrix4d Tfw){
     // Initialize the camera object
-    //新建一个相机object
     opengl::CSetOfObjectsPtr kfbb = opengl::stock_objects::BumblebeeCamera();
     {
-        //思维变量
         CPose3D pose( getPoseFormat(Tfw) );
         kfbb->setPose( pose );
-        //设置尺度因子
         kfbb->setScale(sbb*10);
-        //插入场景里
         theScene->insert(kfbb);
     }
 }
