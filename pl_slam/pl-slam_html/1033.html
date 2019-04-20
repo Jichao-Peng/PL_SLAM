@@ -1,0 +1,167 @@
+<html><head><title>CParticleFilter.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/bayes/CParticleFilter.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/bayes/CParticleFilter.h";
+top.document.title  = "CParticleFilter.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span><span class="preproc">#ifndef <a href="dictionary_C.html#12307">CPARTICLEFILTER_H</a></span>
+<a name="10"><font size=-1>10     </font></a><span class="preproc">#define <a href="dictionary_C.html#12307">CPARTICLEFILTER_H</a></span>
+<a name="11"><font size=-1>11     </font></a><span class="preproc"></span>
+<a name="12"><font size=-1>12     </font></a><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/core_defs.h&gt;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/CDebugOutputCapable.h&gt;</span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/CLoadableOptions.h&gt;</span>
+<a name="15"><font size=-1>15     </font></a><span class="string"></span>
+<a name="16"><font size=-1>16     </font></a><span class="string"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="17"><font size=-1>17     </font></a><span class="default">{</span>
+<a name="18"><font size=-1>18     </font></a><span class="default">	</span><span class="keyword">namespace </span><span class="default">obs { </span><span class="keyword">class <a href="dictionary_M.html#1051">CSensoryFrame</a></span><span class="default">; </span><span class="keyword">class <a href="dictionary_M.html#1050">CActionCollection</a></span><span class="default">; }</span>
+<a name="19"><font size=-1>19     </font></a><span class="default"></span>
+<a name="20"><font size=-1>20     </font></a><span class="default">	</span><span class="comment">/** The namespace for Bayesian filtering algorithm: different particle filters and Kalman filter algorithms. \ingroup mrpt_base_grp</span>
+<a name="21"><font size=-1>21     </font></a><span class="comment">	  */</span>
+<a name="22"><font size=-1>22     </font></a><span class="comment">	</span><span class="keyword">namespace </span><span class="default">bayes</span>
+<a name="23"><font size=-1>23     </font></a><span class="default">	{</span>
+<a name="24"><font size=-1>24     </font></a><span class="default">		</span><span class="keyword">class <a href="dictionary_M.html#413">CParticleFilterCapable</a></span><span class="default">;</span>
+<a name="25"><font size=-1>25     </font></a><span class="default"></span>
+<a name="26"><font size=-1>26     </font></a><span class="default">		</span><span class="comment">/** This class acts as a common interface to the different interfaces (see CParticleFilter::TParticleFilterAlgorithm) any bayes::CParticleFilterCapable class can implement: it is the invoker of particle filter algorithms.</span>
+<a name="27"><font size=-1>27     </font></a><span class="comment">		 *   The particle filter is executed on a probability density function (PDF) described by a CParticleFilterCapable object, passed in the constructor or alternatively through the CParticleFilter::executeOn method.&lt;br&gt;</span>
+<a name="28"><font size=-1>28     </font></a><span class="comment">		 *</span>
+<a name="29"><font size=-1>29     </font></a><span class="comment">		 * For a complete example and further details, see the &lt;a href=&quot;http://www.mrpt.org/Particle_Filter_Tutorial&quot; &gt;Particle Filter tutorial&lt;/a&gt;.</span>
+<a name="30"><font size=-1>30     </font></a><span class="comment">		 *</span>
+<a name="31"><font size=-1>31     </font></a><span class="comment">		 *   The basic SIR algorithm (pfStandardProposal) consists of:</span>
+<a name="32"><font size=-1>32     </font></a><span class="comment">		 *		- Execute a prediction with the given &quot;action&quot;.</span>
+<a name="33"><font size=-1>33     </font></a><span class="comment">		 *		- Update the weights of the particles using the likelihood of the &quot;observation&quot;.</span>
+<a name="34"><font size=-1>34     </font></a><span class="comment">		 *		- Normalize weights.</span>
+<a name="35"><font size=-1>35     </font></a><span class="comment">		 *		- Perform resampling if the ESS is below the threshold options.BETA.</span>
+<a name="36"><font size=-1>36     </font></a><span class="comment">		 *</span>
+<a name="37"><font size=-1>37     </font></a><span class="comment">		 * \ingroup mrpt_base_grp</span>
+<a name="38"><font size=-1>38     </font></a><span class="comment">		 * \sa mrpt::poses::CPoseParticlesPDF</span>
+<a name="39"><font size=-1>39     </font></a><span class="comment">		 */</span>
+<a name="40"><font size=-1>40     </font></a><span class="comment">		</span><span class="keyword">class <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#1035">CParticleFilter</a> </span><span class="default">: </span><span class="keyword">public </span><span class="default">mrpt::utils::<a href="dictionary_M.html#8069">CDebugOutputCapable</a></span>
+<a name="41"><font size=-1>41     </font></a><span class="default">		{</span>
+<a name="42"><font size=-1>42     </font></a><span class="default">		</span><span class="keyword">public</span><span class="default">:</span>
+<a name="43"><font size=-1>43     </font></a><span class="default"></span>
+<a name="44"><font size=-1>44     </font></a><span class="default">			</span><span class="comment">/** Defines different types of particle filter algorithms.</span>
+<a name="45"><font size=-1>45     </font></a><span class="comment">			  *  The defined SIR implementations are:</span>
+<a name="46"><font size=-1>46     </font></a><span class="comment">			  *		- pfStandardProposal: Standard proposal distribution + weights according to likelihood function.</span>
+<a name="47"><font size=-1>47     </font></a><span class="comment">			  *		- pfAuxiliaryPFStandard: An auxiliary PF using the standard proposal distribution.</span>
+<a name="48"><font size=-1>48     </font></a><span class="comment">			  *		- pfOptimalProposal: Use the optimal proposal distribution (where available!, usually this will perform approximations)</span>
+<a name="49"><font size=-1>49     </font></a><span class="comment">			  *		- pfAuxiliaryPFOptimal: Use the optimal proposal and a auxiliary particle filter (see &lt;a href=&quot;http://www.mrpt.org/Paper:An_Optimal_Filtering_Algorithm_for_Non-Parametric_Observation_Models_in_Robot_Localization_(ICRA_2008)&quot; &gt;paper&lt;/a&gt;).</span>
+<a name="50"><font size=-1>50     </font></a><span class="comment">			  *</span>
+<a name="51"><font size=-1>51     </font></a><span class="comment">			  * See the theoretical discussion in &lt;a href=&quot;http://www.mrpt.org/Resampling_Schemes&quot; &gt;resampling schemes&lt;/a&gt;.</span>
+<a name="52"><font size=-1>52     </font></a><span class="comment">			  */</span>
+<a name="53"><font size=-1>53     </font></a><span class="comment">			</span><span class="keyword">enum <a href="dictionary_M.html#12309">TParticleFilterAlgorithm</a></span>
+<a name="54"><font size=-1>54     </font></a><span class="keyword">			</span><span class="default">{</span>
+<a name="55"><font size=-1>55     </font></a><span class="default">				pfStandardProposal = </span><span class="number">0</span><span class="default">,</span>
+<a name="56"><font size=-1>56     </font></a><span class="default">				pfAuxiliaryPFStandard,</span>
+<a name="57"><font size=-1>57     </font></a><span class="default">				pfOptimalProposal,</span>
+<a name="58"><font size=-1>58     </font></a><span class="default">				pfAuxiliaryPFOptimal</span>
+<a name="59"><font size=-1>59     </font></a><span class="default">			};</span>
+<a name="60"><font size=-1>60     </font></a><span class="default"></span>
+<a name="61"><font size=-1>61     </font></a><span class="default">			</span><span class="comment">/** Defines the different resampling algorithms.</span>
+<a name="62"><font size=-1>62     </font></a><span class="comment">			  *  The implemented resampling methods are:</span>
+<a name="63"><font size=-1>63     </font></a><span class="comment">			  *		- prMultinomial (Default): Uses standard select with replacement (draws M random uniform numbers)</span>
+<a name="64"><font size=-1>64     </font></a><span class="comment">			  *		- prResidual: The residual or &quot;remainder&quot; method.</span>
+<a name="65"><font size=-1>65     </font></a><span class="comment">			  *		- prStratified: The stratified resampling, where a uniform sample is drawn for each of M subdivisions of the range (0,1].</span>
+<a name="66"><font size=-1>66     </font></a><span class="comment">			  *		- prSystematic: A single uniform sample is drawn in the range (0,1/M].</span>
+<a name="67"><font size=-1>67     </font></a><span class="comment">			  *</span>
+<a name="68"><font size=-1>68     </font></a><span class="comment">			  * See the theoretical discussion in &lt;a href=&quot;http://www.mrpt.org/Resampling_Schemes&quot; &gt;resampling schemes&lt;/a&gt;.</span>
+<a name="69"><font size=-1>69     </font></a><span class="comment">			  */</span>
+<a name="70"><font size=-1>70     </font></a><span class="comment">			</span><span class="keyword">enum <a href="dictionary_M.html#1054">TParticleResamplingAlgorithm</a></span>
+<a name="71"><font size=-1>71     </font></a><span class="keyword">			</span><span class="default">{</span>
+<a name="72"><font size=-1>72     </font></a><span class="default">				prMultinomial = </span><span class="number">0</span><span class="default">,</span>
+<a name="73"><font size=-1>73     </font></a><span class="default">				prResidual,</span>
+<a name="74"><font size=-1>74     </font></a><span class="default">				prStratified,</span>
+<a name="75"><font size=-1>75     </font></a><span class="default">				prSystematic</span>
+<a name="76"><font size=-1>76     </font></a><span class="default">			};</span>
+<a name="77"><font size=-1>77     </font></a><span class="default"></span>
+<a name="78"><font size=-1>78     </font></a><span class="default">			</span><span class="comment">/** The configuration of a particle filter.</span>
+<a name="79"><font size=-1>79     </font></a><span class="comment">			  */</span>
+<a name="80"><font size=-1>80     </font></a><span class="comment">			</span><span class="keyword">struct <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#1041">TParticleFilterOptions</a> </span><span class="default">: </span><span class="keyword">public </span><span class="default">mrpt::utils::<a href="dictionary_M.html#12318">CLoadableOptions</a></span>
+<a name="81"><font size=-1>81     </font></a><span class="default">			{</span>
+<a name="82"><font size=-1>82     </font></a><span class="default">			</span><span class="keyword">public</span><span class="default">:</span>
+<a name="83"><font size=-1>83     </font></a><span class="default">				<a href="dictionary_M.html#12319">TParticleFilterOptions</a>(); </span><span class="comment">//!&lt; Initilization of default parameters</span>
+<a name="84"><font size=-1>84     </font></a><span class="comment">				</span><span class="keyword">void <a href="dictionary_M.html#12320">loadFromConfigFile</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">mrpt::utils::<a href="dictionary_M.html#3751">CConfigFileBase</a> &amp;source,</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a> &amp;section) <a href="dictionary_M.html#422">MRPT_OVERRIDE</a>; </span><span class="comment">// See base docs</span>
+<a name="85"><font size=-1>85     </font></a><span class="comment">				</span><span class="keyword">void <a href="dictionary_M.html#12322">dumpToTextStream</a></span><span class="default">(mrpt::utils::<a href="dictionary_M.html#516">CStream</a> &amp;out) </span><span class="keyword">const <a href="dictionary_M.html#422">MRPT_OVERRIDE</a></span><span class="default">; </span><span class="comment">// See base docs</span>
+<a name="86"><font size=-1>86     </font></a><span class="comment"></span>
+<a name="87"><font size=-1>87     </font></a><span class="comment">				</span><span class="keyword">bool         <a href="dictionary_M.html#12324">adaptiveSampleSize</a></span><span class="default">; </span><span class="comment">//!&lt; A flag that indicates whether the CParticleFilterCapable object should perform adative sample size (default=false).</span>
+<a name="88"><font size=-1>88     </font></a><span class="comment">				</span><span class="keyword">double       <a href="dictionary_M.html#12325">BETA</a></span><span class="default">; </span><span class="comment">//!&lt; The resampling of particles will be performed when ESS (in range [0,1]) &lt; BETA (default is 0.5)</span>
+<a name="89"><font size=-1>89     </font></a><span class="comment">				</span><span class="keyword">unsigned int <a href="dictionary_M.html#12326">sampleSize</a></span><span class="default">; </span><span class="comment">//!&lt; The initial number of particles in the filter (it can change only if adaptiveSampleSize=true) (default=1)</span>
+<a name="90"><font size=-1>90     </font></a><span class="comment"></span>
+<a name="91"><font size=-1>91     </font></a><span class="comment">				/** In the algorithm &quot;CParticleFilter::pfAuxiliaryPFOptimal&quot; (and in &quot;CParticleFilter::pfAuxiliaryPFStandard&quot; only if pfAuxFilterStandard_FirstStageWeightsMonteCarlo = true) the number of samples for searching the maximum likelihood value and also to estimate the &quot;first stage weights&quot; (see papers!) (default=100)</span>
+<a name="92"><font size=-1>92     </font></a><span class="comment">				  */</span>
+<a name="93"><font size=-1>93     </font></a><span class="comment">				</span><span class="keyword">unsigned int <a href="dictionary_M.html#12327">pfAuxFilterOptimal_MaximumSearchSamples</a></span><span class="default">;</span>
+<a name="94"><font size=-1>94     </font></a><span class="default">				</span><span class="keyword">double		<a href="dictionary_M.html#12328">powFactor</a></span><span class="default">; </span><span class="comment">//!&lt; An optional step to &quot;smooth&quot; dramatic changes in the observation model to affect the variance of the particle weights, eg weight*=likelihood^powFactor (default=1 = no effects).</span>
+<a name="95"><font size=-1>95     </font></a><span class="comment">				<a href="dictionary_M.html#12309">TParticleFilterAlgorithm</a>		<a href="dictionary_M.html#12329">PF_algorithm</a></span><span class="default">; </span><span class="comment">//!&lt; The PF algorithm to use (default=pfStandardProposal) See TParticleFilterAlgorithm for the posibilities.</span>
+<a name="96"><font size=-1>96     </font></a><span class="comment">				<a href="dictionary_M.html#1054">TParticleResamplingAlgorithm</a>	<a href="dictionary_M.html#12330">resamplingMethod</a></span><span class="default">; </span><span class="comment">//!&lt; The resampling algorithm to use (default=prMultinomial).</span>
+<a name="97"><font size=-1>97     </font></a><span class="comment"></span>
+<a name="98"><font size=-1>98     </font></a><span class="comment">				/** Only for PF_algorithm=pfAuxiliaryPFOptimal: If a given particle has a max_likelihood (from the a-priori estimate) below the maximum from all the samples - max_loglikelihood_dyn_range, then the particle is directly discarded.</span>
+<a name="99"><font size=-1>99     </font></a><span class="comment">				  *  This is done to assure that the rejection sampling doesn't get stuck in an infinite loop trying to get an acceptable sample.</span>
+<a name="100"><font size=-1>100     </font></a><span class="comment">				  *  Default = 15 (in logarithmic likelihood)</span>
+<a name="101"><font size=-1>101     </font></a><span class="comment">				  */</span>
+<a name="102"><font size=-1>102     </font></a><span class="comment">				</span><span class="keyword">double <a href="dictionary_M.html#12331">max_loglikelihood_dyn_range</a></span><span class="default">;</span>
+<a name="103"><font size=-1>103     </font></a><span class="default"></span>
+<a name="104"><font size=-1>104     </font></a><span class="default">				</span><span class="comment">/** Only for PF_algorithm==pfAuxiliaryPFStandard:</span>
+<a name="105"><font size=-1>105     </font></a><span class="comment">				  * If false, the APF will predict the first stage weights just at the mean of the prior of the next time step.</span>
+<a name="106"><font size=-1>106     </font></a><span class="comment">				  * If true, these weights will be estimated as described in the papers for the &quot;pfAuxiliaryPFOptimal&quot; method, i.e. through a monte carlo simulation.</span>
+<a name="107"><font size=-1>107     </font></a><span class="comment">				  *  In that case, &quot;pfAuxFilterOptimal_MaximumSearchSamples&quot; is the number of MC samples used.</span>
+<a name="108"><font size=-1>108     </font></a><span class="comment">				  */</span>
+<a name="109"><font size=-1>109     </font></a><span class="comment">				</span><span class="keyword">bool <a href="dictionary_M.html#12332">pfAuxFilterStandard_FirstStageWeightsMonteCarlo</a></span><span class="default">;</span>
+<a name="110"><font size=-1>110     </font></a><span class="default"></span>
+<a name="111"><font size=-1>111     </font></a><span class="default">				</span><span class="keyword">bool <a href="dictionary_M.html#12333">verbose</a></span><span class="default">;  </span><span class="comment">//!&lt; Enable extra messages for each PF iteration (Default=false)</span>
+<a name="112"><font size=-1>112     </font></a><span class="comment">				</span><span class="keyword">bool <a href="dictionary_M.html#12334">pfAuxFilterOptimal_MLE</a></span><span class="default">; </span><span class="comment">//!&lt; (Default=false) In the algorithm &quot;CParticleFilter::pfAuxiliaryPFOptimal&quot;, if set to true, do not perform rejection sampling, but just the most-likely (ML) particle found in the preliminary weight-determination stage.</span>
+<a name="113"><font size=-1>113     </font></a><span class="comment">			</span><span class="default">};</span>
+<a name="114"><font size=-1>114     </font></a><span class="default"></span>
+<a name="115"><font size=-1>115     </font></a><span class="default"></span>
+<a name="116"><font size=-1>116     </font></a><span class="default">			</span><span class="comment">/** Statistics for being returned from the &quot;execute&quot; method. */</span>
+<a name="117"><font size=-1>117     </font></a><span class="comment">			</span><span class="keyword">struct <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#12335">TParticleFilterStats</a></span>
+<a name="118"><font size=-1>118     </font></a><span class="keyword">			</span><span class="default">{</span>
+<a name="119"><font size=-1>119     </font></a><span class="default">				<a href="dictionary_M.html#12336">TParticleFilterStats</a>() : <a href="dictionary_M.html#12337">ESS_beforeResample</a>(</span><span class="number">0</span><span class="default">), <a href="dictionary_M.html#12338">weightsVariance_beforeResample</a> (</span><span class="number">0</span><span class="default">) {  }</span>
+<a name="120"><font size=-1>120     </font></a><span class="default">				</span><span class="keyword">double		<a href="dictionary_M.html#12337">ESS_beforeResample</a></span><span class="default">;</span>
+<a name="121"><font size=-1>121     </font></a><span class="default">				</span><span class="keyword">double		<a href="dictionary_M.html#12338">weightsVariance_beforeResample</a></span><span class="default">;</span>
+<a name="122"><font size=-1>122     </font></a><span class="default">			};</span>
+<a name="123"><font size=-1>123     </font></a><span class="default"></span>
+<a name="124"><font size=-1>124     </font></a><span class="default">			</span><span class="comment">/** Default constructor.</span>
+<a name="125"><font size=-1>125     </font></a><span class="comment">			 *   After creating the PF object, set the options in CParticleFilter::m_options, then execute steps through CParticleFilter::executeOn.</span>
+<a name="126"><font size=-1>126     </font></a><span class="comment">			 */</span>
+<a name="127"><font size=-1>127     </font></a><span class="comment">			<a href="dictionary_M.html#12339">CParticleFilter</a></span><span class="default">( );</span>
+<a name="128"><font size=-1>128     </font></a><span class="default"></span>
+<a name="129"><font size=-1>129     </font></a><span class="default">			</span><span class="keyword">virtual </span><span class="default">~<a href="dictionary_M.html#12340">CParticleFilter</a>() {}</span>
+<a name="130"><font size=-1>130     </font></a><span class="default"></span>
+<a name="131"><font size=-1>131     </font></a><span class="default">			</span><span class="comment">/** Executes a complete prediction + update step of the selected particle filtering algorithm.</span>
+<a name="132"><font size=-1>132     </font></a><span class="comment">			 *    The member CParticleFilter::m_options must be set before calling this to settle the algorithm parameters.</span>
+<a name="133"><font size=-1>133     </font></a><span class="comment">			 *</span>
+<a name="134"><font size=-1>134     </font></a><span class="comment">			 * \param obj           The object representing the probability distribution function (PDF) which apply the particle filter algorithm to.</span>
+<a name="135"><font size=-1>135     </font></a><span class="comment">			 * \param action		A pointer to an action in the form of a CActionCollection, or NULL if there is no action.</span>
+<a name="136"><font size=-1>136     </font></a><span class="comment">			 * \param observation	A pointer to observations in the form of a CSensoryFrame, or NULL if there is no observation.</span>
+<a name="137"><font size=-1>137     </font></a><span class="comment">			 * \param stats An output structure for gathering statistics of the particle filter execution, or set to NULL if you do not need it (see CParticleFilter::TParticleFilterStats).</span>
+<a name="138"><font size=-1>138     </font></a><span class="comment">			 *</span>
+<a name="139"><font size=-1>139     </font></a><span class="comment">			 * \sa CParticleFilterCapable, executeOn</span>
+<a name="140"><font size=-1>140     </font></a><span class="comment">			 */</span>
+<a name="141"><font size=-1>141     </font></a><span class="comment">			</span><span class="keyword">void  <a href="dictionary_M.html#12341">executeOn</a></span><span class="default">(</span>
+<a name="142"><font size=-1>142     </font></a><span class="default">				<a href="dictionary_M.html#413">CParticleFilterCapable</a> 			&amp;obj,</span>
+<a name="143"><font size=-1>143     </font></a><span class="default">				</span><span class="keyword">const </span><span class="default">mrpt::obs::<a href="dictionary_M.html#1050">CActionCollection</a>   *action,</span>
+<a name="144"><font size=-1>144     </font></a><span class="default">				</span><span class="keyword">const </span><span class="default">mrpt::obs::<a href="dictionary_M.html#1051">CSensoryFrame</a>	    *observation,</span>
+<a name="145"><font size=-1>145     </font></a><span class="default">				<a href="dictionary_M.html#12335">TParticleFilterStats</a>	        *stats = NULL);</span>
+<a name="146"><font size=-1>146     </font></a><span class="default"></span>
+<a name="147"><font size=-1>147     </font></a><span class="default"></span>
+<a name="148"><font size=-1>148     </font></a><span class="default">			</span><span class="comment">/** The options to be used in the PF, must be set before executing any step of the particle filter.</span>
+<a name="149"><font size=-1>149     </font></a><span class="comment">			  */</span>
+<a name="150"><font size=-1>150     </font></a><span class="comment">			<a href="dictionary_M.html#1035">CParticleFilter</a></span><span class="default">::<a href="dictionary_M.html#1041">TParticleFilterOptions</a>		<a href="dictionary_M.html#12342">m_options</a>;</span>
+<a name="151"><font size=-1>151     </font></a><span class="default"></span>
+<a name="152"><font size=-1>152     </font></a><span class="default">		}; </span><span class="comment">// End of class def.</span>
+<a name="153"><font size=-1>153     </font></a><span class="comment"></span>
+<a name="154"><font size=-1>154     </font></a><span class="comment">	</span><span class="default">} </span><span class="comment">// end namespace</span>
+<a name="155"><font size=-1>155     </font></a><span class="comment"></span><span class="default">} </span><span class="comment">// end namespace</span>
+<a name="156"><font size=-1>156     </font></a><span class="comment"></span><span class="preproc">#endif</span>
+<a name="157"><font size=-1>157     </font></a><span class="preproc"></span>
+</pre></body></html>

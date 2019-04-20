@@ -1,0 +1,198 @@
+<html><head><title>Macro Cross Reference [I]</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/></head><body bgcolor="#ffffff" TEXT="#000000"><h2>Macro Cross Reference</h2><hr><pre>
+</pre><table BORDER CELLPADDING=4><tr><td><a href="macro_xref_Non-Alpha.html">Non-Alpha</a></td><td><a href="macro_xref_A.html">A</a></td><td><a href="macro_xref_B.html">B</a></td><td><a href="macro_xref_C.html">C</a></td><td><a href="macro_xref_D.html">D</a></td><td><a href="macro_xref_E.html">E</a></td><td><a href="macro_xref_F.html">F</a></td><td><a href="macro_xref_G.html">G</a></td><td><a href="macro_xref_H.html">H</a></td><td><a href="macro_xref_I.html">I</a></td><td>J</td><td><a href="macro_xref_K.html">K</a></td><td><a href="macro_xref_L.html">L</a></td><td><a href="macro_xref_M.html">M</a></td><td><a href="macro_xref_N.html">N</a></td><td><a href="macro_xref_O.html">O</a></td><td><a href="macro_xref_P.html">P</a></td><td>Q</td><td><a href="macro_xref_R.html">R</a></td><td><a href="macro_xref_S.html">S</a></td><td><a href="macro_xref_T.html">T</a></td><td><a href="macro_xref_U.html">U</a></td><td><a href="macro_xref_V.html">V</a></td><td><a href="macro_xref_W.html">W</a></td><td>X</td><td>Y</td><td><a href="macro_xref_Z.html">Z</a></td></tr></table><pre>
+
+<a href="dictionary_I.html#15167">i386</a><a name="15167"> </a>
+  Declared as: 
+    Use   [<a href="121.html#397">mrpt_macros.h, 397</a>]         mrpt_macros.h
+
+<a href="dictionary_I.html#2433">ID_VOID_MAIN</a><a name="2433"> </a>
+    Use   [<a href="2432.html#538">CMakeCCompilerId.c, 538</a>]    CMakeCCompilerId.c
+
+<a href="dictionary_I.html#12369">ID_VOID_MAIN</a><a name="12369"> </a>
+    Use   [<a href="12368.html#538">CMakeCCompilerId.c, 538</a>]    CMakeCCompilerId.c
+
+<a href="dictionary_I.html#391">imaxabs</a><a name="391"> </a>
+  Declared as: _abs64
+    Define   [<a href="215.html#277">msvc_inttypes.h, 277</a>]    msvc_inttypes.h
+
+<a href="dictionary_I.html#11658">IMPLEMENTS_MEXPLUS_FROM</a><a name="11658"> </a>
+  Declared as: 
+    Define   [<a href="65.html#238">CSerializable.h, 238</a>]    mrpt::utils
+
+<a href="dictionary_I.html#6931">IMPLEMENTS_MRPT_OBJECT</a><a name="6931"> </a>
+  Declared as: 
+ mrpt::utils::CObject* NameSpace::class_name::CreateObject() 
+ { return static_cast<mrpt::utils::CObject*>( new NameSpace::class_name ); } 
+ NameSpace::class_name##Ptr NameSpace::class_name::Create() 
+ { return NameSpace::class_name##Ptr( new NameSpace::class_name ); } 
+ const mrpt::utils::TRuntimeClassId* NameSpace::class_name::_GetBaseClass() 
+ { return CLASS_ID(base); } 
+ mrpt::utils::TRuntimeClassId NameSpace::class_name::class##class_name = { 
+ #class_name, NameSpace::class_name::CreateObject, &class_name::_GetBaseClass }; 
+ const mrpt::utils::TRuntimeClassId *NameSpace::class_name::classinfo = & NameSpace::class_name::class##class_name; 
+ const mrpt::utils::TRuntimeClassId* NameSpace::class_name::GetRuntimeClass() const 
+ { return CLASS_ID_NAMESPACE(class_name,NameSpace); } 
+ mrpt::utils::CLASSINIT NameSpace::class_name::_init_##class_name(CLASS_ID(base)); 
+ mrpt::utils::CObject * NameSpace::class_name::duplicate() const 
+ { return static_cast<mrpt::utils::CObject*>( new NameSpace::class_name(*this) ); }
+    Define   [<a href="65.html#249">CObject.h, 249</a>]          mrpt::utils
+    Macro   [<a href="517.html#188">CSerializable.h, 188</a>]     <a href="dictionary_I.html#11656">IMPLEMENTS_SERIALIZABLE</a>
+
+<a href="dictionary_I.html#11656">IMPLEMENTS_SERIALIZABLE</a><a name="11656"> </a>
+  Declared as: 
+ IMPLEMENTS_MRPT_OBJECT(class_name, base,NameSpace) 
+ mrpt::utils::CStream& NameSpace::operator>>(mrpt::utils::CStream& in, NameSpace::class_name##Ptr &pObj) 
+ { pObj = NameSpace::class_name##Ptr( in.ReadObject() ); return in; }
+    Define   [<a href="65.html#187">CSerializable.h, 187</a>]    mrpt::utils
+
+<a href="dictionary_I.html#6933">IMPLEMENTS_VIRTUAL_MRPT_OBJECT</a><a name="6933"> </a>
+  Declared as: 
+ const mrpt::utils::TRuntimeClassId* class_name::_GetBaseClass() 
+ { return CLASS_ID(base_class_name); } 
+ const mrpt::utils::TRuntimeClassId class_name::class##class_name = { 
+ #class_name, NULL, &class_name::_GetBaseClass }; 
+ const mrpt::utils::TRuntimeClassId* class_name::GetRuntimeClass() const 
+ { return CLASS_ID(class_name); }
+    Define   [<a href="65.html#282">CObject.h, 282</a>]          mrpt::utils
+    Macro   [<a href="517.html#200">CSerializable.h, 200</a>]     <a href="dictionary_I.html#11657">IMPLEMENTS_VIRTUAL_SERIALIZABLE</a>
+
+<a href="dictionary_I.html#11657">IMPLEMENTS_VIRTUAL_SERIALIZABLE</a><a name="11657"> </a>
+  Declared as: 
+ IMPLEMENTS_VIRTUAL_MRPT_OBJECT(class_name, base_class_name,NameSpace) 
+ mrpt::utils::CStream& NameSpace::operator>>(mrpt::utils::CStream& in, class_name##Ptr &pObj) 
+ { pObj = class_name##Ptr( in.ReadObject() ); return in; }
+    Define   [<a href="65.html#199">CSerializable.h, 199</a>]    mrpt::utils
+
+<a href="dictionary_I.html#10741">INT16_C</a><a name="10741"> </a>
+  Declared as: c
+
+<a href="dictionary_I.html#10753">INT16_MAX</a><a name="10753"> </a>
+  Declared as: (32767)
+
+<a href="dictionary_I.html#10754">INT16_MIN</a><a name="10754"> </a>
+  Declared as: (-32767-1)
+
+<a href="dictionary_I.html#10796">int16_t</a><a name="10796"> </a>
+    Use   [<a href="2176.html#133">bits.h, 133</a>]                utils
+
+<a href="dictionary_I.html#10737">INT32_C</a><a name="10737"> </a>
+  Declared as: c
+
+<a href="dictionary_I.html#10738">INT32_MAX</a><a name="10738"> </a>
+  Declared as: (2147483647)
+
+<a href="dictionary_I.html#10755">INT32_MIN</a><a name="10755"> </a>
+  Declared as: (-2147483647-1)
+
+<a href="dictionary_I.html#10801">int32_t</a><a name="10801"> </a>
+    Use   [<a href="2176.html#135">bits.h, 135</a>]                utils
+
+<a href="dictionary_I.html#10733">INT64_C</a><a name="10733"> </a>
+  Declared as: c ## LL
+
+<a href="dictionary_I.html#10734">INT64_MAX</a><a name="10734"> </a>
+  Declared as: (__INT64_C(9223372036854775807))
+
+<a href="dictionary_I.html#10747">INT64_MIN</a><a name="10747"> </a>
+  Declared as: (-__INT64_C(9223372036854775807)-1)
+
+<a href="dictionary_I.html#10743">INT8_C</a><a name="10743"> </a>
+  Declared as: c
+
+<a href="dictionary_I.html#10750">INT8_MAX</a><a name="10750"> </a>
+  Declared as: (127)
+
+<a href="dictionary_I.html#10751">INT8_MIN</a><a name="10751"> </a>
+  Declared as: (-128)
+
+<a href="dictionary_I.html#10792">int8_t</a><a name="10792"> </a>
+    Use   [<a href="2176.html#131">bits.h, 131</a>]                utils
+
+<a href="dictionary_I.html#10780">INT_FAST16_MAX</a><a name="10780"> </a>
+  Declared as: (2147483647)
+
+<a href="dictionary_I.html#10784">INT_FAST16_MIN</a><a name="10784"> </a>
+  Declared as: (-2147483647-1)
+
+<a href="dictionary_I.html#10782">INT_FAST32_MAX</a><a name="10782"> </a>
+  Declared as: (2147483647)
+
+<a href="dictionary_I.html#10785">INT_FAST32_MIN</a><a name="10785"> </a>
+  Declared as: (-2147483647-1)
+
+<a href="dictionary_I.html#10787">INT_FAST64_MAX</a><a name="10787"> </a>
+  Declared as: (__INT64_C(9223372036854775807))
+
+<a href="dictionary_I.html#10788">INT_FAST64_MIN</a><a name="10788"> </a>
+  Declared as: (-__INT64_C(9223372036854775807)-1)
+
+<a href="dictionary_I.html#10778">INT_FAST8_MAX</a><a name="10778"> </a>
+  Declared as: (127)
+
+<a href="dictionary_I.html#10783">INT_FAST8_MIN</a><a name="10783"> </a>
+  Declared as: (-128)
+
+<a href="dictionary_I.html#10767">INT_LEAST16_MAX</a><a name="10767"> </a>
+  Declared as: (32767)
+
+<a href="dictionary_I.html#10771">INT_LEAST16_MIN</a><a name="10771"> </a>
+  Declared as: (-32767-1)
+
+<a href="dictionary_I.html#10769">INT_LEAST32_MAX</a><a name="10769"> </a>
+  Declared as: (2147483647)
+
+<a href="dictionary_I.html#10772">INT_LEAST32_MIN</a><a name="10772"> </a>
+  Declared as: (-2147483647-1)
+
+<a href="dictionary_I.html#10775">INT_LEAST64_MAX</a><a name="10775"> </a>
+  Declared as: (__INT64_C(9223372036854775807))
+
+<a href="dictionary_I.html#10776">INT_LEAST64_MIN</a><a name="10776"> </a>
+  Declared as: (-__INT64_C(9223372036854775807)-1)
+
+<a href="dictionary_I.html#10765">INT_LEAST8_MAX</a><a name="10765"> </a>
+  Declared as: (127)
+
+<a href="dictionary_I.html#10770">INT_LEAST8_MIN</a><a name="10770"> </a>
+  Declared as: (-128)
+
+<a href="dictionary_I.html#10797">INT_MAX</a><a name="10797"> </a>
+
+<a href="dictionary_I.html#10761">INTMAX_C</a><a name="10761"> </a>
+  Declared as: c ## LL
+
+<a href="dictionary_I.html#10745">INTMAX_MAX</a><a name="10745"> </a>
+  Declared as: (__INT64_C(9223372036854775807))
+
+<a href="dictionary_I.html#10746">INTMAX_MIN</a><a name="10746"> </a>
+  Declared as: (-__INT64_C(9223372036854775807)-1)
+
+<a href="dictionary_I.html#10832">INTPTR_C</a><a name="10832"> </a>
+
+<a href="dictionary_I.html#10830">INTPTR_MAX</a><a name="10830"> </a>
+  Declared as: (2147483647)
+
+<a href="dictionary_I.html#10831">INTPTR_MIN</a><a name="10831"> </a>
+  Declared as: (-2147483647-1)
+
+<a href="dictionary_I.html#1034">INVALID_LIKELIHOOD_VALUE</a><a name="1034"> </a>
+  Declared as: (-1e300)
+    Define   [<a href="406.html#19">CParticleFilterCapable.h, 19</a>]   mrpt::bayes
+
+<a href="dictionary_I.html#7246">INVALID_NODEID</a><a name="7246"> </a>
+  Declared as: static_cast<mrpt::utils::TNodeID>(-1)
+    Define   [<a href="65.html#47">types_simple.h, 47</a>]      mrpt::utils
+
+<a href="dictionary_I.html#4971">INVALID_TIMESTAMP</a><a name="4971"> </a>
+  Declared as: (0)
+    Define   [<a href="4969.html#17">datetime.h, 17</a>]          datetime.h
+
+<a href="dictionary_I.html#6905">IS_CLASS</a><a name="6905"> </a>
+  Declared as: ((ptrObj)->GetRuntimeClass()==CLASS_ID(class_name))
+    Define   [<a href="65.html#99">CObject.h, 99</a>]           mrpt::utils
+
+<a href="dictionary_I.html#6906">IS_DERIVED</a><a name="6906"> </a>
+  Declared as: ((ptrObj)->GetRuntimeClass()->derivedFrom(CLASS_ID(class_name)))
+    Define   [<a href="65.html#102">CObject.h, 102</a>]          mrpt::utils
+</pre><hr>
+<table BORDER CELLPADDING=4><tr><td><a href="macro_xref_Non-Alpha.html">Non-Alpha</a></td><td><a href="macro_xref_A.html">A</a></td><td><a href="macro_xref_B.html">B</a></td><td><a href="macro_xref_C.html">C</a></td><td><a href="macro_xref_D.html">D</a></td><td><a href="macro_xref_E.html">E</a></td><td><a href="macro_xref_F.html">F</a></td><td><a href="macro_xref_G.html">G</a></td><td><a href="macro_xref_H.html">H</a></td><td><a href="macro_xref_I.html">I</a></td><td>J</td><td><a href="macro_xref_K.html">K</a></td><td><a href="macro_xref_L.html">L</a></td><td><a href="macro_xref_M.html">M</a></td><td><a href="macro_xref_N.html">N</a></td><td><a href="macro_xref_O.html">O</a></td><td><a href="macro_xref_P.html">P</a></td><td>Q</td><td><a href="macro_xref_R.html">R</a></td><td><a href="macro_xref_S.html">S</a></td><td><a href="macro_xref_T.html">T</a></td><td><a href="macro_xref_U.html">U</a></td><td><a href="macro_xref_V.html">V</a></td><td><a href="macro_xref_W.html">W</a></td><td>X</td><td>Y</td><td><a href="macro_xref_Z.html">Z</a></td></tr></table></body></html>

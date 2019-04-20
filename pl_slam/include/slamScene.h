@@ -90,14 +90,21 @@ public:
 
     //窗口
     CDisplayWindow3D*           win;
+	//Ptr智能指针
     COpenGLScenePtr             theScene;
     COpenGLViewportPtr          image, legend, help;
-    opengl::CSetOfObjectsPtr    bbObj, bbObj1, srefObj, srefObj1, gtObj, srefObjGT, elliObjL, elliObjP;
-    opengl::CEllipsoidPtr       elliObj;
+	//插入一个3D物体集，具体解释如下：
+	///A set of object, which are referenced to the coordinates framework established in this object.It can be established a hierarchy of "CSetOfObjects", where the coordinates framework of eachone will be referenced to the parent's one.
+	opengl::CSetOfObjectsPtr    srefObj, elliObjL, elliObjP;
+	//opengl::CSetOfObjectsPtr   bbObj，bbObj1，srefObj1，gtObj，srefObjGT;
+	//不确定性椭圆图元，然鹅并没用
+    //opengl::CEllipsoidPtr       elliObj;
     opengl::CFrustumPtr         frustObj, frustObj1;
     opengl::CAxisPtr            axesObj;
-
-    opengl::CSetOfLinesPtr      lineObj, lineObj_local, kfsLinesObj, voLinesObj;
+	//画线
+    opengl::CSetOfLinesPtr      lineObj, lineObj_local, kfsLinesObj;
+	//opengl::CSetOfLinesPtr    voLinesObj;
+	//点云
     opengl::CPointCloudPtr      pointObj, pointObj_local;
     opengl::CSetOfObjectsPtr    kfsObj;
 
@@ -113,7 +120,7 @@ public:
 
     Matrix4d        x, xgt, xcomp;
     MatrixXd        cov, W;
-    unsigned int    frame, nPoints, nPointsH, nLines, nLinesH;
+    unsigned int    frame, nPoints, nPointsH, nLines, nLinesH,keyFrameNum;
     float           time;
     string          img, img_legend, img_help;
     CMatrixFloat    lData, pData;

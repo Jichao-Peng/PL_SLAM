@@ -119,16 +119,18 @@ void MapHandler::addKeyFrame( KeyFrame *curr_kf )
 {
     Timer timer;
 
-    
+    //更新上一个关键帧和这一个关键帧 这一步似乎没什么用
     this->prev_kf = this->curr_kf;
     this->curr_kf = curr_kf;
 
+    //实际上执行这一步
     if( SlamConfig::multithreadSLAM() )
     {
-        // expand graphs
+        // expand graphs full graph(int) confusion matrix(float)两个图，都延展一下
         expandGraphs();
         // select previous keyframe
-        KeyFrame* prev_kf;
+        KeyFrame* prev_kf;        
+        //获得map_keyframes 末尾的引用，就是上一个关键帧
         prev_kf = map_keyframes.back();
         max_kf_idx++;
         curr_kf->kf_idx = max_kf_idx;

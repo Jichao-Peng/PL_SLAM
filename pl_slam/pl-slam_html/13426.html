@@ -1,0 +1,51 @@
+<html><head><title>integer_select.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/utils/integer_select.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/utils/integer_select.h";
+top.document.title  = "integer_select.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span>
+<a name="10"><font size=-1>10     </font></a><span class="comment"></span><span class="preproc">#pragma </span><span class="default">once</span>
+<a name="11"><font size=-1>11     </font></a><span class="default"></span>
+<a name="12"><font size=-1>12     </font></a><span class="default"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/mrpt_stdint.h&gt;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="15"><font size=-1>15     </font></a><span class="default">{</span>
+<a name="16"><font size=-1>16     </font></a><span class="default">	</span><span class="keyword">namespace </span><span class="default">utils</span>
+<a name="17"><font size=-1>17     </font></a><span class="default">	{</span>
+<a name="18"><font size=-1>18     </font></a><span class="default">		</span><span class="comment">/** \addtogroup mrpt_int_select Templates to declare integers by byte count (in #include &lt;mrpt/utils/integer_select.h&gt;)</span>
+<a name="19"><font size=-1>19     </font></a><span class="comment">		  *  \ingroup mrpt_base_grp</span>
+<a name="20"><font size=-1>20     </font></a><span class="comment">		  * @{ */</span>
+<a name="21"><font size=-1>21     </font></a><span class="comment"></span>
+<a name="22"><font size=-1>22     </font></a><span class="comment">		/** Usage: `int_select_by_bytecount&lt;N&gt;::type  var;` allows defining var as a signed integer with, at least, N bytes. */</span>
+<a name="23"><font size=-1>23     </font></a><span class="comment">		</span><span class="keyword">template</span><span class="default">&lt;</span><span class="keyword">unsigned int </span><span class="default">num_bytes&gt; </span><span class="keyword">struct <a href="dictionary_M.html#13427">int_select_by_bytecount</a></span><span class="default">;</span>
+<a name="24"><font size=-1>24     </font></a><span class="default">		</span><span class="keyword">template</span><span class="default">&lt;&gt; </span><span class="keyword">struct <a href="dictionary_M.html#13427">int_select_by_bytecount</a></span><span class="default">&lt;</span><span class="number">1</span><span class="default">&gt; { </span><span class="keyword">typedef <a href="dictionary_I.html#9590">int8_t</a> <a href="dictionary_M.html#13428">type</a></span><span class="default">; };</span>
+<a name="25"><font size=-1>25     </font></a><span class="default">		</span><span class="keyword">template</span><span class="default">&lt;&gt; </span><span class="keyword">struct <a href="dictionary_M.html#13429">int_select_by_bytecount</a></span><span class="default">&lt;</span><span class="number">2</span><span class="default">&gt; { </span><span class="keyword">typedef <a href="dictionary_I.html#9595">int16_t</a> <a href="dictionary_M.html#13430">type</a></span><span class="default">; };</span>
+<a name="26"><font size=-1>26     </font></a><span class="default">		</span><span class="keyword">template</span><span class="default">&lt;&gt; </span><span class="keyword">struct <a href="dictionary_M.html#13431">int_select_by_bytecount</a></span><span class="default">&lt;</span><span class="number">3</span><span class="default">&gt; { </span><span class="keyword">typedef <a href="dictionary_I.html#9600">int32_t</a> <a href="dictionary_M.html#13432">type</a></span><span class="default">; };</span>
+<a name="27"><font size=-1>27     </font></a><span class="default">		</span><span class="keyword">template</span><span class="default">&lt;&gt; </span><span class="keyword">struct <a href="dictionary_M.html#13433">int_select_by_bytecount</a></span><span class="default">&lt;</span><span class="number">4</span><span class="default">&gt; { </span><span class="keyword">typedef <a href="dictionary_I.html#9600">int32_t</a> <a href="dictionary_M.html#13434">type</a></span><span class="default">; };</span>
+<a name="28"><font size=-1>28     </font></a><span class="default">		</span><span class="keyword">template</span><span class="default">&lt;&gt; </span><span class="keyword">struct <a href="dictionary_M.html#13435">int_select_by_bytecount</a></span><span class="default">&lt;</span><span class="number">8</span><span class="default">&gt; { </span><span class="keyword">typedef <a href="dictionary_I.html#9605">int64_t</a> <a href="dictionary_M.html#13436">type</a></span><span class="default">; };</span>
+<a name="29"><font size=-1>29     </font></a><span class="default"></span>
+<a name="30"><font size=-1>30     </font></a><span class="default">		</span><span class="comment">/** Usage: `uint_select_by_bytecount&lt;N&gt;::type  var;` allows defining var as a unsigned integer with, at least, N bytes. */</span>
+<a name="31"><font size=-1>31     </font></a><span class="comment">		</span><span class="keyword">template</span><span class="default">&lt;</span><span class="keyword">unsigned int </span><span class="default">num_bytes&gt; </span><span class="keyword">struct <a href="dictionary_M.html#13437">uint_select_by_bytecount</a></span><span class="default">;</span>
+<a name="32"><font size=-1>32     </font></a><span class="default">		</span><span class="keyword">template</span><span class="default">&lt;&gt; </span><span class="keyword">struct <a href="dictionary_M.html#13437">uint_select_by_bytecount</a></span><span class="default">&lt;</span><span class="number">1</span><span class="default">&gt; { </span><span class="keyword">typedef <a href="dictionary_U.html#4977">uint8_t</a> <a href="dictionary_M.html#13438">type</a></span><span class="default">; };</span>
+<a name="33"><font size=-1>33     </font></a><span class="default">		</span><span class="keyword">template</span><span class="default">&lt;&gt; </span><span class="keyword">struct <a href="dictionary_M.html#13439">uint_select_by_bytecount</a></span><span class="default">&lt;</span><span class="number">2</span><span class="default">&gt; { </span><span class="keyword">typedef <a href="dictionary_U.html#4975">uint16_t</a> <a href="dictionary_M.html#13440">type</a></span><span class="default">; };</span>
+<a name="34"><font size=-1>34     </font></a><span class="default">		</span><span class="keyword">template</span><span class="default">&lt;&gt; </span><span class="keyword">struct <a href="dictionary_M.html#13441">uint_select_by_bytecount</a></span><span class="default">&lt;</span><span class="number">3</span><span class="default">&gt; { </span><span class="keyword">typedef <a href="dictionary_U.html#497">uint32_t</a> <a href="dictionary_M.html#13442">type</a></span><span class="default">; };</span>
+<a name="35"><font size=-1>35     </font></a><span class="default">		</span><span class="keyword">template</span><span class="default">&lt;&gt; </span><span class="keyword">struct <a href="dictionary_M.html#13443">uint_select_by_bytecount</a></span><span class="default">&lt;</span><span class="number">4</span><span class="default">&gt; { </span><span class="keyword">typedef <a href="dictionary_U.html#497">uint32_t</a> <a href="dictionary_M.html#13444">type</a></span><span class="default">; };</span>
+<a name="36"><font size=-1>36     </font></a><span class="default">		</span><span class="keyword">template</span><span class="default">&lt;&gt; </span><span class="keyword">struct <a href="dictionary_M.html#13445">uint_select_by_bytecount</a></span><span class="default">&lt;</span><span class="number">8</span><span class="default">&gt; { </span><span class="keyword">typedef <a href="dictionary_U.html#763">uint64_t</a> <a href="dictionary_M.html#13446">type</a></span><span class="default">; };</span>
+<a name="37"><font size=-1>37     </font></a><span class="default"></span>
+<a name="38"><font size=-1>38     </font></a><span class="default">		</span><span class="comment">/** @} */</span>
+<a name="39"><font size=-1>39     </font></a><span class="comment">	</span><span class="default">} </span><span class="comment">// End of namespace</span>
+<a name="40"><font size=-1>40     </font></a><span class="comment"></span><span class="default">} </span><span class="comment">// end of namespace</span>
+<a name="41"><font size=-1>41     </font></a><span class="comment"></span>
+</pre></body></html>

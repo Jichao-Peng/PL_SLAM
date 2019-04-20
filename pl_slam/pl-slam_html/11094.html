@@ -1,0 +1,85 @@
+<html><head><title>CPosePDFGrid.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/poses/CPosePDFGrid.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/poses/CPosePDFGrid.h";
+top.document.title  = "CPosePDFGrid.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span><span class="preproc">#ifndef <a href="dictionary_C.html#11095">CPosePDFGrid_H</a></span>
+<a name="10"><font size=-1>10     </font></a><span class="preproc">#define <a href="dictionary_C.html#11095">CPosePDFGrid_H</a></span>
+<a name="11"><font size=-1>11     </font></a><span class="preproc"></span>
+<a name="12"><font size=-1>12     </font></a><span class="preproc">#include </span><span class="string">&lt;mrpt/poses/CPosePDF.h&gt;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/poses/CPose2DGridTemplate.h&gt;</span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/bits.h&gt; </span><span class="comment">// DEG2RAD()</span>
+<a name="15"><font size=-1>15     </font></a><span class="comment"></span>
+<a name="16"><font size=-1>16     </font></a><span class="comment"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="17"><font size=-1>17     </font></a><span class="default">{</span>
+<a name="18"><font size=-1>18     </font></a><span class="default"></span><span class="keyword">namespace </span><span class="default">poses</span>
+<a name="19"><font size=-1>19     </font></a><span class="default">{</span>
+<a name="20"><font size=-1>20     </font></a><span class="default">	</span><span class="comment">// This must be added to any CSerializable derived class:</span>
+<a name="21"><font size=-1>21     </font></a><span class="comment">	<a href="dictionary_D.html#859">DEFINE_SERIALIZABLE_PRE_CUSTOM_BASE</a></span><span class="default">( <a href="dictionary_M.html#11097">CPosePDFGrid</a>, <a href="dictionary_M.html#171">CPosePDF</a>   )</span>
+<a name="22"><font size=-1>22     </font></a><span class="default"></span>
+<a name="23"><font size=-1>23     </font></a><span class="default">	</span><span class="comment">/** Declares a class that represents a Probability Distribution</span>
+<a name="24"><font size=-1>24     </font></a><span class="comment">	 *    function (PDF) of a 2D pose (x,y,phi).</span>
+<a name="25"><font size=-1>25     </font></a><span class="comment">	 *   This class implements that PDF using a 3D grid.</span>
+<a name="26"><font size=-1>26     </font></a><span class="comment">	 *</span>
+<a name="27"><font size=-1>27     </font></a><span class="comment">	 * \sa CPose2D, CPosePDF, CPose2DGridTemplate</span>
+<a name="28"><font size=-1>28     </font></a><span class="comment">	 * \ingroup poses_pdf_grp</span>
+<a name="29"><font size=-1>29     </font></a><span class="comment">	 */</span>
+<a name="30"><font size=-1>30     </font></a><span class="comment">	</span><span class="keyword">class <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#11097">CPosePDFGrid</a> </span><span class="default">: </span><span class="keyword">public <a href="dictionary_M.html#171">CPosePDF</a></span><span class="default">, </span><span class="keyword">public <a href="dictionary_M.html#11100">CPose2DGridTemplate</a></span><span class="default">&lt;</span><span class="keyword">double</span><span class="default">&gt;</span>
+<a name="31"><font size=-1>31     </font></a><span class="default">	{</span>
+<a name="32"><font size=-1>32     </font></a><span class="default">		</span><span class="comment">// This must be added to any CSerializable derived class:</span>
+<a name="33"><font size=-1>33     </font></a><span class="comment">		<a href="dictionary_D.html#561">DEFINE_SERIALIZABLE</a></span><span class="default">( <a href="dictionary_M.html#11097">CPosePDFGrid</a> )</span>
+<a name="34"><font size=-1>34     </font></a><span class="default"></span>
+<a name="35"><font size=-1>35     </font></a><span class="default">	 </span><span class="keyword">protected</span><span class="default">:</span>
+<a name="36"><font size=-1>36     </font></a><span class="default"></span>
+<a name="37"><font size=-1>37     </font></a><span class="default"></span>
+<a name="38"><font size=-1>38     </font></a><span class="default">	 </span><span class="keyword">public</span><span class="default">:</span>
+<a name="39"><font size=-1>39     </font></a><span class="default">		</span><span class="comment">/** Constructor: Initializes a, uniform distribution over the whole given range.</span>
+<a name="40"><font size=-1>40     </font></a><span class="comment">		  */</span>
+<a name="41"><font size=-1>41     </font></a><span class="comment">		<a href="dictionary_M.html#11132">CPosePDFGrid</a></span><span class="default">(</span>
+<a name="42"><font size=-1>42     </font></a><span class="default">			</span><span class="keyword">double		</span><span class="default">xMin = -</span><span class="number">1.0f</span><span class="default">,</span>
+<a name="43"><font size=-1>43     </font></a><span class="default">			</span><span class="keyword">double		</span><span class="default">xMax = </span><span class="number">1.0f</span><span class="default">,</span>
+<a name="44"><font size=-1>44     </font></a><span class="default">			</span><span class="keyword">double		</span><span class="default">yMin = -</span><span class="number">1.0f</span><span class="default">,</span>
+<a name="45"><font size=-1>45     </font></a><span class="default">			</span><span class="keyword">double		</span><span class="default">yMax = </span><span class="number">1.0f</span><span class="default">,</span>
+<a name="46"><font size=-1>46     </font></a><span class="default">			</span><span class="keyword">double		</span><span class="default">resolutionXY = </span><span class="number">0.5f</span><span class="default">,</span>
+<a name="47"><font size=-1>47     </font></a><span class="default">			</span><span class="keyword">double		</span><span class="default">resolutionPhi = mrpt::utils::<a href="dictionary_D.html#6863">DEG2RAD</a>(</span><span class="number">180</span><span class="default">),</span>
+<a name="48"><font size=-1>48     </font></a><span class="default">			</span><span class="keyword">double		</span><span class="default">phiMin = -<a href="dictionary_M.html#10984">M_PIf</a>,</span>
+<a name="49"><font size=-1>49     </font></a><span class="default">			</span><span class="keyword">double		</span><span class="default">phiMax = <a href="dictionary_M.html#10984">M_PIf</a></span>
+<a name="50"><font size=-1>50     </font></a><span class="default">			);</span>
+<a name="51"><font size=-1>51     </font></a><span class="default"></span>
+<a name="52"><font size=-1>52     </font></a><span class="default">		</span><span class="keyword">virtual </span><span class="default">~<a href="dictionary_M.html#11133">CPosePDFGrid</a>(); </span><span class="comment">//!&lt; Destructor</span>
+<a name="53"><font size=-1>53     </font></a><span class="comment"></span>
+<a name="54"><font size=-1>54     </font></a><span class="comment">		</span><span class="keyword">void <a href="dictionary_M.html#11135">copyFrom</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#171">CPosePDF</a> </span><span class="default">&amp;o) <a href="dictionary_M.html#422">MRPT_OVERRIDE</a>; </span><span class="comment">//!&lt; Copy operator, translating if necesary (for example, between particles and gaussian representations)</span>
+<a name="55"><font size=-1>55     </font></a><span class="comment"></span>
+<a name="56"><font size=-1>56     </font></a><span class="comment">		</span><span class="keyword">void <a href="dictionary_M.html#11136">normalize</a></span><span class="default">(); </span><span class="comment">//!&lt; Normalizes the PDF, such as all cells sum the unity.</span>
+<a name="57"><font size=-1>57     </font></a><span class="comment">		</span><span class="keyword">void <a href="dictionary_M.html#11137">uniformDistribution</a></span><span class="default">(); </span><span class="comment">//!&lt; Assigns the same value to all the cells in the grid, so the sum 1.</span>
+<a name="58"><font size=-1>58     </font></a><span class="comment">		</span><span class="keyword">void <a href="dictionary_M.html#11138">getMean</a></span><span class="default">(<a href="dictionary_M.html#180">CPose2D</a> &amp;mean_pose) </span><span class="keyword">const <a href="dictionary_M.html#422">MRPT_OVERRIDE</a></span><span class="default">; </span><span class="comment">//!&lt; Returns an estimate of the pose, (the mean, or mathematical expectation of the PDF). \sa getCovariance</span>
+<a name="59"><font size=-1>59     </font></a><span class="comment">		</span><span class="keyword">void <a href="dictionary_M.html#11139">getCovarianceAndMean</a></span><span class="default">(mrpt::math::<a href="dictionary_M.html#176">CMatrixDouble33</a> &amp;cov,<a href="dictionary_M.html#180">CPose2D</a> &amp;mean_point) </span><span class="keyword">const <a href="dictionary_M.html#422">MRPT_OVERRIDE</a></span><span class="default">; </span><span class="comment">//!&lt; Returns an estimate of the pose covariance matrix (3x3 cov matrix) and the mean, both at once. \sa getMean</span>
+<a name="60"><font size=-1>60     </font></a><span class="comment">		</span><span class="keyword">void <a href="dictionary_M.html#11140">saveToTextFile</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a> &amp;dataFile) </span><span class="keyword">const <a href="dictionary_M.html#422">MRPT_OVERRIDE</a></span><span class="default">; </span><span class="comment">//!&lt; Save the contents of the 3D grid in one file, as a vertical concatenation of rectangular matrix for the different &quot;PHI&quot; discrete levels, and the size in X,Y,and PHI in another file named &quot;&lt;filename&gt;_dims.txt&quot;</span>
+<a name="61"><font size=-1>61     </font></a><span class="comment"></span>
+<a name="62"><font size=-1>62     </font></a><span class="comment">		/** this = p (+) this. This can be used to convert a PDF from local coordinates to global, providing the point (newReferenceBase) from which</span>
+<a name="63"><font size=-1>63     </font></a><span class="comment">		  *   &quot;to project&quot; the current pdf. Result PDF substituted the currently stored one in the object. */</span>
+<a name="64"><font size=-1>64     </font></a><span class="comment">		</span><span class="keyword">void  <a href="dictionary_M.html#11141">changeCoordinatesReference</a></span><span class="default">( </span><span class="keyword">const <a href="dictionary_M.html#182">CPose3D</a> </span><span class="default">&amp;newReferenceBase ) <a href="dictionary_M.html#422">MRPT_OVERRIDE</a>;</span>
+<a name="65"><font size=-1>65     </font></a><span class="default">		</span><span class="keyword">void <a href="dictionary_M.html#11142">bayesianFusion</a></span><span class="default">(</span><span class="keyword">const  <a href="dictionary_M.html#171">CPosePDF</a> </span><span class="default">&amp;p1,</span><span class="keyword">const  <a href="dictionary_M.html#171">CPosePDF</a> </span><span class="default">&amp;p2, </span><span class="keyword">const double </span><span class="default">&amp;minMahalanobisDistToDrop = </span><span class="number">0 </span><span class="default">) <a href="dictionary_M.html#422">MRPT_OVERRIDE</a>; </span><span class="comment">//!&lt; Bayesian fusion of 2 densities (In the grid representation this becomes a pointwise multiplication)</span>
+<a name="66"><font size=-1>66     </font></a><span class="comment">		</span><span class="keyword">void <a href="dictionary_M.html#11143">inverse</a></span><span class="default">(<a href="dictionary_M.html#171">CPosePDF</a> &amp;o) </span><span class="keyword">const <a href="dictionary_M.html#422">MRPT_OVERRIDE</a></span><span class="default">; </span><span class="comment">//!&lt; Returns a new PDF such as: NEW_PDF = (0,0,0) - THIS_PDF</span>
+<a name="67"><font size=-1>67     </font></a><span class="comment">		</span><span class="keyword">void <a href="dictionary_M.html#11144">drawSingleSample</a></span><span class="default">( <a href="dictionary_M.html#180">CPose2D</a> &amp;outPart ) </span><span class="keyword">const <a href="dictionary_M.html#422">MRPT_OVERRIDE</a></span><span class="default">; </span><span class="comment">//!&lt; Draws a single sample from the distribution (WARNING: weights are assumed to be normalized!)</span>
+<a name="68"><font size=-1>68     </font></a><span class="comment">		</span><span class="keyword">void <a href="dictionary_M.html#11145">drawManySamples</a></span><span class="default">( <a href="dictionary_S.html#56">size_t</a> N, std::<a href="dictionary_S.html#74">vector</a>&lt;mrpt::math::CVectorDouble&gt; &amp; outSamples ) </span><span class="keyword">const <a href="dictionary_M.html#422">MRPT_OVERRIDE</a></span><span class="default">; </span><span class="comment">//!&lt; Draws a number of samples from the distribution, and saves as a list of 1x3 vectors, where each row contains a (x,y,phi) datum.</span>
+<a name="69"><font size=-1>69     </font></a><span class="comment"></span>
+<a name="70"><font size=-1>70     </font></a><span class="comment">	</span><span class="default">}; </span><span class="comment">// End of class def.</span>
+<a name="71"><font size=-1>71     </font></a><span class="comment">	<a href="dictionary_D.html#897">DEFINE_SERIALIZABLE_POST_CUSTOM_BASE</a></span><span class="default">( <a href="dictionary_M.html#11097">CPosePDFGrid</a>, <a href="dictionary_M.html#171">CPosePDF</a>   )</span>
+<a name="72"><font size=-1>72     </font></a><span class="default">	} </span><span class="comment">// End of namespace</span>
+<a name="73"><font size=-1>73     </font></a><span class="comment"></span><span class="default">} </span><span class="comment">// End of namespace</span>
+<a name="74"><font size=-1>74     </font></a><span class="comment"></span><span class="preproc">#endif</span>
+<a name="75"><font size=-1>75     </font></a><span class="preproc"></span>
+</pre></body></html>

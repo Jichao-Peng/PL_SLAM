@@ -176,8 +176,8 @@ int main(int argc, char **argv)
 //             cout << endl << "VO Runtime: " << t1 << endl;
 
             // check if a new keyframe is 
-            
-
+            scene.frame+=1;
+            scene.setText(scene.frame,0,StVO->n_inliers_pt,StVO->n_inliers_ls);
             if( StVO->needNewKF() )
             {
 //                 cout <<         "#KeyFrame:     " << map->max_kf_idx + 1;

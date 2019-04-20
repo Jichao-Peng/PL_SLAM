@@ -1,0 +1,143 @@
+<html><head><title>slamScene.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body>
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/slamScene.h</h3>
+<SCRIPT>
+ defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/slamScene.h";
+top.document.title  = "slamScene.h";
+</SCRIPT>
+<pre><a name="1"><font size=-1>1     </font></a><span class="comment">/*****************************************************************************
+<a name="2"><font color= #000000 size=-1>2     </font></a>**      Stereo VO and SLAM by combining point and line segment features     **
+<a name="3"><font color= #000000 size=-1>3     </font></a>******************************************************************************
+<a name="4"><font color= #000000 size=-1>4     </font></a>**                                                                          **
+<a name="5"><font color= #000000 size=-1>5     </font></a>**  Copyright(c) 2016-2018, Ruben Gomez-Ojeda, University of Malaga         **
+<a name="6"><font color= #000000 size=-1>6     </font></a>**  Copyright(c) 2016-2018, David Zuñiga-Noël, University of Malaga         **
+<a name="7"><font color= #000000 size=-1>7     </font></a>**  Copyright(c) 2016-2018, MAPIR group, University of Malaga               **
+<a name="8"><font color= #000000 size=-1>8     </font></a>**                                                                          **
+<a name="9"><font color= #000000 size=-1>9     </font></a>**  This program is free software: you can redistribute it and/or modify    **
+<a name="10"><font color= #000000 size=-1>10     </font></a>**  it under the terms of the GNU General Public License (version 3) as     **
+<a name="11"><font color= #000000 size=-1>11     </font></a>**  published by the Free Software Foundation.                              **
+<a name="12"><font color= #000000 size=-1>12     </font></a>**                                                                          **
+<a name="13"><font color= #000000 size=-1>13     </font></a>**  This program is distributed in the hope that it will be useful, but     **
+<a name="14"><font color= #000000 size=-1>14     </font></a>**  WITHOUT ANY WARRANTY; without even the implied warranty of              **
+<a name="15"><font color= #000000 size=-1>15     </font></a>**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the            **
+<a name="16"><font color= #000000 size=-1>16     </font></a>**  GNU General Public License for more details.                            **
+<a name="17"><font color= #000000 size=-1>17     </font></a>**                                                                          **
+<a name="18"><font color= #000000 size=-1>18     </font></a>**  You should have received a copy of the GNU General Public License       **
+<a name="19"><font color= #000000 size=-1>19     </font></a>**  along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.   **
+<a name="20"><font color= #000000 size=-1>20     </font></a>**                                                                          **
+<a name="21"><font color= #000000 size=-1>21     </font></a>*****************************************************************************/</span>
+<a name="22"><font size=-1>22     </font></a>
+<a name="23"><font size=-1>23     </font></a><span class="preproc">#include</span> &lt;iomanip&gt;
+<a name="24"><font size=-1>24     </font></a><span class="keyword">using</span> <span class="keyword">namespace</span> std;
+<a name="25"><font size=-1>25     </font></a>
+<a name="26"><font size=-1>26     </font></a><span class="preproc">#include</span> &lt;mrpt/opengl.h&gt;
+<a name="27"><font size=-1>27     </font></a><span class="preproc">#include</span> &lt;mrpt/opengl/CPointCloudColoured.h&gt;
+<a name="28"><font size=-1>28     </font></a><span class="preproc">#include</span> &lt;mrpt/gui.h&gt;
+<a name="29"><font size=-1>29     </font></a><span class="preproc">#include</span> &lt;mrpt/utils/CConfigFile.h&gt;
+<a name="30"><font size=-1>30     </font></a><span class="preproc">#include</span> &lt;mrpt/utils/CConfigFileBase.h&gt;
+<a name="31"><font size=-1>31     </font></a><span class="keyword">using</span> <span class="keyword">namespace</span> mrpt;
+<a name="32"><font size=-1>32     </font></a><span class="keyword">using</span> <span class="keyword">namespace</span> mrpt::gui;
+<a name="33"><font size=-1>33     </font></a><span class="keyword">using</span> <span class="keyword">namespace</span> mrpt::poses;
+<a name="34"><font size=-1>34     </font></a><span class="keyword">using</span> <span class="keyword">namespace</span> mrpt::utils;
+<a name="35"><font size=-1>35     </font></a><span class="keyword">using</span> <span class="keyword">namespace</span> mrpt::math;
+<a name="36"><font size=-1>36     </font></a><span class="keyword">using</span> <span class="keyword">namespace</span> mrpt::opengl;
+<a name="37"><font size=-1>37     </font></a>
+<a name="38"><font size=-1>38     </font></a><span class="preproc">#include</span> &lt;opencv/cv.h&gt;
+<a name="39"><font size=-1>39     </font></a><span class="keyword">using</span> <span class="keyword">namespace</span> cv;
+<a name="40"><font size=-1>40     </font></a>
+<a name="41"><font size=-1>41     </font></a><span class="preproc">#include</span> &lt;eigen3/Eigen/Core&gt;
+<a name="42"><font size=-1>42     </font></a><span class="keyword">using</span> <span class="keyword">namespace</span> Eigen;
+<a name="43"><font size=-1>43     </font></a>
+<a name="44"><font size=-1>44     </font></a><span class="preproc">#include</span> &lt;mapHandler.h&gt;
+<a name="45"><font size=-1>45     </font></a>
+<a name="46"><font size=-1>46     </font></a><span class="keyword">namespace</span> PLSLAM<font size=+2><b>{</b></font>
+<a name="47"><font size=-1>47     </font></a>
+<a name="48"><font size=-1>48     </font></a><span class="keyword">class</span> slamScene<font size=+2><b>{</b></font>
+<a name="49"><font size=-1>49     </font></a>
+<a name="50"><font size=-1>50     </font></a><span class="keyword">public</span>:
+<a name="51"><font size=-1>51     </font></a>
+<a name="52"><font size=-1>52     </font></a>    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+<a name="53"><font size=-1>53     </font></a>
+<a name="54"><font size=-1>54     </font></a>    slamScene();
+<a name="55"><font size=-1>55     </font></a>    slamScene(string configFile);
+<a name="56"><font size=-1>56     </font></a>    ~slamScene();
+<a name="57"><font size=-1>57     </font></a>
+<a name="58"><font size=-1>58     </font></a>    <span class="keyword">void</span> initializeScene(Matrix4d x_0);
+<a name="59"><font size=-1>59     </font></a>    <span class="keyword">void</span> initViewports(<span class="keyword">int</span> W, <span class="keyword">int</span> H);
+<a name="60"><font size=-1>60     </font></a>    <span class="keyword">bool</span> updateScene();
+<a name="61"><font size=-1>61     </font></a>    <span class="keyword">bool</span> updateSceneVO( Matrix4d T_last_kf );
+<a name="62"><font size=-1>62     </font></a>    <span class="keyword">bool</span> updateScene(<span class="keyword">const</span> MapHandler* map);
+<a name="63"><font size=-1>63     </font></a>    <span class="keyword">bool</span> updateSceneSafe(<span class="keyword">const</span> MapHandler* map);
+<a name="64"><font size=-1>64     </font></a>    <span class="keyword">void</span> updateSceneGraphs(<span class="keyword">const</span> MapHandler* map);
+<a name="65"><font size=-1>65     </font></a>
+<a name="66"><font size=-1>66     </font></a>    <span class="keyword">void</span> setText(<span class="keyword">int</span> frame_, <span class="keyword">float</span> time_, <span class="keyword">int</span> nPoints_, <span class="keyword">int</span> nPointsH_, <span class="keyword">int</span> nLines_, <span class="keyword">int</span> nLinesH_);
+<a name="67"><font size=-1>67     </font></a>    <span class="keyword">void</span> setText(<span class="keyword">int</span> frame_, <span class="keyword">float</span> time_, <span class="keyword">int</span> nPoints_, <span class="keyword">int</span> nLines_ );
+<a name="68"><font size=-1>68     </font></a>    <span class="keyword">void</span> setPose(Matrix4d x_);
+<a name="69"><font size=-1>69     </font></a>    <span class="keyword">void</span> setGT(Matrix4d xgt_);
+<a name="70"><font size=-1>70     </font></a>    <span class="keyword">void</span> setComparison(Matrix4d xcomp_);
+<a name="71"><font size=-1>71     </font></a>    <span class="keyword">void</span> setImage(<span class="keyword">const</span> Mat &image_);
+<a name="72"><font size=-1>72     </font></a>    <span class="keyword">void</span> setImage(<span class="keyword">const</span> string &image_);
+<a name="73"><font size=-1>73     </font></a>    <span class="keyword">void</span> setLegend();
+<a name="74"><font size=-1>74     </font></a>    <span class="keyword">void</span> setHelp();
+<a name="75"><font size=-1>75     </font></a>    <span class="keyword">void</span> setPoints(CMatrixFloat pData_);
+<a name="76"><font size=-1>76     </font></a>    <span class="keyword">void</span> setLines(CMatrixFloat lData_);
+<a name="77"><font size=-1>77     </font></a>    <span class="keyword">void</span> setStereoCalibration(Matrix3d K_, <span class="keyword">float</span> b_);
+<a name="78"><font size=-1>78     </font></a>    <span class="keyword">void</span> setKF(Matrix4d Tfw);
+<a name="79"><font size=-1>79     </font></a>
+<a name="80"><font size=-1>80     </font></a>    <span class="keyword">bool</span> waitUntilClose();
+<a name="81"><font size=-1>81     </font></a>    <span class="keyword">bool</span> isOpen();
+<a name="82"><font size=-1>82     </font></a>    <span class="keyword">bool</span> getYPR(<span class="keyword">float</span> &yaw, <span class="keyword">float</span> &pitch, <span class="keyword">float</span> &roll);
+<a name="83"><font size=-1>83     </font></a>    <span class="keyword">bool</span> getPose(Matrix4d &T);
+<a name="84"><font size=-1>84     </font></a>
+<a name="85"><font size=-1>85     </font></a><span class="comment">//private:
+</span><a name="86"><font size=-1>86     </font></a>
+<a name="87"><font size=-1>87     </font></a>    CMatrixDouble getPoseFormat(Matrix4d T);
+<a name="88"><font size=-1>88     </font></a>    CMatrixDouble33 getCovFormat(MatrixXd cov_);
+<a name="89"><font size=-1>89     </font></a>    CPose3D getPoseXYZ(VectorXd x);
+<a name="90"><font size=-1>90     </font></a>
+<a name="91"><font size=-1>91     </font></a>    <span class="comment">//窗口
+</span><a name="92"><font size=-1>92     </font></a>    CDisplayWindow3D*           win;
+<a name="93"><font size=-1>93     </font></a>	<span class="comment">//Ptr智能指针
+</span><a name="94"><font size=-1>94     </font></a>    COpenGLScenePtr             theScene;
+<a name="95"><font size=-1>95     </font></a>    COpenGLViewportPtr          image, legend, help;
+<a name="96"><font size=-1>96     </font></a>	<span class="comment">//插入一个3D物体集，具体解释如下：
+</span><a name="97"><font size=-1>97     </font></a>	<span class="comment">///A set of object, which are referenced to the coordinates framework established in this object.It can be established a hierarchy of "CSetOfObjects", where the coordinates framework of eachone will be referenced to the parent's one.
+</span><a name="98"><font size=-1>98     </font></a>	opengl::CSetOfObjectsPtr    srefObj, elliObjL, elliObjP;
+<a name="99"><font size=-1>99     </font></a>	<span class="comment">//opengl::CSetOfObjectsPtr   bbObj，bbObj1，srefObj1，gtObj，srefObjGT;
+</span><a name="100"><font size=-1>100     </font></a>	<span class="comment">//不确定性椭圆图元，然鹅并没用
+</span><a name="101"><font size=-1>101     </font></a>    <span class="comment">//opengl::CEllipsoidPtr       elliObj;
+</span><a name="102"><font size=-1>102     </font></a>    opengl::CFrustumPtr         frustObj, frustObj1;
+<a name="103"><font size=-1>103     </font></a>    opengl::CAxisPtr            axesObj;
+<a name="104"><font size=-1>104     </font></a>	<span class="comment">//画线
+</span><a name="105"><font size=-1>105     </font></a>    opengl::CSetOfLinesPtr      lineObj, lineObj_local, kfsLinesObj;
+<a name="106"><font size=-1>106     </font></a>	<span class="comment">//opengl::CSetOfLinesPtr    voLinesObj;
+</span><a name="107"><font size=-1>107     </font></a>	<span class="comment">//点云
+</span><a name="108"><font size=-1>108     </font></a>    opengl::CPointCloudPtr      pointObj, pointObj_local;
+<a name="109"><font size=-1>109     </font></a>    opengl::CSetOfObjectsPtr    kfsObj;
+<a name="110"><font size=-1>110     </font></a>
+<a name="111"><font size=-1>111     </font></a>
+<a name="112"><font size=-1>112     </font></a>    <span class="keyword">float</span>           sbb, saxis, srad, sref, sline, sfreq, szoom, selli, selev, sazim, sfrust, slinef;
+<a name="113"><font size=-1>113     </font></a>    CVectorDouble   v_aux, v_aux_, v_aux1, v_aux1_, v_auxgt, gt_aux_, v_auxgt_;
+<a name="114"><font size=-1>114     </font></a>    CPose3D         pose, pose_0, pose_gt, pose_ini, ellPose, pose1,  change, frustumL_, frustumR_;
+<a name="115"><font size=-1>115     </font></a>    Matrix4d        x_ini;
+<a name="116"><font size=-1>116     </font></a>    mrptKeyModifier kmods;
+<a name="117"><font size=-1>117     </font></a>    <span class="keyword">int</span>             key;
+<a name="118"><font size=-1>118     </font></a>    CMatrixDouble33 cov3D;
+<a name="119"><font size=-1>119     </font></a>    <span class="keyword">bool</span>            hasText, hasCov, hasGT, hasImg, hasLines, hasPoints, hasFrustum, hasComparison, hasLegend, hasHelp, hasAxes, hasTraj, isKitti;
+<a name="120"><font size=-1>120     </font></a>
+<a name="121"><font size=-1>121     </font></a>    Matrix4d        x, xgt, xcomp;
+<a name="122"><font size=-1>122     </font></a>    MatrixXd        cov, W;
+<a name="123"><font size=-1>123     </font></a>    <span class="keyword">unsigned</span> <span class="keyword">int</span>    frame, nPoints, nPointsH, nLines, nLinesH;
+<a name="124"><font size=-1>124     </font></a>    <span class="keyword">float</span>           time;
+<a name="125"><font size=-1>125     </font></a>    string          img, img_legend, img_help;
+<a name="126"><font size=-1>126     </font></a>    CMatrixFloat    lData, pData;
+<a name="127"><font size=-1>127     </font></a>    CImage          img_mrpt_legend, img_mrpt_image, img_mrpt_help;
+<a name="128"><font size=-1>128     </font></a>
+<a name="129"><font size=-1>129     </font></a>    <span class="keyword">float</span>           b, sigmaP, sigmaL, f, cx, cy, bsigmaL, bsigmaP;
+<a name="130"><font size=-1>130     </font></a>
+<a name="131"><font size=-1>131     </font></a><font size=+2><b>}</b></font>;
+<a name="132"><font size=-1>132     </font></a>
+<a name="133"><font size=-1>133     </font></a><font size=+2><b>}</b></font>
+</pre></body></html>

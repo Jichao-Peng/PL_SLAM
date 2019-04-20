@@ -1,0 +1,128 @@
+<html><head><title>TParameters.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/utils/TParameters.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/utils/TParameters.h";
+top.document.title  = "TParameters.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span>
+<a name="10"><font size=-1>10     </font></a><span class="comment"></span><span class="preproc">#ifndef <a href="dictionary_M.html#18658">mrpt_utils_parameters_H</a></span>
+<a name="11"><font size=-1>11     </font></a><span class="preproc">#define <a href="dictionary_M.html#18658">mrpt_utils_parameters_H</a></span>
+<a name="12"><font size=-1>12     </font></a><span class="preproc"></span>
+<a name="13"><font size=-1>13     </font></a><span class="preproc">#include </span><span class="string">&lt;cstdarg&gt;</span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;cstdio&gt;</span>
+<a name="15"><font size=-1>15     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;map&gt;</span>
+<a name="16"><font size=-1>16     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;string&gt;</span>
+<a name="17"><font size=-1>17     </font></a><span class="string"></span>
+<a name="18"><font size=-1>18     </font></a><span class="string"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="19"><font size=-1>19     </font></a><span class="default">{</span>
+<a name="20"><font size=-1>20     </font></a><span class="default">	</span><span class="keyword">namespace </span><span class="default">utils</span>
+<a name="21"><font size=-1>21     </font></a><span class="default">	{</span>
+<a name="22"><font size=-1>22     </font></a><span class="default">		</span><span class="comment">/** For usage when passing a dynamic number of (numeric) arguments to a function, by name.</span>
+<a name="23"><font size=-1>23     </font></a><span class="comment">		  *  \code</span>
+<a name="24"><font size=-1>24     </font></a><span class="comment">		  *    TParameters&lt;double&gt; p;  // or TParametersDouble</span>
+<a name="25"><font size=-1>25     </font></a><span class="comment">		  *    p[&quot;v_max&quot;] = 1.0;  // Write</span>
+<a name="26"><font size=-1>26     </font></a><span class="comment">		  *    ...</span>
+<a name="27"><font size=-1>27     </font></a><span class="comment">		  *    cout &lt;&lt; p[&quot;w_max&quot;]; // Read, even if &quot;p&quot; was const.</span>
+<a name="28"><font size=-1>28     </font></a><span class="comment">		  *  \endcode</span>
+<a name="29"><font size=-1>29     </font></a><span class="comment">		  *</span>
+<a name="30"><font size=-1>30     </font></a><span class="comment">		  *  A default list of parameters can be passed to the constructor as a sequence</span>
+<a name="31"><font size=-1>31     </font></a><span class="comment">		  *   of pairs &quot;name, value&quot;, which MUST end in a NULL name string. Names MUST BE &quot;const char*&quot;</span>
+<a name="32"><font size=-1>32     </font></a><span class="comment">		  *   (that is, &quot;old plain strings&quot; are OK), not std::string objects!.</span>
+<a name="33"><font size=-1>33     </font></a><span class="comment">		  *  See this example:</span>
+<a name="34"><font size=-1>34     </font></a><span class="comment">		  *</span>
+<a name="35"><font size=-1>35     </font></a><span class="comment">		  *  \code</span>
+<a name="36"><font size=-1>36     </font></a><span class="comment">		  *    TParameters&lt;double&gt; p(&quot;par1&quot;,2.0, &quot;par2&quot;,-4.5, &quot;par3&quot;,9.0, NULL); // MUST end with a NULL</span>
+<a name="37"><font size=-1>37     </font></a><span class="comment">		  *  \endcode</span>
+<a name="38"><font size=-1>38     </font></a><span class="comment">		  *</span>
+<a name="39"><font size=-1>39     </font></a><span class="comment">		  *  &lt;b&gt;VERY IMPORTANT:&lt;/b&gt; If you use the NULL-ended constructor above, make sure all the values are of the proper</span>
+<a name="40"><font size=-1>40     </font></a><span class="comment">		  *    type or it will crash in runtime. For example, in a TParametersDouble all values must be double's, so</span>
+<a name="41"><font size=-1>41     </font></a><span class="comment">		  *    if you type &quot;10&quot; the compiler will make it an &quot;int&quot;. Instead, write &quot;10.0&quot;.</span>
+<a name="42"><font size=-1>42     </font></a><span class="comment">		  * \ingroup mrpt_base_grp</span>
+<a name="43"><font size=-1>43     </font></a><span class="comment">		  * \sa the example in MRPT/samples/params-by-name</span>
+<a name="44"><font size=-1>44     </font></a><span class="comment">		  */</span>
+<a name="45"><font size=-1>45     </font></a><span class="comment">		</span><span class="keyword">template </span><span class="default">&lt;</span><span class="keyword">typename <a href="dictionary_M.html#18659">T</a></span><span class="default">&gt;</span>
+<a name="46"><font size=-1>46     </font></a><span class="default">		</span><span class="keyword">struct <a href="dictionary_M.html#17290">TParameters</a> </span><span class="default">: </span><span class="keyword">public </span><span class="default">std::<a href="dictionary_S.html#1024">map</a>&lt;std::<a href="dictionary_S.html#118">string</a>,<a href="dictionary_M.html#18659">T</a>&gt;</span>
+<a name="47"><font size=-1>47     </font></a><span class="default">		{</span>
+<a name="48"><font size=-1>48     </font></a><span class="default">			</span><span class="keyword">typedef </span><span class="default">std::<a href="dictionary_S.html#1024">map</a>&lt;std::string,T&gt; <a href="dictionary_M.html#18660">BASE</a>;</span>
+<a name="49"><font size=-1>49     </font></a><span class="default">			</span><span class="comment">/** Default constructor (initializes empty) */</span>
+<a name="50"><font size=-1>50     </font></a><span class="comment">			<a href="dictionary_M.html#18661">TParameters</a></span><span class="default">() : <a href="dictionary_M.html#18660">BASE</a>() { }</span>
+<a name="51"><font size=-1>51     </font></a><span class="default">			</span><span class="comment">/** Constructor with a list of initial values (see the description and use example in mrpt::utils::TParameters) */</span>
+<a name="52"><font size=-1>52     </font></a><span class="comment">			<a href="dictionary_M.html#18662">TParameters</a></span><span class="default">(</span><span class="keyword">const char </span><span class="default">*<a href="dictionary_N.html#18663">nam1</a>,...) : <a href="dictionary_M.html#18660">BASE</a>() {</span>
+<a name="53"><font size=-1>53     </font></a><span class="default">				</span><span class="keyword">if </span><span class="default">(!<a href="dictionary_N.html#18663">nam1</a>) </span><span class="keyword">return</span><span class="default">; </span><span class="comment">// No parameters</span>
+<a name="54"><font size=-1>54     </font></a><span class="comment">				<a href="dictionary_M.html#18659">T</a> <a href="dictionary_V.html#18679">val</a></span><span class="default">;</span>
+<a name="55"><font size=-1>55     </font></a><span class="default">				<a href="dictionary_V.html#8038">va_list</a> <a href="dictionary_A.html#18680">args</a>;</span>
+<a name="56"><font size=-1>56     </font></a><span class="default">				<a href="dictionary_V.html#15030">va_start</a>(<a href="dictionary_A.html#18680">args</a>,<a href="dictionary_N.html#18663">nam1</a>);</span>
+<a name="57"><font size=-1>57     </font></a><span class="default">				</span><span class="comment">// 1st one out of the loop:</span>
+<a name="58"><font size=-1>58     </font></a><span class="comment">				<a href="dictionary_V.html#18679">val</a> </span><span class="default">= <a href="dictionary_V.html#15032">va_arg</a>(<a href="dictionary_A.html#18680">args</a>,<a href="dictionary_T.html#806">T</a>);</span>
+<a name="59"><font size=-1>59     </font></a><span class="default">				<a href="dictionary_M.html#18660">BASE</a>::</span><span class="keyword">operator</span><span class="default">[](std::<a href="dictionary_S.html#118">string</a>(<a href="dictionary_N.html#18663">nam1</a>)) = <a href="dictionary_V.html#18679">val</a>;</span>
+<a name="60"><font size=-1>60     </font></a><span class="default">				</span><span class="comment">// Loop until NULL:</span>
+<a name="61"><font size=-1>61     </font></a><span class="comment">				</span><span class="keyword">const char </span><span class="default">*<a href="dictionary_N.html#18682">nam</a>;</span>
+<a name="62"><font size=-1>62     </font></a><span class="default">				</span><span class="keyword">do</span><span class="default">{</span>
+<a name="63"><font size=-1>63     </font></a><span class="default">					<a href="dictionary_N.html#18682">nam</a> = <a href="dictionary_V.html#15032">va_arg</a>(<a href="dictionary_A.html#18680">args</a>,</span><span class="keyword">const char</span><span class="default">*);</span>
+<a name="64"><font size=-1>64     </font></a><span class="default">					</span><span class="keyword">if </span><span class="default">(<a href="dictionary_N.html#18682">nam</a>) {</span>
+<a name="65"><font size=-1>65     </font></a><span class="default">						<a href="dictionary_V.html#18679">val</a> = <a href="dictionary_V.html#15032">va_arg</a>(<a href="dictionary_A.html#18680">args</a>,<a href="dictionary_T.html#806">T</a>);</span>
+<a name="66"><font size=-1>66     </font></a><span class="default">						<a href="dictionary_M.html#18660">BASE</a>::</span><span class="keyword">operator</span><span class="default">[](std::<a href="dictionary_S.html#118">string</a>(<a href="dictionary_N.html#18682">nam</a>)) = <a href="dictionary_V.html#18679">val</a>;</span>
+<a name="67"><font size=-1>67     </font></a><span class="default">					}</span>
+<a name="68"><font size=-1>68     </font></a><span class="default">				} </span><span class="keyword">while </span><span class="default">(<a href="dictionary_N.html#18682">nam</a>);</span>
+<a name="69"><font size=-1>69     </font></a><span class="default">				<a href="dictionary_V.html#15033">va_end</a>(<a href="dictionary_A.html#18680">args</a>);</span>
+<a name="70"><font size=-1>70     </font></a><span class="default">			}</span>
+<a name="71"><font size=-1>71     </font></a><span class="default">			</span><span class="keyword">inline bool <a href="dictionary_M.html#18665">has</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a> &amp;<a href="dictionary_S.html#18666">s</a>) </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return </span><span class="default">std::<a href="dictionary_S.html#1024">map</a>&lt;std::<a href="dictionary_S.html#118">string</a>,<a href="dictionary_T.html#806">T</a>&gt;::<a href="dictionary_E.html#449">end</a>()!=<a href="dictionary_M.html#18660">BASE</a>::<a href="dictionary_F.html#2562">find</a>(<a href="dictionary_S.html#18666">s</a>); }</span>
+<a name="72"><font size=-1>72     </font></a><span class="default">			</span><span class="comment">/** A const version of the [] operator, for usage as read-only.</span>
+<a name="73"><font size=-1>73     </font></a><span class="comment">			  * \exception std::logic_error On parameter not present. Please, check existence with &quot;has&quot; before reading.</span>
+<a name="74"><font size=-1>74     </font></a><span class="comment">			  */</span>
+<a name="75"><font size=-1>75     </font></a><span class="comment">			</span><span class="keyword">inline <a href="dictionary_M.html#18659">T</a> operator</span><span class="default">[](</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a> &amp;<a href="dictionary_S.html#18668">s</a>) </span><span class="keyword">const </span><span class="default">{</span>
+<a name="76"><font size=-1>76     </font></a><span class="default">				</span><span class="keyword">typename <a href="dictionary_M.html#18660">BASE</a></span><span class="default">::<a href="dictionary_T.html#12211">const_iterator</a> <a href="dictionary_I.html#18683">it</a> =<a href="dictionary_M.html#18660">BASE</a>::<a href="dictionary_F.html#2562">find</a>(<a href="dictionary_S.html#18668">s</a>);</span>
+<a name="77"><font size=-1>77     </font></a><span class="default">				</span><span class="keyword">if </span><span class="default">(<a href="dictionary_M.html#18660">BASE</a>::<a href="dictionary_E.html#449">end</a>()==<a href="dictionary_I.html#18683">it</a>)</span>
+<a name="78"><font size=-1>78     </font></a><span class="default">					</span><span class="keyword">throw </span><span class="default">std::<a href="dictionary_S.html#150">logic_error</a>(std::<a href="dictionary_S.html#118">string</a>(</span><span class="string">&quot;Parameter '&quot;</span><span class="default">)+<a href="dictionary_S.html#18668">s</a>+std::<a href="dictionary_S.html#118">string</a>(</span><span class="string">&quot;' is not present.&quot;</span><span class="default">).<a href="dictionary_C.html#59">c_str</a>());</span>
+<a name="79"><font size=-1>79     </font></a><span class="default">				</span><span class="keyword">return <a href="dictionary_I.html#18683">it</a></span><span class="default">-&gt;<a href="dictionary_S.html#23">second</a>;</span>
+<a name="80"><font size=-1>80     </font></a><span class="default">			}</span>
+<a name="81"><font size=-1>81     </font></a><span class="default">			</span><span class="comment">/** A const version of the [] operator and with a default value in case the parameter is not set (for usage as read-only).</span>
+<a name="82"><font size=-1>82     </font></a><span class="comment">			  */</span>
+<a name="83"><font size=-1>83     </font></a><span class="comment">			</span><span class="keyword">inline <a href="dictionary_M.html#18659">T</a> <a href="dictionary_M.html#18669">getWithDefaultVal</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a> &amp;<a href="dictionary_S.html#18670">s</a>, </span><span class="keyword">const <a href="dictionary_M.html#18659">T</a></span><span class="default">&amp; <a href="dictionary_D.html#18671">defaultVal</a>) </span><span class="keyword">const </span><span class="default">{</span>
+<a name="84"><font size=-1>84     </font></a><span class="default">				</span><span class="keyword">typename <a href="dictionary_M.html#18660">BASE</a></span><span class="default">::<a href="dictionary_T.html#12211">const_iterator</a> <a href="dictionary_I.html#18685">it</a> =<a href="dictionary_M.html#18660">BASE</a>::<a href="dictionary_F.html#2562">find</a>(<a href="dictionary_S.html#18670">s</a>);</span>
+<a name="85"><font size=-1>85     </font></a><span class="default">				</span><span class="keyword">if </span><span class="default">(<a href="dictionary_M.html#18660">BASE</a>::<a href="dictionary_E.html#449">end</a>()==<a href="dictionary_I.html#18685">it</a>)</span>
+<a name="86"><font size=-1>86     </font></a><span class="default">						</span><span class="keyword">return <a href="dictionary_D.html#18671">defaultVal</a></span><span class="default">;</span>
+<a name="87"><font size=-1>87     </font></a><span class="default">				</span><span class="keyword">else 	return <a href="dictionary_I.html#18685">it</a></span><span class="default">-&gt;<a href="dictionary_S.html#23">second</a>;</span>
+<a name="88"><font size=-1>88     </font></a><span class="default">			}</span>
+<a name="89"><font size=-1>89     </font></a><span class="default">			</span><span class="comment">/** The write (non-const) version of the [] operator. */</span>
+<a name="90"><font size=-1>90     </font></a><span class="comment">			</span><span class="keyword">inline <a href="dictionary_M.html#18659">T</a> </span><span class="default">&amp; </span><span class="keyword">operator</span><span class="default">[](</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a> &amp;<a href="dictionary_S.html#18673">s</a>) { </span><span class="keyword">return <a href="dictionary_M.html#18660">BASE</a></span><span class="default">::</span><span class="keyword">operator</span><span class="default">[](<a href="dictionary_S.html#18673">s</a>); }</span>
+<a name="91"><font size=-1>91     </font></a><span class="default"></span>
+<a name="92"><font size=-1>92     </font></a><span class="default">			</span><span class="comment">/** Dumps to console the output from getAsString() */</span>
+<a name="93"><font size=-1>93     </font></a><span class="comment">			</span><span class="keyword">inline void <a href="dictionary_M.html#18674">dumpToConsole</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ ::<a href="dictionary_F.html#18686">fputs</a>(<a href="dictionary_M.html#18676">getAsString</a>().<a href="dictionary_M.html#18687">c_str</a>(),<a href="dictionary_S.html#18688">stdout</a>); }</span>
+<a name="94"><font size=-1>94     </font></a><span class="default"></span>
+<a name="95"><font size=-1>95     </font></a><span class="default">			</span><span class="comment">/** Returns a multi-line string representation of the parameters like : 'nam   = val\nnam2   = val2...' */</span>
+<a name="96"><font size=-1>96     </font></a><span class="comment">			</span><span class="keyword">inline </span><span class="default">std::<a href="dictionary_S.html#118">string</a> <a href="dictionary_M.html#18676">getAsString</a>() </span><span class="keyword">const </span><span class="default">{ std::<a href="dictionary_S.html#118">string</a> <a href="dictionary_S.html#714">s</a>; <a href="dictionary_M.html#18676">getAsString</a>(<a href="dictionary_S.html#714">s</a>); </span><span class="keyword">return <a href="dictionary_S.html#714">s</a></span><span class="default">; }</span>
+<a name="97"><font size=-1>97     </font></a><span class="default"></span>
+<a name="98"><font size=-1>98     </font></a><span class="default">			</span><span class="comment">/** Returns a multi-line string representation of the parameters like : 'nam   = val\nnam2   = val2...' */</span>
+<a name="99"><font size=-1>99     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#18677">getAsString</a></span><span class="default">(std::<a href="dictionary_S.html#118">string</a> &amp;<a href="dictionary_S.html#18678">s</a>) </span><span class="keyword">const </span><span class="default">{</span>
+<a name="100"><font size=-1>100     </font></a><span class="default">				<a href="dictionary_S.html#56">size_t</a> <a href="dictionary_M.html#18689">maxStrLen</a> = </span><span class="number">10</span><span class="default">;</span>
+<a name="101"><font size=-1>101     </font></a><span class="default">				</span><span class="keyword">for </span><span class="default">(</span><span class="keyword">typename <a href="dictionary_M.html#18660">BASE</a></span><span class="default">::<a href="dictionary_T.html#12211">const_iterator</a> <a href="dictionary_I.html#18690">it</a>=<a href="dictionary_M.html#18660">BASE</a>::<a href="dictionary_B.html#448">begin</a>();<a href="dictionary_I.html#18690">it</a>!=<a href="dictionary_M.html#18660">BASE</a>::<a href="dictionary_E.html#449">end</a>();++<a href="dictionary_I.html#18690">it</a>) <a href="dictionary_M.html#18689">maxStrLen</a> = std::<a href="dictionary_S.html#450">max</a>(<a href="dictionary_M.html#18689">maxStrLen</a>, <a href="dictionary_I.html#18690">it</a>-&gt;<a href="dictionary_F.html#22">first</a>.<a href="dictionary_S.html#442">size</a>() );</span>
+<a name="102"><font size=-1>102     </font></a><span class="default">				<a href="dictionary_M.html#18689">maxStrLen</a>++;</span>
+<a name="103"><font size=-1>103     </font></a><span class="default">				std::<a href="dictionary_S.html#6852">stringstream</a> <a href="dictionary_S.html#151">str</a>;</span>
+<a name="104"><font size=-1>104     </font></a><span class="default">				</span><span class="keyword">for </span><span class="default">(</span><span class="keyword">typename <a href="dictionary_M.html#18660">BASE</a></span><span class="default">::<a href="dictionary_T.html#12211">const_iterator</a> <a href="dictionary_I.html#18691">it</a>=<a href="dictionary_M.html#18660">BASE</a>::<a href="dictionary_B.html#448">begin</a>();<a href="dictionary_I.html#18691">it</a>!=<a href="dictionary_M.html#18660">BASE</a>::<a href="dictionary_E.html#449">end</a>();++<a href="dictionary_I.html#18691">it</a>)</span>
+<a name="105"><font size=-1>105     </font></a><span class="default">					<a href="dictionary_S.html#151">str</a> &lt;&lt; <a href="dictionary_I.html#18691">it</a>-&gt;<a href="dictionary_F.html#22">first</a> &lt;&lt; std::<a href="dictionary_S.html#118">string</a>(<a href="dictionary_M.html#18689">maxStrLen</a>-<a href="dictionary_I.html#18691">it</a>-&gt;<a href="dictionary_F.html#22">first</a>.<a href="dictionary_S.html#442">size</a>(),</span><span class="string">' '</span><span class="default">) &lt;&lt; </span><span class="string">&quot; = &quot; </span><span class="default">&lt;&lt; <a href="dictionary_I.html#18691">it</a>-&gt;<a href="dictionary_S.html#23">second</a> &lt;&lt; std::<a href="dictionary_S.html#149">endl</a>;</span>
+<a name="106"><font size=-1>106     </font></a><span class="default">				<a href="dictionary_S.html#18678">s</a> = <a href="dictionary_S.html#151">str</a>.<a href="dictionary_S.html#151">str</a>();</span>
+<a name="107"><font size=-1>107     </font></a><span class="default">			}</span>
+<a name="108"><font size=-1>108     </font></a><span class="default">		};</span>
+<a name="109"><font size=-1>109     </font></a><span class="default"></span>
+<a name="110"><font size=-1>110     </font></a><span class="default">		</span><span class="keyword">typedef <a href="dictionary_M.html#17290">TParameters</a></span><span class="default">&lt;</span><span class="keyword">double</span><span class="default">&gt;       <a href="dictionary_M.html#18692">TParametersDouble</a>; </span><span class="comment">//!&lt; See the generic template mrpt::utils::TParameters</span>
+<a name="111"><font size=-1>111     </font></a><span class="comment">		</span><span class="keyword">typedef <a href="dictionary_M.html#17290">TParameters</a></span><span class="default">&lt;std::string&gt;  <a href="dictionary_M.html#18693">TParametersString</a>; </span><span class="comment">//!&lt; See the generic template mrpt::utils::TParameters</span>
+<a name="112"><font size=-1>112     </font></a><span class="comment"></span>
+<a name="113"><font size=-1>113     </font></a><span class="comment">	</span><span class="default">} </span><span class="comment">// end namespace</span>
+<a name="114"><font size=-1>114     </font></a><span class="comment"></span><span class="default">}</span>
+<a name="115"><font size=-1>115     </font></a><span class="default"></span>
+<a name="116"><font size=-1>116     </font></a><span class="default"></span><span class="preproc">#endif</span>
+<a name="117"><font size=-1>117     </font></a><span class="preproc"></span>
+<a name="118"><font size=-1>118     </font></a><span class="preproc"></span>
+</pre></body></html>

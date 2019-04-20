@@ -1,0 +1,225 @@
+<html><head><title>mapHandler.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mapHandler.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mapHandler.h";
+top.document.title  = "mapHandler.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/*****************************************************************************</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">**      Stereo VO and SLAM by combining point and line segment features     **</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">******************************************************************************</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">**                                                                          **</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">**  Copyright(c) 2016-2018, Ruben Gomez-Ojeda, University of Malaga         **</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">**  Copyright(c) 2016-2018, David Zuñiga-Noël, University of Malaga         **</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">**  Copyright(c) 2016-2018, MAPIR group, University of Malaga               **</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">**                                                                          **</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment">**  This program is free software: you can redistribute it and/or modify    **</span>
+<a name="10"><font size=-1>10     </font></a><span class="comment">**  it under the terms of the GNU General Public License (version 3) as     **</span>
+<a name="11"><font size=-1>11     </font></a><span class="comment">**  published by the Free Software Foundation.                              **</span>
+<a name="12"><font size=-1>12     </font></a><span class="comment">**                                                                          **</span>
+<a name="13"><font size=-1>13     </font></a><span class="comment">**  This program is distributed in the hope that it will be useful, but     **</span>
+<a name="14"><font size=-1>14     </font></a><span class="comment">**  WITHOUT ANY WARRANTY; without even the implied warranty of              **</span>
+<a name="15"><font size=-1>15     </font></a><span class="comment">**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the            **</span>
+<a name="16"><font size=-1>16     </font></a><span class="comment">**  GNU General Public License for more details.                            **</span>
+<a name="17"><font size=-1>17     </font></a><span class="comment">**                                                                          **</span>
+<a name="18"><font size=-1>18     </font></a><span class="comment">**  You should have received a copy of the GNU General Public License       **</span>
+<a name="19"><font size=-1>19     </font></a><span class="comment">**  along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.   **</span>
+<a name="20"><font size=-1>20     </font></a><span class="comment">**                                                                          **</span>
+<a name="21"><font size=-1>21     </font></a><span class="comment">*****************************************************************************/</span>
+<a name="22"><font size=-1>22     </font></a><span class="comment"></span>
+<a name="23"><font size=-1>23     </font></a><span class="comment"></span><span class="preproc">#pragma </span><span class="default">once</span>
+<a name="24"><font size=-1>24     </font></a><span class="default"></span><span class="preproc">#include </span><span class="string">&lt;mutex&gt;</span>
+<a name="25"><font size=-1>25     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;list&gt;</span>
+<a name="26"><font size=-1>26     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;map&gt;</span>
+<a name="27"><font size=-1>27     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;eigen3/Eigen/Eigen&gt;</span>
+<a name="28"><font size=-1>28     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;eigen3/Eigen/Sparse&gt;</span>
+<a name="29"><font size=-1>29     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;eigen3/Eigen/CholmodSupport&gt;</span>
+<a name="30"><font size=-1>30     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;eigen3/Eigen/SparseCholesky&gt;</span>
+<a name="31"><font size=-1>31     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;eigen3/Eigen/Jacobi&gt;</span>
+<a name="32"><font size=-1>32     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;Eigen/src/Core/MatrixBase.h&gt;</span>
+<a name="33"><font size=-1>33     </font></a><span class="string"></span>
+<a name="34"><font size=-1>34     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;g2o/types/slam3d/vertex_se3.h&gt;</span>
+<a name="35"><font size=-1>35     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;g2o/types/slam3d/edge_se3.h&gt;</span>
+<a name="36"><font size=-1>36     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;g2o/core/sparse_optimizer.h&gt;</span>
+<a name="37"><font size=-1>37     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;g2o/core/block_solver.h&gt;</span>
+<a name="38"><font size=-1>38     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;g2o/core/solver.h&gt;</span>
+<a name="39"><font size=-1>39     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;g2o/core/robust_kernel.h&gt;</span>
+<a name="40"><font size=-1>40     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;g2o/solvers/cholmod/linear_solver_cholmod.h&gt;</span>
+<a name="41"><font size=-1>41     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;g2o/solvers/dense/linear_solver_dense.h&gt;</span>
+<a name="42"><font size=-1>42     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;g2o/solvers/structure_only/structure_only_solver.h&gt;</span>
+<a name="43"><font size=-1>43     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;g2o/core/optimization_algorithm_levenberg.h&gt;</span>
+<a name="44"><font size=-1>44     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;g2o/types/sba/types_six_dof_expmap.h&gt;</span>
+<a name="45"><font size=-1>45     </font></a><span class="string"></span>
+<a name="46"><font size=-1>46     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;DBoW2/TemplatedVocabulary.h&gt;</span>
+<a name="47"><font size=-1>47     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;DBoW2/FORB.h&gt;</span>
+<a name="48"><font size=-1>48     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;DBoW2/BowVector.h&gt;</span>
+<a name="49"><font size=-1>49     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;DBoW2/FClass.h&gt;</span>
+<a name="50"><font size=-1>50     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;DBoW2/FeatureVector.h&gt;</span>
+<a name="51"><font size=-1>51     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;DBoW2/ScoringObject.h&gt;</span>
+<a name="52"><font size=-1>52     </font></a><span class="string"></span>
+<a name="53"><font size=-1>53     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;slamConfig.h&gt;</span>
+<a name="54"><font size=-1>54     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;stereoFrame.h&gt;</span>
+<a name="55"><font size=-1>55     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;stereoFrameHandler.h&gt;</span>
+<a name="56"><font size=-1>56     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;keyFrame.h&gt;</span>
+<a name="57"><font size=-1>57     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mapFeatures.h&gt;</span>
+<a name="58"><font size=-1>58     </font></a><span class="string"></span>
+<a name="59"><font size=-1>59     </font></a><span class="string"></span><span class="keyword">using namespace </span><span class="default">std;</span>
+<a name="60"><font size=-1>60     </font></a><span class="default"></span><span class="keyword">using namespace </span><span class="default">Eigen;</span>
+<a name="61"><font size=-1>61     </font></a><span class="default"></span><span class="keyword">using namespace </span><span class="default">DBoW2;</span>
+<a name="62"><font size=-1>62     </font></a><span class="default"></span>
+<a name="63"><font size=-1>63     </font></a><span class="default"></span><span class="keyword">typedef <a href="dictionary_M.html#3085">Matrix</a></span><span class="default">&lt;</span><span class="keyword">int</span><span class="default">,  </span><span class="number">6</span><span class="default">,</span><span class="number">1</span><span class="default">&gt; <a href="dictionary_V.html#3084">Vector6i</a>;</span>
+<a name="64"><font size=-1>64     </font></a><span class="default"></span><span class="keyword">typedef <a href="dictionary_M.html#3085">Matrix</a></span><span class="default">&lt;</span><span class="keyword">float</span><span class="default">,</span><span class="number">6</span><span class="default">,</span><span class="number">1</span><span class="default">&gt; <a href="dictionary_V.html#3086">Vector6f</a>;</span>
+<a name="65"><font size=-1>65     </font></a><span class="default"></span><span class="keyword">typedef <a href="dictionary_M.html#3085">Matrix</a></span><span class="default">&lt;</span><span class="keyword">float</span><span class="default">,</span><span class="number">6</span><span class="default">,</span><span class="number">6</span><span class="default">&gt; <a href="dictionary_M.html#3087">Matrix6f</a>;</span>
+<a name="66"><font size=-1>66     </font></a><span class="default"></span><span class="keyword">typedef <a href="dictionary_M.html#3085">Matrix</a></span><span class="default">&lt;</span><span class="keyword">float</span><span class="default">,</span><span class="number">7</span><span class="default">,</span><span class="number">1</span><span class="default">&gt; <a href="dictionary_V.html#3088">Vector7f</a>;</span>
+<a name="67"><font size=-1>67     </font></a><span class="default"></span><span class="keyword">typedef </span><span class="default">DBoW2::<a href="dictionary_D.html#3090">TemplatedVocabulary</a>&lt;DBoW2::FORB::TDescriptor, DBoW2::FORB&gt; <a href="dictionary_V.html#3089">Vocabulary</a>;</span>
+<a name="68"><font size=-1>68     </font></a><span class="default"></span>
+<a name="69"><font size=-1>69     </font></a><span class="default"></span><span class="keyword">namespace </span><span class="default">PLSLAM</span>
+<a name="70"><font size=-1>70     </font></a><span class="default">{</span>
+<a name="71"><font size=-1>71     </font></a><span class="default"></span>
+<a name="72"><font size=-1>72     </font></a><span class="default"></span><span class="keyword">class <a href="dictionary_P.html#3092">MapHandler</a></span>
+<a name="73"><font size=-1>73     </font></a><span class="keyword"></span><span class="default">{</span>
+<a name="74"><font size=-1>74     </font></a><span class="default"></span>
+<a name="75"><font size=-1>75     </font></a><span class="default"></span><span class="keyword">public</span><span class="default">:</span>
+<a name="76"><font size=-1>76     </font></a><span class="default"></span>
+<a name="77"><font size=-1>77     </font></a><span class="default">    <a href="dictionary_E.html#3094">EIGEN_MAKE_ALIGNED_OPERATOR_NEW</a></span>
+<a name="78"><font size=-1>78     </font></a><span class="default"></span>
+<a name="79"><font size=-1>79     </font></a><span class="default">    <a href="dictionary_P.html#3093">MapHandler</a>(<a href="dictionary_P.html#3095">PinholeStereoCamera</a>* cam_);</span>
+<a name="80"><font size=-1>80     </font></a><span class="default">    ~<a href="dictionary_P.html#3096">MapHandler</a>() { }</span>
+<a name="81"><font size=-1>81     </font></a><span class="default"></span>
+<a name="82"><font size=-1>82     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3097">initialize</a></span><span class="default">(<a href="dictionary_P.html#3098">KeyFrame</a>* kf0);</span>
+<a name="83"><font size=-1>83     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3099">finishSLAM</a></span><span class="default">();</span>
+<a name="84"><font size=-1>84     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3100">addKeyFrame</a></span><span class="default">(<a href="dictionary_P.html#3098">KeyFrame</a> *curr_kf);</span>
+<a name="85"><font size=-1>85     </font></a><span class="default"></span>
+<a name="86"><font size=-1>86     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3101">addKeyFrame_multiThread</a></span><span class="default">(<a href="dictionary_P.html#3098">KeyFrame</a> *curr_kf, <a href="dictionary_P.html#3098">KeyFrame</a> *prev_kf);</span>
+<a name="87"><font size=-1>87     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3102">handlerThread</a></span><span class="default">();</span>
+<a name="88"><font size=-1>88     </font></a><span class="default"></span>
+<a name="89"><font size=-1>89     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3103">startThreads</a></span><span class="default">();</span>
+<a name="90"><font size=-1>90     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3104">killThreads</a></span><span class="default">();</span>
+<a name="91"><font size=-1>91     </font></a><span class="default"></span>
+<a name="92"><font size=-1>92     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3105">loopClosureThread</a></span><span class="default">();</span>
+<a name="93"><font size=-1>93     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3106">localMappingThread</a></span><span class="default">();</span>
+<a name="94"><font size=-1>94     </font></a><span class="default"></span>
+<a name="95"><font size=-1>95     </font></a><span class="default">    </span><span class="keyword">int <a href="dictionary_P.html#3107">matchKF2KFPoints</a></span><span class="default">(<a href="dictionary_P.html#3098">KeyFrame</a> *prev_kf, <a href="dictionary_P.html#3098">KeyFrame</a> *curr_kf);</span>
+<a name="96"><font size=-1>96     </font></a><span class="default">    </span><span class="keyword">int <a href="dictionary_P.html#3108">matchMap2KFPoints</a></span><span class="default">();</span>
+<a name="97"><font size=-1>97     </font></a><span class="default"></span>
+<a name="98"><font size=-1>98     </font></a><span class="default">    </span><span class="keyword">int <a href="dictionary_P.html#3109">matchKF2KFLines</a></span><span class="default">(<a href="dictionary_P.html#3098">KeyFrame</a> *prev_kf, <a href="dictionary_P.html#3098">KeyFrame</a> *curr_kf);</span>
+<a name="99"><font size=-1>99     </font></a><span class="default">    </span><span class="keyword">int <a href="dictionary_P.html#3110">matchMap2KFLines</a></span><span class="default">();</span>
+<a name="100"><font size=-1>100     </font></a><span class="default"></span>
+<a name="101"><font size=-1>101     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3111">lookForCommonMatches</a></span><span class="default">(<a href="dictionary_P.html#3098">KeyFrame</a> *kf0, <a href="dictionary_P.html#3098">KeyFrame</a> *&amp;kf1);</span>
+<a name="102"><font size=-1>102     </font></a><span class="default"></span>
+<a name="103"><font size=-1>103     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3112">expandGraphs</a></span><span class="default">();</span>
+<a name="104"><font size=-1>104     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3113">formLocalMap</a></span><span class="default">();</span>
+<a name="105"><font size=-1>105     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3114">formLocalMap</a></span><span class="default">( <a href="dictionary_P.html#3098">KeyFrame</a> * kf );</span>
+<a name="106"><font size=-1>106     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3115">formLocalMap_old</a></span><span class="default">();</span>
+<a name="107"><font size=-1>107     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3116">removeBadMapLandmarks</a></span><span class="default">();</span>
+<a name="108"><font size=-1>108     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3117">removeRedundantKFs</a></span><span class="default">();</span>
+<a name="109"><font size=-1>109     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3118">loopClosure</a></span><span class="default">();</span>
+<a name="110"><font size=-1>110     </font></a><span class="default">    </span><span class="keyword">bool <a href="dictionary_P.html#3119">lookForLoopCandidates</a></span><span class="default">(</span><span class="keyword">int </span><span class="default">kf_idx_curr, </span><span class="keyword">int </span><span class="default">&amp;kf_idx_prev);</span>
+<a name="111"><font size=-1>111     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3120">insertKFBowVectorP</a></span><span class="default">(<a href="dictionary_P.html#3098">KeyFrame</a> *kf);</span>
+<a name="112"><font size=-1>112     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3121">insertKFBowVectorL</a></span><span class="default">(<a href="dictionary_P.html#3098">KeyFrame</a> *kf);</span>
+<a name="113"><font size=-1>113     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3122">insertKFBowVectorPL</a></span><span class="default">(<a href="dictionary_P.html#3098">KeyFrame</a> *kf);</span>
+<a name="114"><font size=-1>114     </font></a><span class="default">    </span><span class="keyword">bool <a href="dictionary_P.html#3123">isLoopClosure</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_P.html#3098">KeyFrame</a></span><span class="default">* kf0, </span><span class="keyword">const <a href="dictionary_P.html#3098">KeyFrame</a></span><span class="default">* kf1, <a href="dictionary_V.html#3124">Vector6d</a> &amp;pose_inc,</span>
+<a name="115"><font size=-1>115     </font></a><span class="default">                       <a href="dictionary_V.html#3125">vector</a>&lt;Vector4i&gt; &amp;lc_pt_idx, <a href="dictionary_V.html#3125">vector</a>&lt;Vector4i&gt; &amp;lc_ls_idx,</span>
+<a name="116"><font size=-1>116     </font></a><span class="default">                       <a href="dictionary_V.html#3125">vector</a>&lt;PointFeature*&gt; &amp;lc_points, <a href="dictionary_V.html#3125">vector</a>&lt;LineFeature*&gt;  &amp;lc_lines);</span>
+<a name="117"><font size=-1>117     </font></a><span class="default">    </span><span class="keyword">bool <a href="dictionary_P.html#3126">computeRelativePoseGN</a></span><span class="default">( <a href="dictionary_V.html#3125">vector</a>&lt;PointFeature*&gt; &amp;lc_points, <a href="dictionary_V.html#3125">vector</a>&lt;LineFeature*&gt; &amp;lc_lines,</span>
+<a name="118"><font size=-1>118     </font></a><span class="default">                                <a href="dictionary_V.html#3125">vector</a>&lt;Vector4i&gt;      &amp;lc_pt_idx, <a href="dictionary_V.html#3125">vector</a>&lt;Vector4i&gt;     &amp;lc_ls_idx,</span>
+<a name="119"><font size=-1>119     </font></a><span class="default">                                <a href="dictionary_V.html#3124">Vector6d</a> &amp;pose_inc ) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="120"><font size=-1>120     </font></a><span class="default">    </span><span class="keyword">bool <a href="dictionary_P.html#3127">computeRelativePoseRobustGN</a></span><span class="default">( <a href="dictionary_V.html#3125">vector</a>&lt;PointFeature*&gt; &amp;lc_points, <a href="dictionary_V.html#3125">vector</a>&lt;LineFeature*&gt; &amp;lc_lines,</span>
+<a name="121"><font size=-1>121     </font></a><span class="default">                                <a href="dictionary_V.html#3125">vector</a>&lt;Vector4i&gt;      &amp;lc_pt_idx, <a href="dictionary_V.html#3125">vector</a>&lt;Vector4i&gt;     &amp;lc_ls_idx,</span>
+<a name="122"><font size=-1>122     </font></a><span class="default">                                <a href="dictionary_V.html#3124">Vector6d</a> &amp;pose_inc ) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="123"><font size=-1>123     </font></a><span class="default">    </span><span class="keyword">bool <a href="dictionary_P.html#3128">loopClosureOptimizationEssGraphG2O</a></span><span class="default">();</span>
+<a name="124"><font size=-1>124     </font></a><span class="default">    </span><span class="keyword">bool <a href="dictionary_P.html#3129">loopClosureOptimizationCovGraphG2O</a></span><span class="default">();</span>
+<a name="125"><font size=-1>125     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3130">loopClosureFuseLandmarks</a></span><span class="default">();</span>
+<a name="126"><font size=-1>126     </font></a><span class="default"></span>
+<a name="127"><font size=-1>127     </font></a><span class="default">    </span><span class="keyword">int <a href="dictionary_P.html#3131">localBundleAdjustment</a></span><span class="default">();</span>
+<a name="128"><font size=-1>128     </font></a><span class="default">    </span><span class="keyword">int <a href="dictionary_P.html#3132">levMarquardtOptimizationLBA</a></span><span class="default">( <a href="dictionary_V.html#3125">vector</a>&lt;</span><span class="keyword">double</span><span class="default">&gt; X_aux, <a href="dictionary_V.html#3125">vector</a>&lt;</span><span class="keyword">int</span><span class="default">&gt; kf_list, <a href="dictionary_V.html#3125">vector</a>&lt;</span><span class="keyword">int</span><span class="default">&gt; pt_list, <a href="dictionary_V.html#3125">vector</a>&lt;</span><span class="keyword">int</span><span class="default">&gt; ls_list, <a href="dictionary_V.html#3125">vector</a>&lt;Vector6i&gt; pt_obs_list, <a href="dictionary_V.html#3125">vector</a>&lt;Vector6i&gt; ls_obs_list  );</span>
+<a name="129"><font size=-1>129     </font></a><span class="default"></span>
+<a name="130"><font size=-1>130     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3133">globalBundleAdjustment</a></span><span class="default">();</span>
+<a name="131"><font size=-1>131     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3134">levMarquardtOptimizationGBA</a></span><span class="default">( <a href="dictionary_V.html#3125">vector</a>&lt;</span><span class="keyword">double</span><span class="default">&gt; X_aux, <a href="dictionary_V.html#3125">vector</a>&lt;</span><span class="keyword">int</span><span class="default">&gt; kf_list, <a href="dictionary_V.html#3125">vector</a>&lt;</span><span class="keyword">int</span><span class="default">&gt; pt_list, <a href="dictionary_V.html#3125">vector</a>&lt;</span><span class="keyword">int</span><span class="default">&gt; ls_list, <a href="dictionary_V.html#3125">vector</a>&lt;Vector6i&gt; pt_obs_list, <a href="dictionary_V.html#3125">vector</a>&lt;Vector6i&gt; ls_obs_list  );</span>
+<a name="132"><font size=-1>132     </font></a><span class="default"></span>
+<a name="133"><font size=-1>133     </font></a><span class="default">    <a href="dictionary_P.html#3095">PinholeStereoCamera</a>* <a href="dictionary_P.html#3135">cam</a>;</span>
+<a name="134"><font size=-1>134     </font></a><span class="default"></span>
+<a name="135"><font size=-1>135     </font></a><span class="default">    <a href="dictionary_V.html#3125">vector</a>&lt;KeyFrame*&gt; <a href="dictionary_P.html#3136">map_keyframes</a>;</span>
+<a name="136"><font size=-1>136     </font></a><span class="default">    <a href="dictionary_V.html#3125">vector</a>&lt;MapPoint*&gt; <a href="dictionary_P.html#3137">map_points</a>;</span>
+<a name="137"><font size=-1>137     </font></a><span class="default">    <a href="dictionary_V.html#3125">vector</a>&lt;MapLine*&gt;  <a href="dictionary_P.html#3138">map_lines</a>;</span>
+<a name="138"><font size=-1>138     </font></a><span class="default"></span>
+<a name="139"><font size=-1>139     </font></a><span class="default">    <a href="dictionary_L.html#3140">list</a>&lt;PointFeature*&gt; <a href="dictionary_P.html#3139">matched_pt</a>;</span>
+<a name="140"><font size=-1>140     </font></a><span class="default">    <a href="dictionary_L.html#3140">list</a>&lt;LineFeature*&gt;  <a href="dictionary_P.html#3141">matched_ls</a>;</span>
+<a name="141"><font size=-1>141     </font></a><span class="default"></span>
+<a name="142"><font size=-1>142     </font></a><span class="default">    <a href="dictionary_P.html#3142">map</a>&lt;</span><span class="keyword">int</span><span class="default">,vector&lt;</span><span class="keyword">int</span><span class="default">&gt;&gt; map_points_kf_idx; </span><span class="comment">// base KF list from which the LM is observed</span>
+<a name="143"><font size=-1>143     </font></a><span class="comment">    <a href="dictionary_P.html#3142">map</a></span><span class="default">&lt;</span><span class="keyword">int</span><span class="default">,vector&lt;</span><span class="keyword">int</span><span class="default">&gt;&gt; map_lines_kf_idx;</span>
+<a name="144"><font size=-1>144     </font></a><span class="default"></span>
+<a name="145"><font size=-1>145     </font></a><span class="default">    <a href="dictionary_V.html#3125">vector</a>&lt; vector&lt;</span><span class="keyword">unsigned int</span><span class="default">&gt; &gt; <a href="dictionary_P.html#3143">full_graph</a>;</span>
+<a name="146"><font size=-1>146     </font></a><span class="default"></span>
+<a name="147"><font size=-1>147     </font></a><span class="default">    <a href="dictionary_V.html#3125">vector</a>&lt; vector&lt;</span><span class="keyword">float</span><span class="default">&gt; &gt; <a href="dictionary_P.html#3144">conf_matrix</a>;</span>
+<a name="148"><font size=-1>148     </font></a><span class="default">    <a href="dictionary_V.html#3089">Vocabulary</a>              <a href="dictionary_P.html#3145">dbow_voc_p</a>, <a href="dictionary_P.html#3146">dbow_voc_l</a>;</span>
+<a name="149"><font size=-1>149     </font></a><span class="default"></span>
+<a name="150"><font size=-1>150     </font></a><span class="default">    </span><span class="keyword">unsigned int <a href="dictionary_P.html#3147">max_pt_idx</a></span><span class="default">, <a href="dictionary_P.html#3148">max_ls_idx</a>, <a href="dictionary_P.html#3149">max_kf_idx</a> ;</span>
+<a name="151"><font size=-1>151     </font></a><span class="default"></span>
+<a name="152"><font size=-1>152     </font></a><span class="default">    <a href="dictionary_P.html#3098">KeyFrame</a> *<a href="dictionary_P.html#3150">prev_kf</a>, *<a href="dictionary_P.html#3151">curr_kf</a>;</span>
+<a name="153"><font size=-1>153     </font></a><span class="default">    <a href="dictionary_M.html#3153">Matrix4d</a> <a href="dictionary_P.html#3152">Twf</a>, <a href="dictionary_P.html#3154">DT</a>;</span>
+<a name="154"><font size=-1>154     </font></a><span class="default"></span>
+<a name="155"><font size=-1>155     </font></a><span class="default">    </span><span class="comment">// experiment variables</span>
+<a name="156"><font size=-1>156     </font></a><span class="comment">    <a href="dictionary_V.html#3088">Vector7f</a> <a href="dictionary_P.html#3155">time</a></span><span class="default">;</span>
+<a name="157"><font size=-1>157     </font></a><span class="default"></span>
+<a name="158"><font size=-1>158     </font></a><span class="default">    </span><span class="comment">// VO status</span>
+<a name="159"><font size=-1>159     </font></a><span class="comment">    <a href="dictionary_M.html#3157">mutex</a> <a href="dictionary_P.html#3156">m_insert_kf</a></span><span class="default">;</span>
+<a name="160"><font size=-1>160     </font></a><span class="default">    </span><span class="keyword">enum <a href="dictionary_P.html#3158">VOStatus</a></span><span class="default">{</span>
+<a name="161"><font size=-1>161     </font></a><span class="default">        VO_PROCESSING,</span>
+<a name="162"><font size=-1>162     </font></a><span class="default">        VO_INSERTING_KF</span>
+<a name="163"><font size=-1>163     </font></a><span class="default">    };</span>
+<a name="164"><font size=-1>164     </font></a><span class="default">    <a href="dictionary_P.html#3158">VOStatus</a> <a href="dictionary_P.html#3161">vo_status</a>;</span>
+<a name="165"><font size=-1>165     </font></a><span class="default"></span>
+<a name="166"><font size=-1>166     </font></a><span class="default">    </span><span class="comment">// status of the LBA thread</span>
+<a name="167"><font size=-1>167     </font></a><span class="comment">    <a href="dictionary_V.html#3125">vector</a></span><span class="default">&lt;</span><span class="keyword">int</span><span class="default">&gt; <a href="dictionary_P.html#3162">lba_kfs</a>;</span>
+<a name="168"><font size=-1>168     </font></a><span class="default">    </span><span class="keyword">enum <a href="dictionary_P.html#3163">LBAState</a></span><span class="default">{</span>
+<a name="169"><font size=-1>169     </font></a><span class="default">        LBA_IDLE,</span>
+<a name="170"><font size=-1>170     </font></a><span class="default">        LBA_ACTIVE,</span>
+<a name="171"><font size=-1>171     </font></a><span class="default">        LBA_READY,</span>
+<a name="172"><font size=-1>172     </font></a><span class="default">        LBA_TERMINATED</span>
+<a name="173"><font size=-1>173     </font></a><span class="default">    };</span>
+<a name="174"><font size=-1>174     </font></a><span class="default">    <a href="dictionary_P.html#3163">LBAState</a> <a href="dictionary_P.html#3168">lba_thread_status</a>;</span>
+<a name="175"><font size=-1>175     </font></a><span class="default"></span>
+<a name="176"><font size=-1>176     </font></a><span class="default">    </span><span class="comment">// Local Mapping</span>
+<a name="177"><font size=-1>177     </font></a><span class="comment">    </span><span class="default">std::<a href="dictionary_S.html#3170">mutex</a> <a href="dictionary_P.html#3169">lba_mutex</a>;</span>
+<a name="178"><font size=-1>178     </font></a><span class="default">    std::<a href="dictionary_S.html#3172">condition_variable</a> <a href="dictionary_P.html#3171">lba_start</a>, <a href="dictionary_P.html#3173">lba_join</a>;</span>
+<a name="179"><font size=-1>179     </font></a><span class="default"></span>
+<a name="180"><font size=-1>180     </font></a><span class="default">    <a href="dictionary_V.html#3125">vector</a>&lt; Vector3i &gt; <a href="dictionary_P.html#3174">lc_idxs</a>,  <a href="dictionary_P.html#3175">lc_idx_list</a>;</span>
+<a name="181"><font size=-1>181     </font></a><span class="default">    <a href="dictionary_V.html#3125">vector</a>&lt; Vector6d &gt; <a href="dictionary_P.html#3176">lc_poses</a>, <a href="dictionary_P.html#3177">lc_pose_list</a>;</span>
+<a name="182"><font size=-1>182     </font></a><span class="default">    <a href="dictionary_V.html#3125">vector</a>&lt; vector&lt;Vector4i&gt; &gt; <a href="dictionary_P.html#3178">lc_pt_idxs</a>;</span>
+<a name="183"><font size=-1>183     </font></a><span class="default">    <a href="dictionary_V.html#3125">vector</a>&lt; vector&lt;Vector4i&gt; &gt; <a href="dictionary_P.html#3179">lc_ls_idxs</a>;</span>
+<a name="184"><font size=-1>184     </font></a><span class="default"></span>
+<a name="185"><font size=-1>185     </font></a><span class="default">    std::<a href="dictionary_S.html#3170">mutex</a> <a href="dictionary_P.html#3180">lc_mutex</a>;</span>
+<a name="186"><font size=-1>186     </font></a><span class="default">    std::<a href="dictionary_S.html#3172">condition_variable</a> <a href="dictionary_P.html#3181">lc_start</a>, <a href="dictionary_P.html#3182">lc_join</a>;</span>
+<a name="187"><font size=-1>187     </font></a><span class="default"></span>
+<a name="188"><font size=-1>188     </font></a><span class="default">    </span><span class="keyword">enum <a href="dictionary_P.html#3183">LCState</a></span><span class="default">{</span>
+<a name="189"><font size=-1>189     </font></a><span class="default">        LC_IDLE,</span>
+<a name="190"><font size=-1>190     </font></a><span class="default">        LC_ACTIVE,</span>
+<a name="191"><font size=-1>191     </font></a><span class="default">        LC_READY,</span>
+<a name="192"><font size=-1>192     </font></a><span class="default">        LC_TERMINATED</span>
+<a name="193"><font size=-1>193     </font></a><span class="default">    };</span>
+<a name="194"><font size=-1>194     </font></a><span class="default">    <a href="dictionary_P.html#3183">LCState</a> <a href="dictionary_P.html#3188">lc_state</a>, <a href="dictionary_P.html#3189">lc_thread_status</a>;</span>
+<a name="195"><font size=-1>195     </font></a><span class="default"></span>
+<a name="196"><font size=-1>196     </font></a><span class="default"></span>
+<a name="197"><font size=-1>197     </font></a><span class="default"></span>
+<a name="198"><font size=-1>198     </font></a><span class="default">    </span><span class="comment">// KF queue</span>
+<a name="199"><font size=-1>199     </font></a><span class="comment">    </span><span class="default">std::<a href="dictionary_S.html#2122">list</a>&lt;pair&lt;KeyFrame*,KeyFrame*&gt;&gt; kf_queue;  </span><span class="comment">// list of curr_kf_mt and prev_kf_mt</span>
+<a name="200"><font size=-1>200     </font></a><span class="comment">    </span><span class="default">std::<a href="dictionary_S.html#3170">mutex</a> <a href="dictionary_P.html#3190">kf_queue_mutex</a>;</span>
+<a name="201"><font size=-1>201     </font></a><span class="default">    std::<a href="dictionary_S.html#3172">condition_variable</a> <a href="dictionary_P.html#3191">new_kf</a>;</span>
+<a name="202"><font size=-1>202     </font></a><span class="default">    <a href="dictionary_P.html#3098">KeyFrame</a>* <a href="dictionary_P.html#3192">curr_kf_mt</a>;</span>
+<a name="203"><font size=-1>203     </font></a><span class="default">    <a href="dictionary_P.html#3098">KeyFrame</a>* <a href="dictionary_P.html#3193">prev_kf_mt</a>;</span>
+<a name="204"><font size=-1>204     </font></a><span class="default"></span>
+<a name="205"><font size=-1>205     </font></a><span class="default">    std::<a href="dictionary_S.html#3170">mutex</a> <a href="dictionary_P.html#3194">cout_mutex</a>;</span>
+<a name="206"><font size=-1>206     </font></a><span class="default">    </span><span class="keyword">void <a href="dictionary_P.html#3195">print_msg</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_S.html#40">std</a></span><span class="default">::<a href="dictionary_S.html#54">string</a> &amp;msg);</span>
+<a name="207"><font size=-1>207     </font></a><span class="default"></span>
+<a name="208"><font size=-1>208     </font></a><span class="default"></span><span class="keyword">private</span><span class="default">:</span>
+<a name="209"><font size=-1>209     </font></a><span class="default"></span>
+<a name="210"><font size=-1>210     </font></a><span class="default">    </span><span class="keyword">bool <a href="dictionary_P.html#3196">threads_started</a></span><span class="default">;</span>
+<a name="211"><font size=-1>211     </font></a><span class="default"></span>
+<a name="212"><font size=-1>212     </font></a><span class="default">};</span>
+<a name="213"><font size=-1>213     </font></a><span class="default"></span>
+<a name="214"><font size=-1>214     </font></a><span class="default">}</span>
+<a name="215"><font size=-1>215     </font></a><span class="default"></span>
+</pre></body></html>

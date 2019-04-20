@@ -1,0 +1,113 @@
+<html><head><title>parallelization.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/system/parallelization.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/system/parallelization.h";
+top.document.title  = "parallelization.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span><span class="preproc">#ifndef  <a href="dictionary_Non-Alpha.html#12600">__MRPT_PARALLELIZATION_H</a></span>
+<a name="10"><font size=-1>10     </font></a><span class="preproc">#define  <a href="dictionary_Non-Alpha.html#12600">__MRPT_PARALLELIZATION_H</a></span>
+<a name="11"><font size=-1>11     </font></a><span class="preproc"></span>
+<a name="12"><font size=-1>12     </font></a><span class="preproc">#include </span><span class="string">&lt;mrpt/config.h&gt;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span><span class="comment">// This file declares helper structs for usage with TBB</span>
+<a name="15"><font size=-1>15     </font></a><span class="comment">//  Refer to http://threadingbuildingblocks.org/</span>
+<a name="16"><font size=-1>16     </font></a><span class="comment">// (The following code blocks are based on OpenCV code - BSD license)</span>
+<a name="17"><font size=-1>17     </font></a><span class="comment"></span>
+<a name="18"><font size=-1>18     </font></a><span class="comment"></span><span class="preproc">#if <a href="dictionary_M.html#12601">MRPT_HAS_TBB</a></span>
+<a name="19"><font size=-1>19     </font></a><span class="preproc">    #include </span><span class="string">&lt;tbb/tbb_stddef.h&gt;</span>
+<a name="20"><font size=-1>20     </font></a><span class="string">    </span><span class="preproc">#if <a href="dictionary_T.html#12603">TBB_VERSION_MAJOR</a></span><span class="default">*</span><span class="number">100 </span><span class="default">+ <a href="dictionary_T.html#12604">TBB_VERSION_MINOR</a> &gt;= </span><span class="number">202</span>
+<a name="21"><font size=-1>21     </font></a><span class="number">        </span><span class="preproc">#include </span><span class="string">&lt;tbb/tbb.h&gt;</span>
+<a name="22"><font size=-1>22     </font></a><span class="string">        </span><span class="preproc">#include </span><span class="string">&lt;tbb/task.h&gt;</span>
+<a name="23"><font size=-1>23     </font></a><span class="string">        </span><span class="preproc">#undef <a href="dictionary_M.html#12607">min</a></span>
+<a name="24"><font size=-1>24     </font></a><span class="preproc">        #undef <a href="dictionary_M.html#12608">max</a></span>
+<a name="25"><font size=-1>25     </font></a><span class="preproc">    #else</span>
+<a name="26"><font size=-1>26     </font></a><span class="preproc">        #undef <a href="dictionary_M.html#12601">MRPT_HAS_TBB</a></span>
+<a name="27"><font size=-1>27     </font></a><span class="preproc">        #define <a href="dictionary_M.html#12601">MRPT_HAS_TBB</a> </span><span class="number">0</span>
+<a name="28"><font size=-1>28     </font></a><span class="number">    </span><span class="preproc">#endif</span>
+<a name="29"><font size=-1>29     </font></a><span class="preproc">#endif</span>
+<a name="30"><font size=-1>30     </font></a><span class="preproc"></span>
+<a name="31"><font size=-1>31     </font></a><span class="preproc"></span>
+<a name="32"><font size=-1>32     </font></a><span class="preproc"></span><span class="comment">// Define a common interface so if we don't have TBB it falls back to a good-old for loop:</span>
+<a name="33"><font size=-1>33     </font></a><span class="comment"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="34"><font size=-1>34     </font></a><span class="default">{</span>
+<a name="35"><font size=-1>35     </font></a><span class="default">	</span><span class="keyword">namespace </span><span class="default">system</span>
+<a name="36"><font size=-1>36     </font></a><span class="default">	{</span>
+<a name="37"><font size=-1>37     </font></a><span class="default"></span><span class="preproc">#if <a href="dictionary_M.html#12601">MRPT_HAS_TBB</a></span>
+<a name="38"><font size=-1>38     </font></a><span class="preproc">        </span><span class="keyword">typedef </span><span class="default">tbb::blocked_range&lt;</span><span class="keyword">int</span><span class="default">&gt; BlockedRange;</span>
+<a name="39"><font size=-1>39     </font></a><span class="default"></span>
+<a name="40"><font size=-1>40     </font></a><span class="default">        </span><span class="keyword">template</span><span class="default">&lt;</span><span class="keyword">typename </span><span class="default">Body&gt; </span><span class="keyword">static inline</span>
+<a name="41"><font size=-1>41     </font></a><span class="keyword">        void </span><span class="default">parallel_for( </span><span class="keyword">const </span><span class="default">BlockedRange&amp; range, </span><span class="keyword">const </span><span class="default">Body&amp; body )</span>
+<a name="42"><font size=-1>42     </font></a><span class="default">        {</span>
+<a name="43"><font size=-1>43     </font></a><span class="default">            tbb::parallel_for(range, body);</span>
+<a name="44"><font size=-1>44     </font></a><span class="default">        }</span>
+<a name="45"><font size=-1>45     </font></a><span class="default"></span>
+<a name="46"><font size=-1>46     </font></a><span class="default">        </span><span class="keyword">template</span><span class="default">&lt;</span><span class="keyword">typename </span><span class="default">Iterator, </span><span class="keyword">typename </span><span class="default">Body&gt; </span><span class="keyword">static inline</span>
+<a name="47"><font size=-1>47     </font></a><span class="keyword">        void </span><span class="default">parallel_do( Iterator first, Iterator last, </span><span class="keyword">const </span><span class="default">Body&amp; body )</span>
+<a name="48"><font size=-1>48     </font></a><span class="default">        {</span>
+<a name="49"><font size=-1>49     </font></a><span class="default">            tbb::parallel_do(first, last, body);</span>
+<a name="50"><font size=-1>50     </font></a><span class="default">        }</span>
+<a name="51"><font size=-1>51     </font></a><span class="default"></span>
+<a name="52"><font size=-1>52     </font></a><span class="default">        </span><span class="keyword">typedef </span><span class="default">tbb::split Split;</span>
+<a name="53"><font size=-1>53     </font></a><span class="default"></span>
+<a name="54"><font size=-1>54     </font></a><span class="default">        </span><span class="keyword">template</span><span class="default">&lt;</span><span class="keyword">typename </span><span class="default">Body&gt; </span><span class="keyword">static inline</span>
+<a name="55"><font size=-1>55     </font></a><span class="keyword">        void </span><span class="default">parallel_reduce( </span><span class="keyword">const </span><span class="default">BlockedRange&amp; range, Body&amp; body )</span>
+<a name="56"><font size=-1>56     </font></a><span class="default">        {</span>
+<a name="57"><font size=-1>57     </font></a><span class="default">            tbb::parallel_reduce(range, body);</span>
+<a name="58"><font size=-1>58     </font></a><span class="default">        }</span>
+<a name="59"><font size=-1>59     </font></a><span class="default"></span>
+<a name="60"><font size=-1>60     </font></a><span class="default">        </span><span class="comment">//typedef tbb::concurrent_vector&lt;Rect&gt; ConcurrentRectVector;</span>
+<a name="61"><font size=-1>61     </font></a><span class="comment"></span><span class="preproc">#else</span>
+<a name="62"><font size=-1>62     </font></a><span class="preproc">		</span><span class="comment">// Emulate TBB-like classes which fall back to an old &quot;for&quot;</span>
+<a name="63"><font size=-1>63     </font></a><span class="comment">        </span><span class="keyword">class <a href="dictionary_M.html#12609">BlockedRange</a></span>
+<a name="64"><font size=-1>64     </font></a><span class="keyword">        </span><span class="default">{</span>
+<a name="65"><font size=-1>65     </font></a><span class="default">        </span><span class="keyword">public</span><span class="default">:</span>
+<a name="66"><font size=-1>66     </font></a><span class="default">            <a href="dictionary_M.html#12610">BlockedRange</a>() : <a href="dictionary_M.html#12618">_begin</a>(</span><span class="number">0</span><span class="default">), <a href="dictionary_M.html#12619">_end</a>(</span><span class="number">0</span><span class="default">), <a href="dictionary_M.html#12620">_grainsize</a>(</span><span class="number">0</span><span class="default">) {}</span>
+<a name="67"><font size=-1>67     </font></a><span class="default">            <a href="dictionary_M.html#12611">BlockedRange</a>(</span><span class="keyword">int <a href="dictionary_B.html#12612">b</a></span><span class="default">, </span><span class="keyword">int <a href="dictionary_E.html#12613">e</a></span><span class="default">, </span><span class="keyword">int <a href="dictionary_G.html#12614">g</a></span><span class="default">=</span><span class="number">1</span><span class="default">) : <a href="dictionary_M.html#12618">_begin</a>(<a href="dictionary_B.html#12612">b</a>), <a href="dictionary_M.html#12619">_end</a>(<a href="dictionary_E.html#12613">e</a>), <a href="dictionary_M.html#12620">_grainsize</a>(<a href="dictionary_G.html#12614">g</a>) {}</span>
+<a name="68"><font size=-1>68     </font></a><span class="default">            </span><span class="keyword">int <a href="dictionary_M.html#12615">begin</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#12618">_begin</a></span><span class="default">; }</span>
+<a name="69"><font size=-1>69     </font></a><span class="default">            </span><span class="keyword">int <a href="dictionary_M.html#12616">end</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#12619">_end</a></span><span class="default">; }</span>
+<a name="70"><font size=-1>70     </font></a><span class="default">            </span><span class="keyword">int <a href="dictionary_M.html#12617">grainsize</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#12620">_grainsize</a></span><span class="default">; }</span>
+<a name="71"><font size=-1>71     </font></a><span class="default">        </span><span class="keyword">protected</span><span class="default">:</span>
+<a name="72"><font size=-1>72     </font></a><span class="default">            </span><span class="keyword">int <a href="dictionary_M.html#12618">_begin</a></span><span class="default">, <a href="dictionary_M.html#12619">_end</a>, <a href="dictionary_M.html#12620">_grainsize</a>;</span>
+<a name="73"><font size=-1>73     </font></a><span class="default">        };</span>
+<a name="74"><font size=-1>74     </font></a><span class="default"></span>
+<a name="75"><font size=-1>75     </font></a><span class="default">        </span><span class="keyword">template</span><span class="default">&lt;</span><span class="keyword">typename <a href="dictionary_B.html#12622">Body</a></span><span class="default">&gt; </span><span class="keyword">static inline</span>
+<a name="76"><font size=-1>76     </font></a><span class="keyword">        void <a href="dictionary_M.html#12621">parallel_for</a></span><span class="default">( </span><span class="keyword">const <a href="dictionary_M.html#12609">BlockedRange</a></span><span class="default">&amp; <a href="dictionary_R.html#12623">range</a>, </span><span class="keyword">const <a href="dictionary_B.html#12622">Body</a></span><span class="default">&amp; <a href="dictionary_B.html#12624">body</a> )</span>
+<a name="77"><font size=-1>77     </font></a><span class="default">        {</span>
+<a name="78"><font size=-1>78     </font></a><span class="default">            <a href="dictionary_B.html#12624">body</a>(<a href="dictionary_R.html#12623">range</a>);</span>
+<a name="79"><font size=-1>79     </font></a><span class="default">        }</span>
+<a name="80"><font size=-1>80     </font></a><span class="default">        </span><span class="keyword">typedef </span><span class="default">std::<a href="dictionary_S.html#74">vector</a>&lt;Rect&gt; <a href="dictionary_M.html#12625">ConcurrentRectVector</a>;</span>
+<a name="81"><font size=-1>81     </font></a><span class="default"></span>
+<a name="82"><font size=-1>82     </font></a><span class="default">        </span><span class="keyword">template</span><span class="default">&lt;</span><span class="keyword">typename <a href="dictionary_I.html#12627">Iterator</a></span><span class="default">, </span><span class="keyword">typename <a href="dictionary_B.html#12628">Body</a></span><span class="default">&gt; </span><span class="keyword">static inline</span>
+<a name="83"><font size=-1>83     </font></a><span class="keyword">        void <a href="dictionary_M.html#12626">parallel_do</a></span><span class="default">( <a href="dictionary_I.html#12627">Iterator</a> <a href="dictionary_F.html#12629">first</a>, <a href="dictionary_I.html#12627">Iterator</a> <a href="dictionary_L.html#12630">last</a>, </span><span class="keyword">const <a href="dictionary_B.html#12628">Body</a></span><span class="default">&amp; <a href="dictionary_B.html#12631">body</a> )</span>
+<a name="84"><font size=-1>84     </font></a><span class="default">        {</span>
+<a name="85"><font size=-1>85     </font></a><span class="default">            </span><span class="keyword">for</span><span class="default">( ; <a href="dictionary_F.html#12629">first</a> != <a href="dictionary_L.html#12630">last</a>; ++<a href="dictionary_F.html#12629">first</a> )</span>
+<a name="86"><font size=-1>86     </font></a><span class="default">                <a href="dictionary_B.html#12631">body</a>(*<a href="dictionary_F.html#12629">first</a>);</span>
+<a name="87"><font size=-1>87     </font></a><span class="default">        }</span>
+<a name="88"><font size=-1>88     </font></a><span class="default"></span>
+<a name="89"><font size=-1>89     </font></a><span class="default">        </span><span class="keyword">class <a href="dictionary_M.html#12632">Split</a> </span><span class="default">{};</span>
+<a name="90"><font size=-1>90     </font></a><span class="default"></span>
+<a name="91"><font size=-1>91     </font></a><span class="default">        </span><span class="keyword">template</span><span class="default">&lt;</span><span class="keyword">typename <a href="dictionary_B.html#12634">Body</a></span><span class="default">&gt; </span><span class="keyword">static inline</span>
+<a name="92"><font size=-1>92     </font></a><span class="keyword">        void <a href="dictionary_M.html#12633">parallel_reduce</a></span><span class="default">( </span><span class="keyword">const <a href="dictionary_M.html#12609">BlockedRange</a></span><span class="default">&amp; <a href="dictionary_R.html#12635">range</a>, <a href="dictionary_B.html#12634">Body</a>&amp; <a href="dictionary_B.html#12636">body</a> )</span>
+<a name="93"><font size=-1>93     </font></a><span class="default">        {</span>
+<a name="94"><font size=-1>94     </font></a><span class="default">            <a href="dictionary_B.html#12636">body</a>(<a href="dictionary_R.html#12635">range</a>);</span>
+<a name="95"><font size=-1>95     </font></a><span class="default">        }</span>
+<a name="96"><font size=-1>96     </font></a><span class="default"></span>
+<a name="97"><font size=-1>97     </font></a><span class="default"></span><span class="preproc">#endif </span><span class="comment">// MRPT_HAS_TBB</span>
+<a name="98"><font size=-1>98     </font></a><span class="comment"></span>
+<a name="99"><font size=-1>99     </font></a><span class="comment">    </span><span class="default">}  </span><span class="comment">// end NS</span>
+<a name="100"><font size=-1>100     </font></a><span class="comment"></span><span class="default">}  </span><span class="comment">// end NS</span>
+<a name="101"><font size=-1>101     </font></a><span class="comment"></span>
+<a name="102"><font size=-1>102     </font></a><span class="comment"></span><span class="preproc">#endif</span>
+<a name="103"><font size=-1>103     </font></a><span class="preproc"></span>
+</pre></body></html>

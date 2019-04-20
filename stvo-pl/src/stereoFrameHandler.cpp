@@ -409,12 +409,12 @@ void StereoFrameHandler::optimizePose()
     if( isGoodSolution(DT,DT_cov,err) && DT != Matrix4d::Identity() )
     {
         //expmap_se3(logmap_se3这里好像不是很有意义
-        //curr_frame->DT=Tk_k+1
+        //curr_frame->DT=Tpre_cur
         curr_frame->DT       = expmap_se3(logmap_se3( inverse_se3(DT) ));
         //更新Tk_k+1的协方差矩阵
         curr_frame->DT_cov   = DT_cov;
         curr_frame->err_norm = err;
-        //更新 prev_frame->Tfw在updateFrame里更新，但每当关键帧插入时都会变成单位矩阵
+        //更新 prev_frame->Tfw在updateFrame里更新，但每当关键帧插入时都会变成单位矩阵。并且在updateFrame里，prev_frame会被整体更新
         curr_frame->Tfw      = expmap_se3(logmap_se3( prev_frame->Tfw * curr_frame->DT ));
         //更新Twc的协方差矩阵？？？
         curr_frame->Tfw_cov  = unccomp_se3( prev_frame->Tfw, prev_frame->Tfw_cov, DT_cov );
@@ -466,7 +466,7 @@ void StereoFrameHandler::gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov,
         // update step
         ColPivHouseholderQR<Matrix6d> solver(H);
         DT_inc = solver.solve(g);
-        // 增量更新 无论怎样，这里算出来的是Tk+1_k
+        // 增量更新  DT Tcur_pre  这里右乘的原因是算H和g的时候，g忘取了一个负号（原作者真坑）
         DT  << DT * inverse_se3( expmap_se3(DT_inc) );
         // if the parameter change is small stop
         //1e-7        # min. error change to stop the optimization
@@ -474,10 +474,12 @@ void StereoFrameHandler::gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov,
             cout << "[StVO] Small optimization solution variance" << endl;
             break;
         }
+        //平均进行四次迭代
+        //cout<<err_prev-err<<' ';
         // update previous values
         err_prev = err;
     }
-
+    //cout<<endl;
     DT_cov = H.inverse();  //DT_cov = Matrix6d::Identity(); 协方差矩阵就是海塞矩阵的逆
     err_   = err;
 }

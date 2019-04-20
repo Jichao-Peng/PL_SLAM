@@ -65,13 +65,8 @@ public:
     int       f_idx;
     string    img_name;
 
-    /*
-    x_kf_w    = logmap_se3( T_kf_w );
-    T_kf_w    = sf->Tfw ;
-    xcov_kf_w = sf->Tfw_cov;
-    */
     int      kf_idx;
-    Matrix4d T_kf_w;    //这个是相对于世界坐标系的
+    Matrix4d T_kf_w;    // Twc
     Vector6d x_kf_w;
     Matrix6d xcov_kf_w;
 

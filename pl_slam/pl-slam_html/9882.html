@@ -1,0 +1,238 @@
+<html><head><title>CPose3DInterpolator.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/poses/CPose3DInterpolator.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/poses/CPose3DInterpolator.h";
+top.document.title  = "CPose3DInterpolator.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span><span class="preproc">#ifndef <a href="dictionary_C.html#9883">CPose3DInterpolator_H</a></span>
+<a name="10"><font size=-1>10     </font></a><span class="preproc">#define <a href="dictionary_C.html#9883">CPose3DInterpolator_H</a></span>
+<a name="11"><font size=-1>11     </font></a><span class="preproc"></span>
+<a name="12"><font size=-1>12     </font></a><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/CSerializable.h&gt;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/system/datetime.h&gt;</span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/TEnumType.h&gt;</span>
+<a name="15"><font size=-1>15     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/aligned_containers.h&gt;</span>
+<a name="16"><font size=-1>16     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/math/math_frwds.h&gt;</span>
+<a name="17"><font size=-1>17     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/poses/CPose3D.h&gt;</span>
+<a name="18"><font size=-1>18     </font></a><span class="string"></span>
+<a name="19"><font size=-1>19     </font></a><span class="string"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="20"><font size=-1>20     </font></a><span class="default">{</span>
+<a name="21"><font size=-1>21     </font></a><span class="default">	</span><span class="keyword">namespace </span><span class="default">poses</span>
+<a name="22"><font size=-1>22     </font></a><span class="default">	{</span>
+<a name="23"><font size=-1>23     </font></a><span class="default">		<a href="dictionary_D.html#859">DEFINE_SERIALIZABLE_PRE_CUSTOM_BASE</a>( <a href="dictionary_M.html#9884">CPose3DInterpolator</a>, mrpt::utils::CSerializable )</span>
+<a name="24"><font size=-1>24     </font></a><span class="default"></span>
+<a name="25"><font size=-1>25     </font></a><span class="default">		</span><span class="keyword">typedef </span><span class="default">std::<a href="dictionary_S.html#4856">pair</a>&lt;mrpt::system::TTimeStamp, mrpt::poses::CPose3D&gt; <a href="dictionary_M.html#9887">TTimePosePair</a>;</span>
+<a name="26"><font size=-1>26     </font></a><span class="default"></span>
+<a name="27"><font size=-1>27     </font></a><span class="default">		</span><span class="comment">/** This class stores a time-stamped trajectory in SE(3) (CPose3D poses). </span>
+<a name="28"><font size=-1>28     </font></a><span class="comment">		  *  It can also interpolate SE(3) poses over time using linear, splines or SLERP interpolation, as set in CPose3DInterpolator::setInterpolationMethod()</span>
+<a name="29"><font size=-1>29     </font></a><span class="comment">		  *  Usage: </span>
+<a name="30"><font size=-1>30     </font></a><span class="comment">		  *   - Insert new poses into the sequence with CPose3DInterpolator::insert()</span>
+<a name="31"><font size=-1>31     </font></a><span class="comment">		  *   - Query an exact/interpolated pose with CPose3DInterpolator::interpolate().</span>
+<a name="32"><font size=-1>32     </font></a><span class="comment">		  * Example:</span>
+<a name="33"><font size=-1>33     </font></a><span class="comment">		  * \code</span>
+<a name="34"><font size=-1>34     </font></a><span class="comment">		  * CPose3DInterpolator		path;</span>
+<a name="35"><font size=-1>35     </font></a><span class="comment">		  *</span>
+<a name="36"><font size=-1>36     </font></a><span class="comment">		  * path.setInterpolationMethod( CPose3DInterpolator::imSplineSlerp );</span>
+<a name="37"><font size=-1>37     </font></a><span class="comment">		  *</span>
+<a name="38"><font size=-1>38     </font></a><span class="comment">		  * path.insert( t0, CPose3D(...) );</span>
+<a name="39"><font size=-1>39     </font></a><span class="comment">		  * path.insert( t1, CPose3D(...) );</span>
+<a name="40"><font size=-1>40     </font></a><span class="comment">		  * path.insert( t2, CPose3D(...) );</span>
+<a name="41"><font size=-1>41     </font></a><span class="comment">		  * path.insert( t3, CPose3D(...) );</span>
+<a name="42"><font size=-1>42     </font></a><span class="comment">		  *</span>
+<a name="43"><font size=-1>43     </font></a><span class="comment">		  * CPose3D p;</span>
+<a name="44"><font size=-1>44     </font></a><span class="comment">		  * bool valid;</span>
+<a name="45"><font size=-1>45     </font></a><span class="comment">		  *</span>
+<a name="46"><font size=-1>46     </font></a><span class="comment">		  * cout &lt;&lt; &quot;Pose at t: &quot; &lt;&lt; path.interpolate(t,p,valid) &lt;&lt; endl;</span>
+<a name="47"><font size=-1>47     </font></a><span class="comment">		  * \endcode</span>
+<a name="48"><font size=-1>48     </font></a><span class="comment">		  *</span>
+<a name="49"><font size=-1>49     </font></a><span class="comment">		  *  Time is represented with mrpt::system::TTimeStamp. See mrpt::system for methods and utilities to manage these time references.</span>
+<a name="50"><font size=-1>50     </font></a><span class="comment">		  *</span>
+<a name="51"><font size=-1>51     </font></a><span class="comment">		  *  See TInterpolatorMethod for the list of interpolation methods. The default method at constructor is &quot;imLinearSlerp&quot;.</span>
+<a name="52"><font size=-1>52     </font></a><span class="comment">		  *</span>
+<a name="53"><font size=-1>53     </font></a><span class="comment">		  * \sa CPoseOrPoint</span>
+<a name="54"><font size=-1>54     </font></a><span class="comment">		 * \ingroup interpolation_grp poses_grp</span>
+<a name="55"><font size=-1>55     </font></a><span class="comment">		 */</span>
+<a name="56"><font size=-1>56     </font></a><span class="comment">		</span><span class="keyword">class <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#9884">CPose3DInterpolator</a> </span><span class="default">: </span><span class="keyword">public </span><span class="default">mrpt::utils::<a href="dictionary_M.html#520">CSerializable</a></span>
+<a name="57"><font size=-1>57     </font></a><span class="default">		{</span>
+<a name="58"><font size=-1>58     </font></a><span class="default">			</span><span class="comment">// This must be added to any CSerializable derived class:</span>
+<a name="59"><font size=-1>59     </font></a><span class="comment">			<a href="dictionary_D.html#561">DEFINE_SERIALIZABLE</a></span><span class="default">( <a href="dictionary_M.html#9884">CPose3DInterpolator</a> )</span>
+<a name="60"><font size=-1>60     </font></a><span class="default"></span>
+<a name="61"><font size=-1>61     </font></a><span class="default">		 </span><span class="keyword">private</span><span class="default">:</span>
+<a name="62"><font size=-1>62     </font></a><span class="default">			 </span><span class="keyword">typedef </span><span class="default">mrpt::<a href="dictionary_M.html#4738">aligned_containers</a>&lt; mrpt::system::TTimeStamp, CPose3D &gt;::<a href="dictionary_M.html#9920">map_t</a> <a href="dictionary_M.html#9919">TPath</a>;</span>
+<a name="63"><font size=-1>63     </font></a><span class="default">			 <a href="dictionary_M.html#9919">TPath</a>	<a href="dictionary_M.html#9921">m_path</a>;		</span><span class="comment">//!&lt; The sequence of poses</span>
+<a name="64"><font size=-1>64     </font></a><span class="comment"></span>
+<a name="65"><font size=-1>65     </font></a><span class="comment">		 </span><span class="keyword">public</span><span class="default">:</span>
+<a name="66"><font size=-1>66     </font></a><span class="default">			 </span><span class="keyword">typedef <a href="dictionary_M.html#9919">TPath</a></span><span class="default">::<a href="dictionary_M.html#9922">iterator</a>		<a href="dictionary_M.html#9922">iterator</a>;</span>
+<a name="67"><font size=-1>67     </font></a><span class="default">			 </span><span class="keyword">typedef <a href="dictionary_M.html#9919">TPath</a></span><span class="default">::<a href="dictionary_M.html#9923">const_iterator</a> <a href="dictionary_M.html#9923">const_iterator</a>;</span>
+<a name="68"><font size=-1>68     </font></a><span class="default">			 </span><span class="keyword">typedef <a href="dictionary_M.html#9919">TPath</a></span><span class="default">::<a href="dictionary_M.html#9924">reverse_iterator</a>		<a href="dictionary_M.html#9924">reverse_iterator</a>;</span>
+<a name="69"><font size=-1>69     </font></a><span class="default">			 </span><span class="keyword">typedef <a href="dictionary_M.html#9919">TPath</a></span><span class="default">::<a href="dictionary_M.html#9925">const_reverse_iterator</a> <a href="dictionary_M.html#9925">const_reverse_iterator</a>;</span>
+<a name="70"><font size=-1>70     </font></a><span class="default"></span>
+<a name="71"><font size=-1>71     </font></a><span class="default">			 </span><span class="comment">/** Type to select the interpolation method in CPose3DInterpolator::setInterpolationMethod</span>
+<a name="72"><font size=-1>72     </font></a><span class="comment">			   *  - imSpline: Spline interpolation using 4 points (2 before + 2 after the query point).</span>
+<a name="73"><font size=-1>73     </font></a><span class="comment">			   *  - imLinear2Neig: Linear interpolation between the previous and next neightbour.</span>
+<a name="74"><font size=-1>74     </font></a><span class="comment">			   *  - imLinear4Neig: Linear interpolation using the linear fit of the 4 closer points (2 before + 2 after the query point).</span>
+<a name="75"><font size=-1>75     </font></a><span class="comment">			   *  - imSSLLLL : Use Spline for X and Y, and Linear Least squares for Z, yaw, pitch and roll.</span>
+<a name="76"><font size=-1>76     </font></a><span class="comment">			   *  - imSSLSLL : Use Spline for X, Y and yaw, and Linear Lesat squares for Z, pitch and roll.</span>
+<a name="77"><font size=-1>77     </font></a><span class="comment">			   *  - imLinearSlerp: Linear for X,Y,Z, Slerp for 3D angles.</span>
+<a name="78"><font size=-1>78     </font></a><span class="comment">			   *  - imSplineSlerp: Spline for X,Y,Z, Slerp for 3D angles.</span>
+<a name="79"><font size=-1>79     </font></a><span class="comment">			   */</span>
+<a name="80"><font size=-1>80     </font></a><span class="comment">			 </span><span class="keyword">enum <a href="dictionary_M.html#9926">TInterpolatorMethod</a></span>
+<a name="81"><font size=-1>81     </font></a><span class="keyword">			 </span><span class="default">{</span>
+<a name="82"><font size=-1>82     </font></a><span class="default">			 	imSpline = </span><span class="number">0</span><span class="default">,</span>
+<a name="83"><font size=-1>83     </font></a><span class="default">			 	imLinear2Neig,</span>
+<a name="84"><font size=-1>84     </font></a><span class="default">			 	imLinear4Neig,</span>
+<a name="85"><font size=-1>85     </font></a><span class="default">			 	imSSLLLL,</span>
+<a name="86"><font size=-1>86     </font></a><span class="default">				imSSLSLL,</span>
+<a name="87"><font size=-1>87     </font></a><span class="default">				imLinearSlerp,</span>
+<a name="88"><font size=-1>88     </font></a><span class="default">				imSplineSlerp</span>
+<a name="89"><font size=-1>89     </font></a><span class="default">			 };</span>
+<a name="90"><font size=-1>90     </font></a><span class="default"></span>
+<a name="91"><font size=-1>91     </font></a><span class="default">			 </span><span class="keyword">inline <a href="dictionary_M.html#9922">iterator</a> <a href="dictionary_M.html#9934">begin</a></span><span class="default">() { </span><span class="keyword">return <a href="dictionary_M.html#9921">m_path</a></span><span class="default">.<a href="dictionary_B.html#448">begin</a>(); }</span>
+<a name="92"><font size=-1>92     </font></a><span class="default">			 </span><span class="keyword">inline <a href="dictionary_M.html#9923">const_iterator</a> <a href="dictionary_M.html#9935">begin</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#9921">m_path</a></span><span class="default">.<a href="dictionary_B.html#448">begin</a>(); }</span>
+<a name="93"><font size=-1>93     </font></a><span class="default"></span>
+<a name="94"><font size=-1>94     </font></a><span class="default">			 </span><span class="keyword">inline <a href="dictionary_M.html#9922">iterator</a> <a href="dictionary_M.html#9936">end</a></span><span class="default">() { </span><span class="keyword">return <a href="dictionary_M.html#9921">m_path</a></span><span class="default">.<a href="dictionary_E.html#449">end</a>(); }</span>
+<a name="95"><font size=-1>95     </font></a><span class="default">			 </span><span class="keyword">inline <a href="dictionary_M.html#9923">const_iterator</a> <a href="dictionary_M.html#9937">end</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#9921">m_path</a></span><span class="default">.<a href="dictionary_E.html#449">end</a>(); }</span>
+<a name="96"><font size=-1>96     </font></a><span class="default"></span>
+<a name="97"><font size=-1>97     </font></a><span class="default">			 </span><span class="keyword">inline <a href="dictionary_M.html#9924">reverse_iterator</a> <a href="dictionary_M.html#9938">rbegin</a></span><span class="default">() { </span><span class="keyword">return <a href="dictionary_M.html#9921">m_path</a></span><span class="default">.<a href="dictionary_R.html#7740">rbegin</a>(); }</span>
+<a name="98"><font size=-1>98     </font></a><span class="default">			 </span><span class="keyword">inline <a href="dictionary_M.html#9925">const_reverse_iterator</a> <a href="dictionary_M.html#9939">rbegin</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#9921">m_path</a></span><span class="default">.<a href="dictionary_R.html#7740">rbegin</a>(); }</span>
+<a name="99"><font size=-1>99     </font></a><span class="default"></span>
+<a name="100"><font size=-1>100     </font></a><span class="default">			 </span><span class="keyword">inline <a href="dictionary_M.html#9924">reverse_iterator</a> <a href="dictionary_M.html#9940">rend</a></span><span class="default">() { </span><span class="keyword">return <a href="dictionary_M.html#9921">m_path</a></span><span class="default">.<a href="dictionary_R.html#7741">rend</a>(); }</span>
+<a name="101"><font size=-1>101     </font></a><span class="default">			 </span><span class="keyword">inline <a href="dictionary_M.html#9925">const_reverse_iterator</a> <a href="dictionary_M.html#9941">rend</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#9921">m_path</a></span><span class="default">.<a href="dictionary_R.html#7741">rend</a>(); }</span>
+<a name="102"><font size=-1>102     </font></a><span class="default"></span>
+<a name="103"><font size=-1>103     </font></a><span class="default">			 <a href="dictionary_M.html#9922">iterator</a> <a href="dictionary_M.html#9942">lower_bound</a>( </span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> &amp; <a href="dictionary_T.html#9943">t</a>) { </span><span class="keyword">return <a href="dictionary_M.html#9921">m_path</a></span><span class="default">.<a href="dictionary_L.html#8701">lower_bound</a>(<a href="dictionary_T.html#9943">t</a>); }</span>
+<a name="104"><font size=-1>104     </font></a><span class="default">			 <a href="dictionary_M.html#9923">const_iterator</a> <a href="dictionary_M.html#9944">lower_bound</a>( </span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> &amp; <a href="dictionary_T.html#9945">t</a>) </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#9921">m_path</a></span><span class="default">.<a href="dictionary_L.html#8701">lower_bound</a>(<a href="dictionary_T.html#9945">t</a>); }</span>
+<a name="105"><font size=-1>105     </font></a><span class="default"></span>
+<a name="106"><font size=-1>106     </font></a><span class="default">			 <a href="dictionary_M.html#9922">iterator</a> <a href="dictionary_M.html#9946">upper_bound</a>( </span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> &amp; <a href="dictionary_T.html#9947">t</a>) { </span><span class="keyword">return <a href="dictionary_M.html#9921">m_path</a></span><span class="default">.<a href="dictionary_U.html#9971">upper_bound</a>(<a href="dictionary_T.html#9947">t</a>); }</span>
+<a name="107"><font size=-1>107     </font></a><span class="default">			 <a href="dictionary_M.html#9923">const_iterator</a> <a href="dictionary_M.html#9948">upper_bound</a>( </span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> &amp; <a href="dictionary_T.html#9949">t</a>) </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#9921">m_path</a></span><span class="default">.<a href="dictionary_U.html#9971">upper_bound</a>(<a href="dictionary_T.html#9949">t</a>); }</span>
+<a name="108"><font size=-1>108     </font></a><span class="default"></span>
+<a name="109"><font size=-1>109     </font></a><span class="default">			 <a href="dictionary_M.html#9922">iterator</a> <a href="dictionary_M.html#9950">erase</a>(<a href="dictionary_M.html#9922">iterator</a> <a href="dictionary_E.html#9951">element_to_erase</a>) { <a href="dictionary_M.html#9921">m_path</a>.<a href="dictionary_E.html#4782">erase</a>(<a href="dictionary_E.html#9951">element_to_erase</a>++); </span><span class="keyword">return <a href="dictionary_E.html#9951">element_to_erase</a></span><span class="default">; }</span>
+<a name="110"><font size=-1>110     </font></a><span class="default"></span>
+<a name="111"><font size=-1>111     </font></a><span class="default">			 <a href="dictionary_S.html#56">size_t</a> <a href="dictionary_M.html#9952">size</a>() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#9921">m_path</a></span><span class="default">.<a href="dictionary_S.html#442">size</a>(); }</span>
+<a name="112"><font size=-1>112     </font></a><span class="default">			 </span><span class="keyword">bool <a href="dictionary_M.html#9953">empty</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#9921">m_path</a></span><span class="default">.<a href="dictionary_E.html#160">empty</a>(); }</span>
+<a name="113"><font size=-1>113     </font></a><span class="default"></span>
+<a name="114"><font size=-1>114     </font></a><span class="default">			 </span><span class="comment">/** Creates an empty interpolator (with no points).</span>
+<a name="115"><font size=-1>115     </font></a><span class="comment">			  */</span>
+<a name="116"><font size=-1>116     </font></a><span class="comment">			 <a href="dictionary_M.html#9954">CPose3DInterpolator</a></span><span class="default">();</span>
+<a name="117"><font size=-1>117     </font></a><span class="default"></span>
+<a name="118"><font size=-1>118     </font></a><span class="default">			 </span><span class="comment">/** Inserts a new pose in the sequence.</span>
+<a name="119"><font size=-1>119     </font></a><span class="comment">			   *  It overwrites any previously existing pose at exactly the same time.</span>
+<a name="120"><font size=-1>120     </font></a><span class="comment">			   */</span>
+<a name="121"><font size=-1>121     </font></a><span class="comment">			 </span><span class="keyword">void <a href="dictionary_M.html#9955">insert</a></span><span class="default">( mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> t, </span><span class="keyword">const <a href="dictionary_M.html#182">CPose3D</a> </span><span class="default">&amp;p);</span>
+<a name="122"><font size=-1>122     </font></a><span class="default"></span>
+<a name="123"><font size=-1>123     </font></a><span class="default">			 </span><span class="comment">/** Returns the pose at a given time, or interpolates using splines if there is not an exact match.</span>
+<a name="124"><font size=-1>124     </font></a><span class="comment">			   * \param t The time of the point to interpolate.</span>
+<a name="125"><font size=-1>125     </font></a><span class="comment">			   * \param out_interp The output interpolated pose.</span>
+<a name="126"><font size=-1>126     </font></a><span class="comment">			   * \param out_valid_interp Whether there was information enough to compute the interpolation.</span>
+<a name="127"><font size=-1>127     </font></a><span class="comment">			   * \return A reference to out_interp</span>
+<a name="128"><font size=-1>128     </font></a><span class="comment">			   */</span>
+<a name="129"><font size=-1>129     </font></a><span class="comment">			 <a href="dictionary_M.html#182">CPose3D</a> </span><span class="default">&amp;<a href="dictionary_M.html#9956">interpolate</a>( mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> t, <a href="dictionary_M.html#182">CPose3D</a> &amp;out_interp, </span><span class="keyword">bool </span><span class="default">&amp;out_valid_interp ) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="130"><font size=-1>130     </font></a><span class="default"></span>
+<a name="131"><font size=-1>131     </font></a><span class="default">			 </span><span class="comment">/** Clears the current sequence of poses */</span>
+<a name="132"><font size=-1>132     </font></a><span class="comment">			 </span><span class="keyword">void <a href="dictionary_M.html#9957">clear</a></span><span class="default">();</span>
+<a name="133"><font size=-1>133     </font></a><span class="default"></span>
+<a name="134"><font size=-1>134     </font></a><span class="default">			 </span><span class="comment">/** Set value of the maximum time to consider interpolation.</span>
+<a name="135"><font size=-1>135     </font></a><span class="comment">			   *  If set to a negative value, the check is disabled (default behavior).</span>
+<a name="136"><font size=-1>136     </font></a><span class="comment">			   */</span>
+<a name="137"><font size=-1>137     </font></a><span class="comment">			 </span><span class="keyword">void <a href="dictionary_M.html#9958">setMaxTimeInterpolation</a></span><span class="default">( </span><span class="keyword">double </span><span class="default">time );</span>
+<a name="138"><font size=-1>138     </font></a><span class="default"></span>
+<a name="139"><font size=-1>139     </font></a><span class="default">			 </span><span class="comment">/** Set value of the maximum time to consider interpolation */</span>
+<a name="140"><font size=-1>140     </font></a><span class="comment">			 </span><span class="keyword">double <a href="dictionary_M.html#9959">getMaxTimeInterpolation</a></span><span class="default">( );</span>
+<a name="141"><font size=-1>141     </font></a><span class="default"></span>
+<a name="142"><font size=-1>142     </font></a><span class="default">			 </span><span class="comment">/** Get the previous CPose3D in the map with a minimum defined distance</span>
+<a name="143"><font size=-1>143     </font></a><span class="comment">			   * \return true if pose was found, false otherwise.</span>
+<a name="144"><font size=-1>144     </font></a><span class="comment">			   */</span>
+<a name="145"><font size=-1>145     </font></a><span class="comment">			 </span><span class="keyword">bool <a href="dictionary_M.html#9960">getPreviousPoseWithMinDistance</a></span><span class="default">( </span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> &amp;t, </span><span class="keyword">double </span><span class="default">distance, <a href="dictionary_M.html#182">CPose3D</a> &amp;out_pose );</span>
+<a name="146"><font size=-1>146     </font></a><span class="default"></span>
+<a name="147"><font size=-1>147     </font></a><span class="default">			 </span><span class="comment">/** Saves the points in the interpolator to a text file, with this format:</span>
+<a name="148"><font size=-1>148     </font></a><span class="comment">			   *  Each row contains these elements separated by spaces:</span>
+<a name="149"><font size=-1>149     </font></a><span class="comment">			   *	- Timestamp: As a &quot;double time_t&quot; (see mrpt::system::timestampTotime_t).</span>
+<a name="150"><font size=-1>150     </font></a><span class="comment">			   *	- x y z: The 3D position in meters.</span>
+<a name="151"><font size=-1>151     </font></a><span class="comment">			   *	- yaw pitch roll: The angles, in radians</span>
+<a name="152"><font size=-1>152     </font></a><span class="comment">			   * \sa loadFromTextFile</span>
+<a name="153"><font size=-1>153     </font></a><span class="comment">			   * \return true on success, false on any error.</span>
+<a name="154"><font size=-1>154     </font></a><span class="comment">			   */</span>
+<a name="155"><font size=-1>155     </font></a><span class="comment">			 </span><span class="keyword">bool <a href="dictionary_M.html#9961">saveToTextFile</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a> &amp;s) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="156"><font size=-1>156     </font></a><span class="default"></span>
+<a name="157"><font size=-1>157     </font></a><span class="default">			 </span><span class="comment">/** Saves the points in the interpolator to a text file, with the same format that saveToTextFile, but interpolating the path with the given period in seconds.</span>
+<a name="158"><font size=-1>158     </font></a><span class="comment">			   * \sa loadFromTextFile</span>
+<a name="159"><font size=-1>159     </font></a><span class="comment">			   * \return true on success, false on any error.</span>
+<a name="160"><font size=-1>160     </font></a><span class="comment">			   */</span>
+<a name="161"><font size=-1>161     </font></a><span class="comment">			 </span><span class="keyword">bool <a href="dictionary_M.html#9962">saveInterpolatedToTextFile</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a> &amp;s, </span><span class="keyword">double </span><span class="default">period) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="162"><font size=-1>162     </font></a><span class="default"></span>
+<a name="163"><font size=-1>163     </font></a><span class="default">			 </span><span class="comment">/** Loads from a text file, in the format described by saveToTextFile.</span>
+<a name="164"><font size=-1>164     </font></a><span class="comment">			   * \return true on success, false on any error.</span>
+<a name="165"><font size=-1>165     </font></a><span class="comment">			   * \exception std::exception On invalid file format</span>
+<a name="166"><font size=-1>166     </font></a><span class="comment">			   */</span>
+<a name="167"><font size=-1>167     </font></a><span class="comment">			 </span><span class="keyword">bool <a href="dictionary_M.html#9963">loadFromTextFile</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a> &amp;s);</span>
+<a name="168"><font size=-1>168     </font></a><span class="default"></span>
+<a name="169"><font size=-1>169     </font></a><span class="default">			 </span><span class="comment">/**  Computes the bounding box in X,Y,Z of the whole vehicle path.</span>
+<a name="170"><font size=-1>170     </font></a><span class="comment">			   * \exception std::exception On empty path</span>
+<a name="171"><font size=-1>171     </font></a><span class="comment">			   */</span>
+<a name="172"><font size=-1>172     </font></a><span class="comment">			 </span><span class="keyword">void <a href="dictionary_M.html#9964">getBoundingBox</a></span><span class="default">(<a href="dictionary_M.html#596">CPoint3D</a> &amp;minCorner, <a href="dictionary_M.html#596">CPoint3D</a> &amp;maxCorner) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="173"><font size=-1>173     </font></a><span class="default"></span>
+<a name="174"><font size=-1>174     </font></a><span class="default">			 </span><span class="comment">/**  Computes the bounding box in X,Y,Z of the whole vehicle path.</span>
+<a name="175"><font size=-1>175     </font></a><span class="comment">			   * \exception std::exception On empty path</span>
+<a name="176"><font size=-1>176     </font></a><span class="comment">			   */</span>
+<a name="177"><font size=-1>177     </font></a><span class="comment">			 </span><span class="keyword">void <a href="dictionary_M.html#9965">getBoundingBox</a></span><span class="default">(mrpt::math::<a href="dictionary_M.html#603">TPoint3D</a> &amp;minCorner, mrpt::math::<a href="dictionary_M.html#603">TPoint3D</a> &amp;maxCorner) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="178"><font size=-1>178     </font></a><span class="default"></span>
+<a name="179"><font size=-1>179     </font></a><span class="default">			 </span><span class="comment">/** Change the method used to interpolate the robot path.</span>
+<a name="180"><font size=-1>180     </font></a><span class="comment">			   *  The default method at construction is &quot;imSpline&quot;.</span>
+<a name="181"><font size=-1>181     </font></a><span class="comment">			   * \sa getInterpolationMethod</span>
+<a name="182"><font size=-1>182     </font></a><span class="comment">			   */</span>
+<a name="183"><font size=-1>183     </font></a><span class="comment">			 </span><span class="keyword">void <a href="dictionary_M.html#9966">setInterpolationMethod</a></span><span class="default">( <a href="dictionary_M.html#9926">TInterpolatorMethod</a> method);</span>
+<a name="184"><font size=-1>184     </font></a><span class="default"></span>
+<a name="185"><font size=-1>185     </font></a><span class="default">			 </span><span class="comment">/** Returns the currently set interpolation method.</span>
+<a name="186"><font size=-1>186     </font></a><span class="comment">			   * \sa setInterpolationMethod</span>
+<a name="187"><font size=-1>187     </font></a><span class="comment">			   */</span>
+<a name="188"><font size=-1>188     </font></a><span class="comment">			 <a href="dictionary_M.html#9926">TInterpolatorMethod</a> <a href="dictionary_M.html#9967">getInterpolationMethod</a></span><span class="default">() </span><span class="keyword">const</span><span class="default">;</span>
+<a name="189"><font size=-1>189     </font></a><span class="default"></span>
+<a name="190"><font size=-1>190     </font></a><span class="default">			 </span><span class="comment">/** Filters by averaging one of the components of the CPose3D data within the interpolator. The width of the filter is set by the number of samples.</span>
+<a name="191"><font size=-1>191     </font></a><span class="comment">			   * \param component	[IN]	The index of the component to filter: 0 (x), 1 (y), 2 (z), 3 (yaw), 4 (pitch) or 5 (roll).</span>
+<a name="192"><font size=-1>192     </font></a><span class="comment">			   * \param samples		[IN]	The width of the average filter.</span>
+<a name="193"><font size=-1>193     </font></a><span class="comment">			   */</span>
+<a name="194"><font size=-1>194     </font></a><span class="comment">			 </span><span class="keyword">void <a href="dictionary_M.html#9968">filter</a></span><span class="default">( </span><span class="keyword">unsigned int </span><span class="default">component, </span><span class="keyword">unsigned int </span><span class="default">samples );</span>
+<a name="195"><font size=-1>195     </font></a><span class="default"></span>
+<a name="196"><font size=-1>196     </font></a><span class="default"></span>
+<a name="197"><font size=-1>197     </font></a><span class="default">		</span><span class="keyword">private</span><span class="default">:</span>
+<a name="198"><font size=-1>198     </font></a><span class="default">			 </span><span class="keyword">double <a href="dictionary_M.html#9969">maxTimeInterpolation</a></span><span class="default">; </span><span class="comment">//!&lt; Maximum time considered to interpolate. If the difference between the desired timestamp where to interpolate and the next timestamp stored in the map is bigger than this value, the interpolation will not be done.</span>
+<a name="199"><font size=-1>199     </font></a><span class="comment"></span>
+<a name="200"><font size=-1>200     </font></a><span class="comment">			 <a href="dictionary_M.html#9926">TInterpolatorMethod</a> 	<a href="dictionary_M.html#9970">m_method</a></span><span class="default">;</span>
+<a name="201"><font size=-1>201     </font></a><span class="default"></span>
+<a name="202"><font size=-1>202     </font></a><span class="default">		}; </span><span class="comment">// End of class def.</span>
+<a name="203"><font size=-1>203     </font></a><span class="comment">		<a href="dictionary_D.html#897">DEFINE_SERIALIZABLE_POST_CUSTOM_BASE</a></span><span class="default">( <a href="dictionary_M.html#9884">CPose3DInterpolator</a>, mrpt::utils::<a href="dictionary_M.html#520">CSerializable</a> )</span>
+<a name="204"><font size=-1>204     </font></a><span class="default"></span>
+<a name="205"><font size=-1>205     </font></a><span class="default">	} </span><span class="comment">// End of namespace</span>
+<a name="206"><font size=-1>206     </font></a><span class="comment"></span>
+<a name="207"><font size=-1>207     </font></a><span class="comment">	// Specializations MUST occur at the same namespace:</span>
+<a name="208"><font size=-1>208     </font></a><span class="comment">	</span><span class="keyword">namespace </span><span class="default">utils</span>
+<a name="209"><font size=-1>209     </font></a><span class="default">	{</span>
+<a name="210"><font size=-1>210     </font></a><span class="default">		</span><span class="keyword">template </span><span class="default">&lt;&gt;</span>
+<a name="211"><font size=-1>211     </font></a><span class="default">		</span><span class="keyword">struct <a href="dictionary_M.html#9988">TEnumTypeFiller</a></span><span class="default">&lt;poses::CPose3DInterpolator::TInterpolatorMethod&gt;</span>
+<a name="212"><font size=-1>212     </font></a><span class="default">		{</span>
+<a name="213"><font size=-1>213     </font></a><span class="default">			</span><span class="keyword">typedef </span><span class="default">poses::<a href="dictionary_M.html#9884">CPose3DInterpolator</a>::<a href="dictionary_M.html#9926">TInterpolatorMethod</a> <a href="dictionary_M.html#9989">enum_t</a>;</span>
+<a name="214"><font size=-1>214     </font></a><span class="default">			</span><span class="keyword">static void <a href="dictionary_M.html#3509">fill</a></span><span class="default">(<a href="dictionary_M.html#2512">bimap</a>&lt;enum_t,std::string&gt;  &amp;<a href="dictionary_M.html#9990">m_map</a>)</span>
+<a name="215"><font size=-1>215     </font></a><span class="default">			{</span>
+<a name="216"><font size=-1>216     </font></a><span class="default">				<a href="dictionary_M.html#9990">m_map</a>.<a href="dictionary_M.html#2536">insert</a>(poses::<a href="dictionary_M.html#9884">CPose3DInterpolator</a>::imSpline,          </span><span class="string">&quot;imSpline&quot;</span><span class="default">);</span>
+<a name="217"><font size=-1>217     </font></a><span class="default">				<a href="dictionary_M.html#9990">m_map</a>.<a href="dictionary_M.html#2536">insert</a>(poses::<a href="dictionary_M.html#9884">CPose3DInterpolator</a>::imLinear2Neig,     </span><span class="string">&quot;imLinear2Neig&quot;</span><span class="default">);</span>
+<a name="218"><font size=-1>218     </font></a><span class="default">				<a href="dictionary_M.html#9990">m_map</a>.<a href="dictionary_M.html#2536">insert</a>(poses::<a href="dictionary_M.html#9884">CPose3DInterpolator</a>::imLinear4Neig,     </span><span class="string">&quot;imLinear4Neig&quot;</span><span class="default">);</span>
+<a name="219"><font size=-1>219     </font></a><span class="default">				<a href="dictionary_M.html#9990">m_map</a>.<a href="dictionary_M.html#2536">insert</a>(poses::<a href="dictionary_M.html#9884">CPose3DInterpolator</a>::imSSLLLL,          </span><span class="string">&quot;imSSLLLL&quot;</span><span class="default">);</span>
+<a name="220"><font size=-1>220     </font></a><span class="default">				<a href="dictionary_M.html#9990">m_map</a>.<a href="dictionary_M.html#2536">insert</a>(poses::<a href="dictionary_M.html#9884">CPose3DInterpolator</a>::imLinearSlerp,     </span><span class="string">&quot;imLinearSlerp&quot;</span><span class="default">);</span>
+<a name="221"><font size=-1>221     </font></a><span class="default">				<a href="dictionary_M.html#9990">m_map</a>.<a href="dictionary_M.html#2536">insert</a>(poses::<a href="dictionary_M.html#9884">CPose3DInterpolator</a>::imSplineSlerp,     </span><span class="string">&quot;imSplineSlerp&quot;</span><span class="default">);</span>
+<a name="222"><font size=-1>222     </font></a><span class="default">			}</span>
+<a name="223"><font size=-1>223     </font></a><span class="default">		};</span>
+<a name="224"><font size=-1>224     </font></a><span class="default">	} </span><span class="comment">// End of namespace</span>
+<a name="225"><font size=-1>225     </font></a><span class="comment"></span><span class="default">} </span><span class="comment">// End of namespace</span>
+<a name="226"><font size=-1>226     </font></a><span class="comment"></span>
+<a name="227"><font size=-1>227     </font></a><span class="comment"></span><span class="preproc">#endif</span>
+<a name="228"><font size=-1>228     </font></a><span class="preproc"></span>
+</pre></body></html>

@@ -1,0 +1,192 @@
+<html><head><title>CPointPDFSOG.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/poses/CPointPDFSOG.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/poses/CPointPDFSOG.h";
+top.document.title  = "CPointPDFSOG.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span><span class="preproc">#ifndef <a href="dictionary_C.html#7290">CPointPDFSOG_H</a></span>
+<a name="10"><font size=-1>10     </font></a><span class="preproc">#define <a href="dictionary_C.html#7290">CPointPDFSOG_H</a></span>
+<a name="11"><font size=-1>11     </font></a><span class="preproc"></span>
+<a name="12"><font size=-1>12     </font></a><span class="preproc">#include </span><span class="string">&lt;mrpt/poses/CPointPDF.h&gt;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/poses/CPointPDFGaussian.h&gt;</span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/math/CMatrix.h&gt;</span>
+<a name="15"><font size=-1>15     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/math/CMatrixD.h&gt;</span>
+<a name="16"><font size=-1>16     </font></a><span class="string"></span>
+<a name="17"><font size=-1>17     </font></a><span class="string"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="18"><font size=-1>18     </font></a><span class="default">{</span>
+<a name="19"><font size=-1>19     </font></a><span class="default">	</span><span class="keyword">namespace </span><span class="default">poses</span>
+<a name="20"><font size=-1>20     </font></a><span class="default">	{</span>
+<a name="21"><font size=-1>21     </font></a><span class="default">		<a href="dictionary_D.html#859">DEFINE_SERIALIZABLE_PRE_CUSTOM_BASE</a>( <a href="dictionary_M.html#7292">CPointPDFSOG</a>, <a href="dictionary_M.html#2062">CPointPDF</a> )</span>
+<a name="22"><font size=-1>22     </font></a><span class="default"></span>
+<a name="23"><font size=-1>23     </font></a><span class="default">		</span><span class="comment">/** Declares a class that represents a Probability Density function (PDF) of a 3D point \f$ p(\mathbf{x}) = [x ~ y ~ z ]^t \f$.</span>
+<a name="24"><font size=-1>24     </font></a><span class="comment">		 *   This class implements that PDF as the following multi-modal Gaussian distribution:</span>
+<a name="25"><font size=-1>25     </font></a><span class="comment">		 *</span>
+<a name="26"><font size=-1>26     </font></a><span class="comment">		 * \f$ p(\mathbf{x}) = \sum\limits_{i=1}^N \omega^i \mathcal{N}( \mathbf{x} ; \bar{\mathbf{x}}^i, \mathbf{\Sigma}^i )  \f$</span>
+<a name="27"><font size=-1>27     </font></a><span class="comment">		 *</span>
+<a name="28"><font size=-1>28     </font></a><span class="comment">		 *  Where the number of modes N is the size of CPointPDFSOG::m_modes</span>
+<a name="29"><font size=-1>29     </font></a><span class="comment">		 *</span>
+<a name="30"><font size=-1>30     </font></a><span class="comment">		 *  See mrpt::poses::CPointPDF for more details.</span>
+<a name="31"><font size=-1>31     </font></a><span class="comment">		 *</span>
+<a name="32"><font size=-1>32     </font></a><span class="comment">		 * \sa CPointPDF, CPosePDF,</span>
+<a name="33"><font size=-1>33     </font></a><span class="comment">		 * \ingroup poses_pdf_grp</span>
+<a name="34"><font size=-1>34     </font></a><span class="comment">		 */</span>
+<a name="35"><font size=-1>35     </font></a><span class="comment">		</span><span class="keyword">class <a href="dictionary_B.html#113">BASE_IMPEXP</a>  <a href="dictionary_M.html#7292">CPointPDFSOG</a> </span><span class="default">: </span><span class="keyword">public <a href="dictionary_M.html#2062">CPointPDF</a></span>
+<a name="36"><font size=-1>36     </font></a><span class="keyword">		</span><span class="default">{</span>
+<a name="37"><font size=-1>37     </font></a><span class="default">			</span><span class="comment">// This must be added to any CSerializable derived class:</span>
+<a name="38"><font size=-1>38     </font></a><span class="comment">			<a href="dictionary_D.html#561">DEFINE_SERIALIZABLE</a></span><span class="default">( <a href="dictionary_M.html#7292">CPointPDFSOG</a> )</span>
+<a name="39"><font size=-1>39     </font></a><span class="default"></span>
+<a name="40"><font size=-1>40     </font></a><span class="default">		</span><span class="keyword">public</span><span class="default">:</span>
+<a name="41"><font size=-1>41     </font></a><span class="default">			</span><span class="comment">/** The struct for each mode:</span>
+<a name="42"><font size=-1>42     </font></a><span class="comment">			 */</span>
+<a name="43"><font size=-1>43     </font></a><span class="comment">			</span><span class="keyword">struct <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#7326">TGaussianMode</a></span>
+<a name="44"><font size=-1>44     </font></a><span class="keyword">			</span><span class="default">{</span>
+<a name="45"><font size=-1>45     </font></a><span class="default">				<a href="dictionary_M.html#7327">TGaussianMode</a>() : <a href="dictionary_M.html#7328">val</a>(), <a href="dictionary_M.html#7330">log_w</a>(</span><span class="number">0</span><span class="default">)</span>
+<a name="46"><font size=-1>46     </font></a><span class="default">				{</span>
+<a name="47"><font size=-1>47     </font></a><span class="default">				}</span>
+<a name="48"><font size=-1>48     </font></a><span class="default"></span>
+<a name="49"><font size=-1>49     </font></a><span class="default">				<a href="dictionary_M.html#7329">CPointPDFGaussian</a>		<a href="dictionary_M.html#7328">val</a>;</span>
+<a name="50"><font size=-1>50     </font></a><span class="default"></span>
+<a name="51"><font size=-1>51     </font></a><span class="default">				</span><span class="comment">/** The log-weight</span>
+<a name="52"><font size=-1>52     </font></a><span class="comment">				  */</span>
+<a name="53"><font size=-1>53     </font></a><span class="comment">				</span><span class="keyword">double		<a href="dictionary_M.html#7330">log_w</a></span><span class="default">;</span>
+<a name="54"><font size=-1>54     </font></a><span class="default">			};</span>
+<a name="55"><font size=-1>55     </font></a><span class="default"></span>
+<a name="56"><font size=-1>56     </font></a><span class="default">			</span><span class="keyword">typedef </span><span class="default">std::<a href="dictionary_S.html#482">deque</a>&lt;TGaussianMode&gt; <a href="dictionary_M.html#7332">CListGaussianModes</a>;</span>
+<a name="57"><font size=-1>57     </font></a><span class="default">			</span><span class="keyword">typedef </span><span class="default">std::<a href="dictionary_M.html#7333">deque</a>&lt;TGaussianMode&gt;::const_iterator const_iterator;</span>
+<a name="58"><font size=-1>58     </font></a><span class="default">			</span><span class="keyword">typedef </span><span class="default">std::<a href="dictionary_M.html#7334">deque</a>&lt;TGaussianMode&gt;::iterator iterator;</span>
+<a name="59"><font size=-1>59     </font></a><span class="default"></span>
+<a name="60"><font size=-1>60     </font></a><span class="default">		</span><span class="keyword">protected</span><span class="default">:</span>
+<a name="61"><font size=-1>61     </font></a><span class="default">			</span><span class="comment">/** Assures the symmetry of the covariance matrix (eventually certain operations in the math-coprocessor lead to non-symmetric matrixes!)</span>
+<a name="62"><font size=-1>62     </font></a><span class="comment">			  */</span>
+<a name="63"><font size=-1>63     </font></a><span class="comment">			</span><span class="keyword">void  <a href="dictionary_M.html#7335">assureSymmetry</a></span><span class="default">();</span>
+<a name="64"><font size=-1>64     </font></a><span class="default"></span>
+<a name="65"><font size=-1>65     </font></a><span class="default">			</span><span class="comment">/** The list of SOG modes */</span>
+<a name="66"><font size=-1>66     </font></a><span class="comment">			<a href="dictionary_M.html#7332">CListGaussianModes</a>	<a href="dictionary_M.html#7336">m_modes</a></span><span class="default">;</span>
+<a name="67"><font size=-1>67     </font></a><span class="default"></span>
+<a name="68"><font size=-1>68     </font></a><span class="default">		 </span><span class="keyword">public</span><span class="default">:</span>
+<a name="69"><font size=-1>69     </font></a><span class="default">			</span><span class="comment">/** Default constructor</span>
+<a name="70"><font size=-1>70     </font></a><span class="comment">			  * \param nModes The initial size of CPointPDFSOG::m_modes</span>
+<a name="71"><font size=-1>71     </font></a><span class="comment">			  */</span>
+<a name="72"><font size=-1>72     </font></a><span class="comment">			<a href="dictionary_M.html#7337">CPointPDFSOG</a></span><span class="default">( <a href="dictionary_S.html#56">size_t</a> nModes = </span><span class="number">1 </span><span class="default">);</span>
+<a name="73"><font size=-1>73     </font></a><span class="default"></span>
+<a name="74"><font size=-1>74     </font></a><span class="default">			</span><span class="keyword">void <a href="dictionary_M.html#7338">clear</a></span><span class="default">(); </span><span class="comment">//!&lt; Clear all the gaussian modes</span>
+<a name="75"><font size=-1>75     </font></a><span class="comment"></span>
+<a name="76"><font size=-1>76     </font></a><span class="comment">			/** Access to individual beacons */</span>
+<a name="77"><font size=-1>77     </font></a><span class="comment">			</span><span class="keyword">const <a href="dictionary_M.html#7326">TGaussianMode</a></span><span class="default">&amp; </span><span class="keyword">operator </span><span class="default">[](<a href="dictionary_S.html#56">size_t</a> <a href="dictionary_I.html#7340">i</a>) </span><span class="keyword">const </span><span class="default">{</span>
+<a name="78"><font size=-1>78     </font></a><span class="default">				<a href="dictionary_A.html#440">ASSERT_</a>(<a href="dictionary_I.html#7340">i</a>&lt;<a href="dictionary_M.html#7336">m_modes</a>.<a href="dictionary_S.html#442">size</a>())</span>
+<a name="79"><font size=-1>79     </font></a><span class="default">				</span><span class="keyword">return  <a href="dictionary_M.html#7336">m_modes</a></span><span class="default">[<a href="dictionary_I.html#7340">i</a>];</span>
+<a name="80"><font size=-1>80     </font></a><span class="default">			}</span>
+<a name="81"><font size=-1>81     </font></a><span class="default">			</span><span class="comment">/** Access to individual beacons */</span>
+<a name="82"><font size=-1>82     </font></a><span class="comment">			<a href="dictionary_M.html#7326">TGaussianMode</a></span><span class="default">&amp; </span><span class="keyword">operator </span><span class="default">[](<a href="dictionary_S.html#56">size_t</a> <a href="dictionary_I.html#7342">i</a>) {</span>
+<a name="83"><font size=-1>83     </font></a><span class="default">				<a href="dictionary_A.html#440">ASSERT_</a>(<a href="dictionary_I.html#7342">i</a>&lt;<a href="dictionary_M.html#7336">m_modes</a>.<a href="dictionary_S.html#442">size</a>())</span>
+<a name="84"><font size=-1>84     </font></a><span class="default">				</span><span class="keyword">return  <a href="dictionary_M.html#7336">m_modes</a></span><span class="default">[<a href="dictionary_I.html#7342">i</a>];</span>
+<a name="85"><font size=-1>85     </font></a><span class="default">			}</span>
+<a name="86"><font size=-1>86     </font></a><span class="default"></span>
+<a name="87"><font size=-1>87     </font></a><span class="default">			</span><span class="comment">/** Access to individual beacons */</span>
+<a name="88"><font size=-1>88     </font></a><span class="comment">			</span><span class="keyword">const <a href="dictionary_M.html#7326">TGaussianMode</a></span><span class="default">&amp; <a href="dictionary_M.html#7343">get</a>(<a href="dictionary_S.html#56">size_t</a> <a href="dictionary_I.html#7344">i</a>) </span><span class="keyword">const </span><span class="default">{</span>
+<a name="89"><font size=-1>89     </font></a><span class="default">				<a href="dictionary_A.html#440">ASSERT_</a>(<a href="dictionary_I.html#7344">i</a>&lt;<a href="dictionary_M.html#7336">m_modes</a>.<a href="dictionary_S.html#442">size</a>())</span>
+<a name="90"><font size=-1>90     </font></a><span class="default">				</span><span class="keyword">return  <a href="dictionary_M.html#7336">m_modes</a></span><span class="default">[<a href="dictionary_I.html#7344">i</a>];</span>
+<a name="91"><font size=-1>91     </font></a><span class="default">			}</span>
+<a name="92"><font size=-1>92     </font></a><span class="default">			</span><span class="comment">/** Access to individual beacons */</span>
+<a name="93"><font size=-1>93     </font></a><span class="comment">			<a href="dictionary_M.html#7326">TGaussianMode</a></span><span class="default">&amp; <a href="dictionary_M.html#7345">get</a>(<a href="dictionary_S.html#56">size_t</a> <a href="dictionary_I.html#7346">i</a>) {</span>
+<a name="94"><font size=-1>94     </font></a><span class="default">				<a href="dictionary_A.html#440">ASSERT_</a>(<a href="dictionary_I.html#7346">i</a>&lt;<a href="dictionary_M.html#7336">m_modes</a>.<a href="dictionary_S.html#442">size</a>())</span>
+<a name="95"><font size=-1>95     </font></a><span class="default">				</span><span class="keyword">return  <a href="dictionary_M.html#7336">m_modes</a></span><span class="default">[<a href="dictionary_I.html#7346">i</a>];</span>
+<a name="96"><font size=-1>96     </font></a><span class="default">			}</span>
+<a name="97"><font size=-1>97     </font></a><span class="default"></span>
+<a name="98"><font size=-1>98     </font></a><span class="default">			</span><span class="comment">/** Inserts a copy of the given mode into the SOG */</span>
+<a name="99"><font size=-1>99     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#7347">push_back</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#7326">TGaussianMode</a></span><span class="default">&amp; <a href="dictionary_M.html#7348">m</a>) {</span>
+<a name="100"><font size=-1>100     </font></a><span class="default">				<a href="dictionary_M.html#7336">m_modes</a>.<a href="dictionary_P.html#1599">push_back</a>(<a href="dictionary_M.html#7348">m</a>);</span>
+<a name="101"><font size=-1>101     </font></a><span class="default">			}</span>
+<a name="102"><font size=-1>102     </font></a><span class="default"></span>
+<a name="103"><font size=-1>103     </font></a><span class="default">			<a href="dictionary_S.html#447">iterator</a> <a href="dictionary_M.html#7349">begin</a>() { </span><span class="keyword">return <a href="dictionary_M.html#7336">m_modes</a></span><span class="default">.<a href="dictionary_B.html#448">begin</a>(); }</span>
+<a name="104"><font size=-1>104     </font></a><span class="default">			<a href="dictionary_S.html#447">iterator</a> <a href="dictionary_M.html#7350">end</a>() { </span><span class="keyword">return <a href="dictionary_M.html#7336">m_modes</a></span><span class="default">.<a href="dictionary_E.html#449">end</a>(); }</span>
+<a name="105"><font size=-1>105     </font></a><span class="default">			<a href="dictionary_C.html#458">const_iterator</a> <a href="dictionary_M.html#7351">begin</a>() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#7336">m_modes</a></span><span class="default">.<a href="dictionary_B.html#448">begin</a>(); }</span>
+<a name="106"><font size=-1>106     </font></a><span class="default">			<a href="dictionary_C.html#458">const_iterator</a> <a href="dictionary_M.html#7353">end</a>()</span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#7336">m_modes</a></span><span class="default">.<a href="dictionary_E.html#449">end</a>(); }</span>
+<a name="107"><font size=-1>107     </font></a><span class="default"></span>
+<a name="108"><font size=-1>108     </font></a><span class="default">			<a href="dictionary_S.html#447">iterator</a> <a href="dictionary_M.html#7354">erase</a>(<a href="dictionary_S.html#447">iterator</a> <a href="dictionary_I.html#7355">i</a>) { </span><span class="keyword">return <a href="dictionary_M.html#7336">m_modes</a></span><span class="default">.<a href="dictionary_E.html#4782">erase</a>(<a href="dictionary_I.html#7355">i</a>); }</span>
+<a name="109"><font size=-1>109     </font></a><span class="default"></span>
+<a name="110"><font size=-1>110     </font></a><span class="default">			</span><span class="keyword">void <a href="dictionary_M.html#7356">resize</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> </span><span class="default">N); </span><span class="comment">//!&lt; Resize the number of SOG modes</span>
+<a name="111"><font size=-1>111     </font></a><span class="comment">			<a href="dictionary_S.html#56">size_t</a> <a href="dictionary_M.html#7357">size</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#7336">m_modes</a></span><span class="default">.<a href="dictionary_S.html#442">size</a>(); } </span><span class="comment">//!&lt; Return the number of Gaussian modes.</span>
+<a name="112"><font size=-1>112     </font></a><span class="comment">			</span><span class="keyword">bool <a href="dictionary_M.html#7358">empty</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#7336">m_modes</a></span><span class="default">.<a href="dictionary_E.html#160">empty</a>(); } </span><span class="comment">//!&lt; Return whether there is any Gaussian mode.</span>
+<a name="113"><font size=-1>113     </font></a><span class="comment"></span>
+<a name="114"><font size=-1>114     </font></a><span class="comment">			 /** Returns an estimate of the point, (the mean, or mathematical expectation of the PDF) \sa getCovariance   */</span>
+<a name="115"><font size=-1>115     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#7359">getMean</a></span><span class="default">(<a href="dictionary_M.html#596">CPoint3D</a> &amp;mean_point) </span><span class="keyword">const <a href="dictionary_M.html#422">MRPT_OVERRIDE</a></span><span class="default">;</span>
+<a name="116"><font size=-1>116     </font></a><span class="default"></span>
+<a name="117"><font size=-1>117     </font></a><span class="default">			</span><span class="comment">/** Returns an estimate of the point covariance matrix (3x3 cov matrix) and the mean, both at once. \sa getMean */</span>
+<a name="118"><font size=-1>118     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#7360">getCovarianceAndMean</a></span><span class="default">(mrpt::math::<a href="dictionary_M.html#176">CMatrixDouble33</a> &amp;cov,<a href="dictionary_M.html#596">CPoint3D</a> &amp;mean_point) </span><span class="keyword">const <a href="dictionary_M.html#422">MRPT_OVERRIDE</a></span><span class="default">;</span>
+<a name="119"><font size=-1>119     </font></a><span class="default"></span>
+<a name="120"><font size=-1>120     </font></a><span class="default">			</span><span class="comment">/** Normalize the weights in m_modes such as the maximum log-weight is 0 */</span>
+<a name="121"><font size=-1>121     </font></a><span class="comment">			</span><span class="keyword">void  <a href="dictionary_M.html#7361">normalizeWeights</a></span><span class="default">();</span>
+<a name="122"><font size=-1>122     </font></a><span class="default"></span>
+<a name="123"><font size=-1>123     </font></a><span class="default">			</span><span class="comment">/** Return the Gaussian mode with the highest likelihood (or an empty Gaussian if there are no modes in this SOG) */</span>
+<a name="124"><font size=-1>124     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#7362">getMostLikelyMode</a></span><span class="default">( <a href="dictionary_M.html#7329">CPointPDFGaussian</a>&amp; outVal ) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="125"><font size=-1>125     </font></a><span class="default"></span>
+<a name="126"><font size=-1>126     </font></a><span class="default">			</span><span class="comment">/** Computes the &quot;Effective sample size&quot; (typical measure for Particle Filters), applied to the weights of the individual Gaussian modes, as a measure of the equality of the modes (in the range [0,total # of modes]). */</span>
+<a name="127"><font size=-1>127     </font></a><span class="comment">			</span><span class="keyword">double <a href="dictionary_M.html#7363">ESS</a></span><span class="default">() </span><span class="keyword">const</span><span class="default">;</span>
+<a name="128"><font size=-1>128     </font></a><span class="default"></span>
+<a name="129"><font size=-1>129     </font></a><span class="default">			</span><span class="keyword">void  <a href="dictionary_M.html#7364">copyFrom</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#2062">CPointPDF</a> </span><span class="default">&amp;o) <a href="dictionary_M.html#422">MRPT_OVERRIDE</a>; </span><span class="comment">//!&lt; Copy operator, translating if necesary (for example, between particles and gaussian representations)</span>
+<a name="130"><font size=-1>130     </font></a><span class="comment"></span>
+<a name="131"><font size=-1>131     </font></a><span class="comment">			/** Save the density to a text file, with the following format:</span>
+<a name="132"><font size=-1>132     </font></a><span class="comment">			  *  There is one row per Gaussian &quot;mode&quot;, and each row contains 10 elements:</span>
+<a name="133"><font size=-1>133     </font></a><span class="comment">			  *   - w (The weight)</span>
+<a name="134"><font size=-1>134     </font></a><span class="comment">			  *   - x_mean (gaussian mean value)</span>
+<a name="135"><font size=-1>135     </font></a><span class="comment">			  *   - y_mean (gaussian mean value)</span>
+<a name="136"><font size=-1>136     </font></a><span class="comment">			  *   - x_mean (gaussian mean value)</span>
+<a name="137"><font size=-1>137     </font></a><span class="comment">			  *   - C11 (Covariance elements)</span>
+<a name="138"><font size=-1>138     </font></a><span class="comment">			  *   - C22 (Covariance elements)</span>
+<a name="139"><font size=-1>139     </font></a><span class="comment">			  *   - C33 (Covariance elements)</span>
+<a name="140"><font size=-1>140     </font></a><span class="comment">			  *   - C12 (Covariance elements)</span>
+<a name="141"><font size=-1>141     </font></a><span class="comment">			  *   - C13 (Covariance elements)</span>
+<a name="142"><font size=-1>142     </font></a><span class="comment">			  *   - C23 (Covariance elements)</span>
+<a name="143"><font size=-1>143     </font></a><span class="comment">			  *</span>
+<a name="144"><font size=-1>144     </font></a><span class="comment">			 */</span>
+<a name="145"><font size=-1>145     </font></a><span class="comment">			</span><span class="keyword">void  <a href="dictionary_M.html#7365">saveToTextFile</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a> &amp;file) </span><span class="keyword">const <a href="dictionary_M.html#422">MRPT_OVERRIDE</a></span><span class="default">;</span>
+<a name="146"><font size=-1>146     </font></a><span class="default"></span>
+<a name="147"><font size=-1>147     </font></a><span class="default">			</span><span class="comment">/** this = p (+) this. This can be used to convert a PDF from local coordinates to global, providing the point (newReferenceBase) from which</span>
+<a name="148"><font size=-1>148     </font></a><span class="comment">			  *   &quot;to project&quot; the current pdf. Result PDF substituted the currently stored one in the object. */</span>
+<a name="149"><font size=-1>149     </font></a><span class="comment">			</span><span class="keyword">void  <a href="dictionary_M.html#7366">changeCoordinatesReference</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#182">CPose3D</a> </span><span class="default">&amp;newReferenceBase ) <a href="dictionary_M.html#422">MRPT_OVERRIDE</a>;</span>
+<a name="150"><font size=-1>150     </font></a><span class="default"></span>
+<a name="151"><font size=-1>151     </font></a><span class="default">			</span><span class="comment">/** Draw a sample from the pdf. */</span>
+<a name="152"><font size=-1>152     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#7367">drawSingleSample</a></span><span class="default">(<a href="dictionary_M.html#596">CPoint3D</a>  &amp;outSample) </span><span class="keyword">const <a href="dictionary_M.html#422">MRPT_OVERRIDE</a></span><span class="default">;</span>
+<a name="153"><font size=-1>153     </font></a><span class="default"></span>
+<a name="154"><font size=-1>154     </font></a><span class="default">			</span><span class="comment">/** Bayesian fusion of two point distributions (product of two distributions-&gt;new distribution), then save the result in this object (WARNING: See implementing classes to see classes that can and cannot be mixtured!)</span>
+<a name="155"><font size=-1>155     </font></a><span class="comment">			  * \param p1 The first distribution to fuse</span>
+<a name="156"><font size=-1>156     </font></a><span class="comment">			  * \param p2 The second distribution to fuse</span>
+<a name="157"><font size=-1>157     </font></a><span class="comment">			  * \param minMahalanobisDistToDrop If set to different of 0, the result of very separate Gaussian modes (that will result in negligible components) in SOGs will be dropped to reduce the number of modes in the output.</span>
+<a name="158"><font size=-1>158     </font></a><span class="comment">			  */</span>
+<a name="159"><font size=-1>159     </font></a><span class="comment">			</span><span class="keyword">void  <a href="dictionary_M.html#7368">bayesianFusion</a></span><span class="default">( </span><span class="keyword">const <a href="dictionary_M.html#2062">CPointPDF</a> </span><span class="default">&amp;p1, </span><span class="keyword">const <a href="dictionary_M.html#2062">CPointPDF</a> </span><span class="default">&amp;p2, </span><span class="keyword">const double </span><span class="default">&amp;minMahalanobisDistToDrop = </span><span class="number">0</span><span class="default">) <a href="dictionary_M.html#422">MRPT_OVERRIDE</a>;</span>
+<a name="160"><font size=-1>160     </font></a><span class="default"></span>
+<a name="161"><font size=-1>161     </font></a><span class="default"></span>
+<a name="162"><font size=-1>162     </font></a><span class="default">			</span><span class="comment">/** Evaluates the PDF within a rectangular grid and saves the result in a matrix (each row contains values for a fixed y-coordinate value).</span>
+<a name="163"><font size=-1>163     </font></a><span class="comment">			  */</span>
+<a name="164"><font size=-1>164     </font></a><span class="comment">			</span><span class="keyword">void  <a href="dictionary_M.html#7369">evaluatePDFInArea</a></span><span class="default">(</span>
+<a name="165"><font size=-1>165     </font></a><span class="default">				</span><span class="keyword">float		</span><span class="default">x_min,</span>
+<a name="166"><font size=-1>166     </font></a><span class="default">				</span><span class="keyword">float		</span><span class="default">x_max,</span>
+<a name="167"><font size=-1>167     </font></a><span class="default">				</span><span class="keyword">float		</span><span class="default">y_min,</span>
+<a name="168"><font size=-1>168     </font></a><span class="default">				</span><span class="keyword">float		</span><span class="default">y_max,</span>
+<a name="169"><font size=-1>169     </font></a><span class="default">				</span><span class="keyword">float		</span><span class="default">resolutionXY,</span>
+<a name="170"><font size=-1>170     </font></a><span class="default">				</span><span class="keyword">float		</span><span class="default">z,</span>
+<a name="171"><font size=-1>171     </font></a><span class="default">				mrpt::math::<a href="dictionary_M.html#1234">CMatrixD</a>	&amp;outMatrix,</span>
+<a name="172"><font size=-1>172     </font></a><span class="default">				</span><span class="keyword">bool		</span><span class="default">sumOverAllZs = </span><span class="keyword">false </span><span class="default">);</span>
+<a name="173"><font size=-1>173     </font></a><span class="default"></span>
+<a name="174"><font size=-1>174     </font></a><span class="default">			</span><span class="comment">/** Evaluates the PDF at a given point */</span>
+<a name="175"><font size=-1>175     </font></a><span class="comment">			</span><span class="keyword">double  <a href="dictionary_M.html#7370">evaluatePDF</a></span><span class="default">( </span><span class="keyword">const	<a href="dictionary_M.html#596">CPoint3D</a> </span><span class="default">&amp;x, </span><span class="keyword">bool	</span><span class="default">sumOverAllZs ) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="176"><font size=-1>176     </font></a><span class="default"></span>
+<a name="177"><font size=-1>177     </font></a><span class="default">		}; </span><span class="comment">// End of class def.</span>
+<a name="178"><font size=-1>178     </font></a><span class="comment">		<a href="dictionary_D.html#897">DEFINE_SERIALIZABLE_POST_CUSTOM_BASE</a></span><span class="default">( <a href="dictionary_M.html#7292">CPointPDFSOG</a>, <a href="dictionary_M.html#2062">CPointPDF</a> )</span>
+<a name="179"><font size=-1>179     </font></a><span class="default">	} </span><span class="comment">// End of namespace</span>
+<a name="180"><font size=-1>180     </font></a><span class="comment"></span><span class="default">} </span><span class="comment">// End of namespace</span>
+<a name="181"><font size=-1>181     </font></a><span class="comment"></span><span class="preproc">#endif</span>
+<a name="182"><font size=-1>182     </font></a><span class="preproc"></span>
+</pre></body></html>

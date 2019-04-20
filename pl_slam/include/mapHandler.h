@@ -150,7 +150,8 @@ public:
     unsigned int max_pt_idx, max_ls_idx, max_kf_idx ;
 
     KeyFrame *prev_kf, *curr_kf;
-    Matrix4d Twf, DT;
+    Matrix4d Twf;//Tcurkey_w 世界坐标系到当前关键帧
+    Matrix4d DT;//Tcurkey_prekey 上一个关键帧到当前关键帧
 
     // experiment variables
     Vector7f time;

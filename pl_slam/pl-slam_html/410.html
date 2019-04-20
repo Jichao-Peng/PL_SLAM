@@ -1,0 +1,250 @@
+<html><head><title>CParticleFilterCapable.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/bayes/CParticleFilterCapable.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/bayes/CParticleFilterCapable.h";
+top.document.title  = "CParticleFilterCapable.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span><span class="preproc">#ifndef <a href="dictionary_C.html#1032">CPARTICLEFILTERCAPABLE_H</a></span>
+<a name="10"><font size=-1>10     </font></a><span class="preproc">#define <a href="dictionary_C.html#1032">CPARTICLEFILTERCAPABLE_H</a></span>
+<a name="11"><font size=-1>11     </font></a><span class="preproc"></span>
+<a name="12"><font size=-1>12     </font></a><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/utils_defs.h&gt;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/bayes/CParticleFilter.h&gt;</span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span>
+<a name="15"><font size=-1>15     </font></a><span class="string"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="16"><font size=-1>16     </font></a><span class="default">{</span>
+<a name="17"><font size=-1>17     </font></a><span class="default"></span><span class="keyword">namespace </span><span class="default">bayes</span>
+<a name="18"><font size=-1>18     </font></a><span class="default">{</span>
+<a name="19"><font size=-1>19     </font></a><span class="default">	</span><span class="preproc">#define <a href="dictionary_I.html#1034">INVALID_LIKELIHOOD_VALUE</a>  </span><span class="default">(-</span><span class="number">1e300</span><span class="default">)   </span><span class="comment">// An invalid log-likelihood value, used to signal non-initialized likelihood variables.</span>
+<a name="20"><font size=-1>20     </font></a><span class="comment"></span>
+<a name="21"><font size=-1>21     </font></a><span class="comment">	/** This virtual class defines the interface that any particles based PDF class must implement in order to be executed by a mrpt::bayes::CParticleFilter.</span>
+<a name="22"><font size=-1>22     </font></a><span class="comment">	 *</span>
+<a name="23"><font size=-1>23     </font></a><span class="comment">	 * See the &lt;a href=&quot;http://www.mrpt.org/Particle_Filter_Tutorial&quot; &gt;Particle Filter tutorial&lt;/a&gt; explaining how to use the particle filter-related classes.</span>
+<a name="24"><font size=-1>24     </font></a><span class="comment">	 * \sa CParticleFilter, CParticleFilterData</span>
+<a name="25"><font size=-1>25     </font></a><span class="comment">	 * \ingroup mrpt_base_grp</span>
+<a name="26"><font size=-1>26     </font></a><span class="comment">	 */</span>
+<a name="27"><font size=-1>27     </font></a><span class="comment">	</span><span class="keyword">class <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#413">CParticleFilterCapable</a></span>
+<a name="28"><font size=-1>28     </font></a><span class="keyword">	</span><span class="default">{</span>
+<a name="29"><font size=-1>29     </font></a><span class="default">		</span><span class="keyword">friend class <a href="dictionary_M.html#1035">CParticleFilter</a></span><span class="default">;</span>
+<a name="30"><font size=-1>30     </font></a><span class="default"></span>
+<a name="31"><font size=-1>31     </font></a><span class="default">	</span><span class="keyword">private</span><span class="default">:</span>
+<a name="32"><font size=-1>32     </font></a><span class="default">		</span><span class="keyword">static const unsigned <a href="dictionary_M.html#1036">PARTICLE_FILTER_CAPABLE_FAST_DRAW_BINS</a></span><span class="default">;</span>
+<a name="33"><font size=-1>33     </font></a><span class="default"></span>
+<a name="34"><font size=-1>34     </font></a><span class="default">	</span><span class="keyword">public</span><span class="default">:</span>
+<a name="35"><font size=-1>35     </font></a><span class="default"></span>
+<a name="36"><font size=-1>36     </font></a><span class="default">		<a href="dictionary_M.html#1037">CParticleFilterCapable</a>() : <a href="dictionary_M.html#1068">m_fastDrawAuxiliary</a>()</span>
+<a name="37"><font size=-1>37     </font></a><span class="default">		{ }</span>
+<a name="38"><font size=-1>38     </font></a><span class="default"></span>
+<a name="39"><font size=-1>39     </font></a><span class="default"></span>
+<a name="40"><font size=-1>40     </font></a><span class="default">        </span><span class="comment">/** Virtual destructor</span>
+<a name="41"><font size=-1>41     </font></a><span class="comment">          */</span>
+<a name="42"><font size=-1>42     </font></a><span class="comment">        </span><span class="keyword">virtual </span><span class="default">~<a href="dictionary_M.html#942">CParticleFilterCapable</a>()</span>
+<a name="43"><font size=-1>43     </font></a><span class="default">		{</span>
+<a name="44"><font size=-1>44     </font></a><span class="default">		}</span>
+<a name="45"><font size=-1>45     </font></a><span class="default"></span>
+<a name="46"><font size=-1>46     </font></a><span class="default">		</span><span class="comment">/** A callback function type for evaluating the probability of m_particles of being selected, used in &quot;fastDrawSample&quot;.</span>
+<a name="47"><font size=-1>47     </font></a><span class="comment">		  *  The default evaluator function &quot;defaultEvaluator&quot; simply returns the particle weight.</span>
+<a name="48"><font size=-1>48     </font></a><span class="comment">		  * \param index This is the index of the particle its probability is being computed.</span>
+<a name="49"><font size=-1>49     </font></a><span class="comment">		  * \param action The value of this is the parameter passed to &quot;prepareFastDrawSample&quot;</span>
+<a name="50"><font size=-1>50     </font></a><span class="comment">		  * \param observation The value of this is the parameter passed to &quot;prepareFastDrawSample&quot;</span>
+<a name="51"><font size=-1>51     </font></a><span class="comment">		  *  The action and the observation are declared as &quot;void*&quot; for a greater flexibility.</span>
+<a name="52"><font size=-1>52     </font></a><span class="comment">		  * \sa prepareFastDrawSample</span>
+<a name="53"><font size=-1>53     </font></a><span class="comment">		  */</span>
+<a name="54"><font size=-1>54     </font></a><span class="comment">		</span><span class="keyword">typedef double </span><span class="default">( *<a href="dictionary_M.html#1038">TParticleProbabilityEvaluator</a>) (</span>
+<a name="55"><font size=-1>55     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">bayes::CParticleFilter::TParticleFilterOptions &amp;PF_options,</span>
+<a name="56"><font size=-1>56     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">CParticleFilterCapable	*obj,</span>
+<a name="57"><font size=-1>57     </font></a><span class="default">			size_t					index,</span>
+<a name="58"><font size=-1>58     </font></a><span class="default">			</span><span class="keyword">const void	</span><span class="default">* action,</span>
+<a name="59"><font size=-1>59     </font></a><span class="default">			</span><span class="keyword">const void	</span><span class="default">* observation );</span>
+<a name="60"><font size=-1>60     </font></a><span class="default"></span>
+<a name="61"><font size=-1>61     </font></a><span class="default">		</span><span class="comment">/** The default evaluator function, which simply returns the particle weight.</span>
+<a name="62"><font size=-1>62     </font></a><span class="comment">		  *  The action and the observation are declared as &quot;void*&quot; for a greater flexibility.</span>
+<a name="63"><font size=-1>63     </font></a><span class="comment">		  * \sa prepareFastDrawSample</span>
+<a name="64"><font size=-1>64     </font></a><span class="comment">		  */</span>
+<a name="65"><font size=-1>65     </font></a><span class="comment">		</span><span class="keyword">static double  <a href="dictionary_M.html#1039">defaultEvaluator</a></span><span class="default">(</span>
+<a name="66"><font size=-1>66     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">bayes::<a href="dictionary_M.html#1035">CParticleFilter</a>::<a href="dictionary_M.html#1041">TParticleFilterOptions</a> &amp;<a href="dictionary_P.html#1040">PF_options</a>,</span>
+<a name="67"><font size=-1>67     </font></a><span class="default">			</span><span class="keyword">const <a href="dictionary_M.html#413">CParticleFilterCapable</a>	</span><span class="default">*<a href="dictionary_O.html#1042">obj</a>,</span>
+<a name="68"><font size=-1>68     </font></a><span class="default">			<a href="dictionary_S.html#56">size_t</a>				<a href="dictionary_I.html#1043">index</a>,</span>
+<a name="69"><font size=-1>69     </font></a><span class="default">			</span><span class="keyword">const void	</span><span class="default">* <a href="dictionary_A.html#1044">action</a>,</span>
+<a name="70"><font size=-1>70     </font></a><span class="default">			</span><span class="keyword">const void	</span><span class="default">* <a href="dictionary_O.html#1045">observation</a> )</span>
+<a name="71"><font size=-1>71     </font></a><span class="default">		{</span>
+<a name="72"><font size=-1>72     </font></a><span class="default">			<a href="dictionary_M.html#569">MRPT_UNUSED_PARAM</a>(<a href="dictionary_P.html#1040">PF_options</a>); <a href="dictionary_M.html#569">MRPT_UNUSED_PARAM</a>(<a href="dictionary_A.html#1044">action</a>); <a href="dictionary_M.html#569">MRPT_UNUSED_PARAM</a>(<a href="dictionary_O.html#1045">observation</a>);</span>
+<a name="73"><font size=-1>73     </font></a><span class="default">			</span><span class="keyword">return <a href="dictionary_O.html#1042">obj</a></span><span class="default">-&gt;<a href="dictionary_M.html#420">getW</a>(<a href="dictionary_I.html#1043">index</a>);</span>
+<a name="74"><font size=-1>74     </font></a><span class="default">		}</span>
+<a name="75"><font size=-1>75     </font></a><span class="default"></span>
+<a name="76"><font size=-1>76     </font></a><span class="default">		</span><span class="comment">/** Prepares data structures for calling fastDrawSample method next.</span>
+<a name="77"><font size=-1>77     </font></a><span class="comment">		  *  This method must be called once before using &quot;fastDrawSample&quot; (calling this more than once has no effect, but it takes time for nothing!)</span>
+<a name="78"><font size=-1>78     </font></a><span class="comment">		  *  The behavior depends on the configuration of the PF (see CParticleFilter::TParticleFilterOptions):</span>
+<a name="79"><font size=-1>79     </font></a><span class="comment">		  *		- &lt;b&gt;DYNAMIC SAMPLE SIZE=NO&lt;/b&gt;: In this case this method fills out an internal array (m_fastDrawAuxiliary.alreadyDrawnIndexes) with</span>
+<a name="80"><font size=-1>80     </font></a><span class="comment">		  *			the random indexes generated according to the selected resample scheme in TParticleFilterOptions. Those indexes are</span>
+<a name="81"><font size=-1>81     </font></a><span class="comment">		  *			read sequentially by subsequent calls to fastDrawSample.</span>
+<a name="82"><font size=-1>82     </font></a><span class="comment">		  *		- &lt;b&gt;DYNAMIC SAMPLE SIZE=YES&lt;/b&gt;: Then:</span>
+<a name="83"><font size=-1>83     </font></a><span class="comment">		  *			- If TParticleFilterOptions.resamplingMethod = prMultinomial, the internal buffers will be filled out (m_fastDrawAuxiliary.CDF, CDF_indexes &amp; PDF) and</span>
+<a name="84"><font size=-1>84     </font></a><span class="comment">		  *				then fastDrawSample can be called an arbitrary number of times to generate random indexes.</span>
+<a name="85"><font size=-1>85     </font></a><span class="comment">		  *			- For the rest of resampling algorithms, an exception will be raised since they are not appropriate for a dynamic (unknown in advance) number of particles.</span>
+<a name="86"><font size=-1>86     </font></a><span class="comment">		  *</span>
+<a name="87"><font size=-1>87     </font></a><span class="comment">		  * The function pointed by &quot;partEvaluator&quot; should take into account the particle filter algorithm selected in &quot;m_PFAlgorithm&quot;.</span>
+<a name="88"><font size=-1>88     </font></a><span class="comment">		  * If called without arguments (defaultEvaluator), the default behavior is to draw samples with a probability proportional to their current weights.</span>
+<a name="89"><font size=-1>89     </font></a><span class="comment">		  *  The action and the observation are declared as &quot;void*&quot; for a greater flexibility.</span>
+<a name="90"><font size=-1>90     </font></a><span class="comment">		  *  For a more detailed information see the &lt;a href=&quot;http://www.mrpt.org/Particle_Filters&quot; &gt;Particle Filter tutorial&lt;/a&gt;.</span>
+<a name="91"><font size=-1>91     </font></a><span class="comment">		  *  Custom supplied &quot;partEvaluator&quot; functions must take into account the previous particle weight, i.e. multiplying the current observation likelihood by the weights.</span>
+<a name="92"><font size=-1>92     </font></a><span class="comment">		  * \sa fastDrawSample</span>
+<a name="93"><font size=-1>93     </font></a><span class="comment">		  */</span>
+<a name="94"><font size=-1>94     </font></a><span class="comment">		</span><span class="keyword">void  <a href="dictionary_M.html#1046">prepareFastDrawSample</a></span><span class="default">(</span>
+<a name="95"><font size=-1>95     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">bayes::<a href="dictionary_M.html#1035">CParticleFilter</a>::<a href="dictionary_M.html#1041">TParticleFilterOptions</a> &amp;PF_options,</span>
+<a name="96"><font size=-1>96     </font></a><span class="default">			<a href="dictionary_M.html#1038">TParticleProbabilityEvaluator</a> partEvaluator = defaultEvaluator,</span>
+<a name="97"><font size=-1>97     </font></a><span class="default">			</span><span class="keyword">const void	</span><span class="default">* action = NULL,</span>
+<a name="98"><font size=-1>98     </font></a><span class="default">			</span><span class="keyword">const void	</span><span class="default">* observation = NULL</span>
+<a name="99"><font size=-1>99     </font></a><span class="default">			) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="100"><font size=-1>100     </font></a><span class="default"></span>
+<a name="101"><font size=-1>101     </font></a><span class="default">		</span><span class="comment">/** Draws a random sample from the particle filter, in such a way that each particle has a probability proportional to its weight (in the standard PF algorithm).</span>
+<a name="102"><font size=-1>102     </font></a><span class="comment">		  *   This method can be used to generate a variable number of m_particles when resampling: to vary the number of m_particles in the filter.</span>
+<a name="103"><font size=-1>103     </font></a><span class="comment">		  *   See prepareFastDrawSample for more information, or the &lt;a href=&quot;http://www.mrpt.org/Particle_Filters&quot; &gt;Particle Filter tutorial&lt;/a&gt;.</span>
+<a name="104"><font size=-1>104     </font></a><span class="comment">		  *</span>
+<a name="105"><font size=-1>105     </font></a><span class="comment">		  * NOTES:</span>
+<a name="106"><font size=-1>106     </font></a><span class="comment">		  *		- You MUST call &quot;prepareFastDrawSample&quot; ONCE before calling this method. That method must be called after modifying the particle filter (executing one step, resampling, etc...)</span>
+<a name="107"><font size=-1>107     </font></a><span class="comment">		  *		- This method returns ONE index for the selected (&quot;drawn&quot;) particle, in the range [0,M-1]</span>
+<a name="108"><font size=-1>108     </font></a><span class="comment">		  *		- You do not need to call &quot;normalizeWeights&quot; before calling this.</span>
+<a name="109"><font size=-1>109     </font></a><span class="comment">		  * \sa prepareFastDrawSample</span>
+<a name="110"><font size=-1>110     </font></a><span class="comment">		  */</span>
+<a name="111"><font size=-1>111     </font></a><span class="comment">		<a href="dictionary_S.html#56">size_t</a>  <a href="dictionary_M.html#1047">fastDrawSample</a></span><span class="default">( </span><span class="keyword">const </span><span class="default">bayes::<a href="dictionary_M.html#1035">CParticleFilter</a>::<a href="dictionary_M.html#1041">TParticleFilterOptions</a> &amp;PF_options  ) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="112"><font size=-1>112     </font></a><span class="default"></span>
+<a name="113"><font size=-1>113     </font></a><span class="default">		</span><span class="comment">/** Access to i'th particle (logarithm) weight, where first one is index 0.</span>
+<a name="114"><font size=-1>114     </font></a><span class="comment">		 */</span>
+<a name="115"><font size=-1>115     </font></a><span class="comment">		</span><span class="keyword">virtual double  <a href="dictionary_M.html#420">getW</a></span><span class="default">(<a href="dictionary_S.html#56">size_t</a> i) </span><span class="keyword">const </span><span class="default">= </span><span class="number">0</span><span class="default">;</span>
+<a name="116"><font size=-1>116     </font></a><span class="default"></span>
+<a name="117"><font size=-1>117     </font></a><span class="default">		</span><span class="comment">/** Modifies i'th particle (logarithm) weight, where first one is index 0.</span>
+<a name="118"><font size=-1>118     </font></a><span class="comment">		 */</span>
+<a name="119"><font size=-1>119     </font></a><span class="comment">		</span><span class="keyword">virtual void  <a href="dictionary_M.html#424">setW</a></span><span class="default">(<a href="dictionary_S.html#56">size_t</a> i, </span><span class="keyword">double </span><span class="default">w) = </span><span class="number">0</span><span class="default">;</span>
+<a name="120"><font size=-1>120     </font></a><span class="default"></span>
+<a name="121"><font size=-1>121     </font></a><span class="default">		</span><span class="comment">/** Get the m_particles count.</span>
+<a name="122"><font size=-1>122     </font></a><span class="comment">		 */</span>
+<a name="123"><font size=-1>123     </font></a><span class="comment">		</span><span class="keyword">virtual <a href="dictionary_S.html#56">size_t</a> <a href="dictionary_M.html#428">particlesCount</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">= </span><span class="number">0</span><span class="default">;</span>
+<a name="124"><font size=-1>124     </font></a><span class="default"></span>
+<a name="125"><font size=-1>125     </font></a><span class="default">		</span><span class="comment">/** Performs the prediction stage of the Particle Filter.</span>
+<a name="126"><font size=-1>126     </font></a><span class="comment">		 *  This method simply selects the appropiate protected method according to the particle filter algorithm to run.</span>
+<a name="127"><font size=-1>127     </font></a><span class="comment">		 * \sa prediction_and_update_pfStandardProposal,prediction_and_update_pfAuxiliaryPFStandard,prediction_and_update_pfOptimalProposal,prediction_and_update_pfAuxiliaryPFOptimal</span>
+<a name="128"><font size=-1>128     </font></a><span class="comment">		 */</span>
+<a name="129"><font size=-1>129     </font></a><span class="comment">		</span><span class="keyword">void  <a href="dictionary_M.html#1048">prediction_and_update</a></span><span class="default">(</span>
+<a name="130"><font size=-1>130     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">mrpt::obs::<a href="dictionary_M.html#1050">CActionCollection</a>	* action,</span>
+<a name="131"><font size=-1>131     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">mrpt::obs::<a href="dictionary_M.html#1051">CSensoryFrame</a>		* observation,</span>
+<a name="132"><font size=-1>132     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">bayes::<a href="dictionary_M.html#1035">CParticleFilter</a>::<a href="dictionary_M.html#1041">TParticleFilterOptions</a> &amp;PF_options</span>
+<a name="133"><font size=-1>133     </font></a><span class="default">			 );</span>
+<a name="134"><font size=-1>134     </font></a><span class="default"></span>
+<a name="135"><font size=-1>135     </font></a><span class="default">		</span><span class="comment">/**  Performs the substitution for internal use of resample in particle filter algorithm, don't call it directly.</span>
+<a name="136"><font size=-1>136     </font></a><span class="comment">		 *  \param indx The indices of current m_particles to be saved as the new m_particles set.</span>
+<a name="137"><font size=-1>137     </font></a><span class="comment">		 */</span>
+<a name="138"><font size=-1>138     </font></a><span class="comment">		</span><span class="keyword">virtual void  <a href="dictionary_M.html#437">performSubstitution</a></span><span class="default">( </span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#74">vector</a>&lt;size_t&gt; &amp;indx) = </span><span class="number">0</span><span class="default">;</span>
+<a name="139"><font size=-1>139     </font></a><span class="default"></span>
+<a name="140"><font size=-1>140     </font></a><span class="default">		</span><span class="comment">/** Normalize the (logarithmic) weights, such as the maximum weight is zero.</span>
+<a name="141"><font size=-1>141     </font></a><span class="comment">		 * \param out_max_log_w If provided, will return with the maximum log_w before normalizing, such as new_weights = old_weights - max_log_w.</span>
+<a name="142"><font size=-1>142     </font></a><span class="comment">		 * \return The max/min ratio of weights (&quot;dynamic range&quot;)</span>
+<a name="143"><font size=-1>143     </font></a><span class="comment">		 */</span>
+<a name="144"><font size=-1>144     </font></a><span class="comment">		</span><span class="keyword">virtual double  <a href="dictionary_M.html#430">normalizeWeights</a></span><span class="default">( </span><span class="keyword">double </span><span class="default">*out_max_log_w = NULL ) =</span><span class="number">0</span><span class="default">;</span>
+<a name="145"><font size=-1>145     </font></a><span class="default"></span>
+<a name="146"><font size=-1>146     </font></a><span class="default">		</span><span class="comment">/** Returns the normalized ESS (Estimated Sample Size), in the range [0,1].</span>
+<a name="147"><font size=-1>147     </font></a><span class="comment">		  *  Note that you do NOT need to normalize the weights before calling this.</span>
+<a name="148"><font size=-1>148     </font></a><span class="comment">		 */</span>
+<a name="149"><font size=-1>149     </font></a><span class="comment">		</span><span class="keyword">virtual double <a href="dictionary_M.html#435">ESS</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">= </span><span class="number">0</span><span class="default">;</span>
+<a name="150"><font size=-1>150     </font></a><span class="default"></span>
+<a name="151"><font size=-1>151     </font></a><span class="default">		</span><span class="comment">/** Performs a resample of the m_particles, using the method selected in the constructor.</span>
+<a name="152"><font size=-1>152     </font></a><span class="comment">		  * After computing the surviving samples, this method internally calls &quot;performSubstitution&quot; to actually perform the particle replacement.</span>
+<a name="153"><font size=-1>153     </font></a><span class="comment">		  * This method is called automatically by CParticleFilter::execute, andshould not be invoked manually normally.</span>
+<a name="154"><font size=-1>154     </font></a><span class="comment">		  * To just obtaining the sequence of resampled indexes from a sequence of weights, use &quot;resample&quot;</span>
+<a name="155"><font size=-1>155     </font></a><span class="comment">		  * \param[in] out_particle_count The desired number of output particles after resampling; 0 means don't modify the current number.</span>
+<a name="156"><font size=-1>156     </font></a><span class="comment">		  * \sa resample</span>
+<a name="157"><font size=-1>157     </font></a><span class="comment">		  */</span>
+<a name="158"><font size=-1>158     </font></a><span class="comment">		</span><span class="keyword">void  <a href="dictionary_M.html#1052">performResampling</a></span><span class="default">( </span><span class="keyword">const </span><span class="default">bayes::<a href="dictionary_M.html#1035">CParticleFilter</a>::<a href="dictionary_M.html#1041">TParticleFilterOptions</a> &amp;PF_options,<a href="dictionary_S.html#56">size_t</a> out_particle_count = </span><span class="number">0 </span><span class="default">);</span>
+<a name="159"><font size=-1>159     </font></a><span class="default"></span>
+<a name="160"><font size=-1>160     </font></a><span class="default">		</span><span class="comment">/** A static method to perform the computation of the samples resulting from resampling a given set of particles, given their logarithmic weights, and a resampling method.</span>
+<a name="161"><font size=-1>161     </font></a><span class="comment">		  * It returns the sequence of indexes from the resampling. The number of output samples is the same than the input population.</span>
+<a name="162"><font size=-1>162     </font></a><span class="comment">		  *  This generic method just computes these indexes, to actually perform a resampling in a particle filter object, call performResampling</span>
+<a name="163"><font size=-1>163     </font></a><span class="comment">		  * \param[in] out_particle_count The desired number of output particles after resampling; 0 means don't modify the current number.</span>
+<a name="164"><font size=-1>164     </font></a><span class="comment">		  * \sa performResampling</span>
+<a name="165"><font size=-1>165     </font></a><span class="comment">		  */</span>
+<a name="166"><font size=-1>166     </font></a><span class="comment">		</span><span class="keyword">static void <a href="dictionary_M.html#1053">computeResampling</a></span><span class="default">(</span>
+<a name="167"><font size=-1>167     </font></a><span class="default">			<a href="dictionary_M.html#1035">CParticleFilter</a>::<a href="dictionary_M.html#1054">TParticleResamplingAlgorithm</a>	method,</span>
+<a name="168"><font size=-1>168     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#74">vector</a>&lt;</span><span class="keyword">double</span><span class="default">&gt;	&amp;in_logWeights,</span>
+<a name="169"><font size=-1>169     </font></a><span class="default">			std::<a href="dictionary_S.html#74">vector</a>&lt;size_t&gt;			&amp;out_indexes,</span>
+<a name="170"><font size=-1>170     </font></a><span class="default">			<a href="dictionary_S.html#56">size_t</a>          out_particle_count = </span><span class="number">0</span>
+<a name="171"><font size=-1>171     </font></a><span class="number">			</span><span class="default">);</span>
+<a name="172"><font size=-1>172     </font></a><span class="default"></span>
+<a name="173"><font size=-1>173     </font></a><span class="default">		</span><span class="comment">/** A static method to compute the linear, normalized (the sum the unity) weights from log-weights.</span>
+<a name="174"><font size=-1>174     </font></a><span class="comment">		  * \sa performResampling</span>
+<a name="175"><font size=-1>175     </font></a><span class="comment">		  */</span>
+<a name="176"><font size=-1>176     </font></a><span class="comment">		</span><span class="keyword">static void <a href="dictionary_M.html#1055">log2linearWeights</a></span><span class="default">(</span>
+<a name="177"><font size=-1>177     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#74">vector</a>&lt;</span><span class="keyword">double</span><span class="default">&gt;	&amp;in_logWeights,</span>
+<a name="178"><font size=-1>178     </font></a><span class="default">			std::<a href="dictionary_S.html#74">vector</a>&lt;</span><span class="keyword">double</span><span class="default">&gt;		&amp;out_linWeights );</span>
+<a name="179"><font size=-1>179     </font></a><span class="default"></span>
+<a name="180"><font size=-1>180     </font></a><span class="default"></span>
+<a name="181"><font size=-1>181     </font></a><span class="default">	</span><span class="keyword">protected</span><span class="default">:</span>
+<a name="182"><font size=-1>182     </font></a><span class="default">		</span><span class="comment">/** Performs the particle filter prediction/update stages for the algorithm &quot;pfStandardProposal&quot; (if not implemented in heritated class, it will raise a 'non-implemented' exception).</span>
+<a name="183"><font size=-1>183     </font></a><span class="comment">		 * \sa prediction_and_update</span>
+<a name="184"><font size=-1>184     </font></a><span class="comment">		 */</span>
+<a name="185"><font size=-1>185     </font></a><span class="comment">		</span><span class="keyword">virtual void  <a href="dictionary_M.html#1056">prediction_and_update_pfStandardProposal</a></span><span class="default">(</span>
+<a name="186"><font size=-1>186     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">mrpt::obs::<a href="dictionary_M.html#1050">CActionCollection</a>	* action,</span>
+<a name="187"><font size=-1>187     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">mrpt::obs::<a href="dictionary_M.html#1051">CSensoryFrame</a>		* observation,</span>
+<a name="188"><font size=-1>188     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">bayes::<a href="dictionary_M.html#1035">CParticleFilter</a>::<a href="dictionary_M.html#1041">TParticleFilterOptions</a> &amp;PF_options );</span>
+<a name="189"><font size=-1>189     </font></a><span class="default">		</span><span class="comment">/** Performs the particle filter prediction/update stages for the algorithm &quot;pfAuxiliaryPFStandard&quot; (if not implemented in heritated class, it will raise a 'non-implemented' exception).</span>
+<a name="190"><font size=-1>190     </font></a><span class="comment">		 * \sa prediction_and_update</span>
+<a name="191"><font size=-1>191     </font></a><span class="comment">		 */</span>
+<a name="192"><font size=-1>192     </font></a><span class="comment">		</span><span class="keyword">virtual void  <a href="dictionary_M.html#1057">prediction_and_update_pfAuxiliaryPFStandard</a></span><span class="default">(</span>
+<a name="193"><font size=-1>193     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">mrpt::obs::<a href="dictionary_M.html#1050">CActionCollection</a>	* action,</span>
+<a name="194"><font size=-1>194     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">mrpt::obs::<a href="dictionary_M.html#1051">CSensoryFrame</a>		* observation,</span>
+<a name="195"><font size=-1>195     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">bayes::<a href="dictionary_M.html#1035">CParticleFilter</a>::<a href="dictionary_M.html#1041">TParticleFilterOptions</a> &amp;PF_options );</span>
+<a name="196"><font size=-1>196     </font></a><span class="default">		</span><span class="comment">/** Performs the particle filter prediction/update stages for the algorithm &quot;pfOptimalProposal&quot; (if not implemented in heritated class, it will raise a 'non-implemented' exception).</span>
+<a name="197"><font size=-1>197     </font></a><span class="comment">		 * \sa prediction_and_update</span>
+<a name="198"><font size=-1>198     </font></a><span class="comment">		 */</span>
+<a name="199"><font size=-1>199     </font></a><span class="comment">		</span><span class="keyword">virtual void  <a href="dictionary_M.html#1058">prediction_and_update_pfOptimalProposal</a></span><span class="default">(</span>
+<a name="200"><font size=-1>200     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">mrpt::obs::<a href="dictionary_M.html#1050">CActionCollection</a>	* action,</span>
+<a name="201"><font size=-1>201     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">mrpt::obs::<a href="dictionary_M.html#1051">CSensoryFrame</a>		* observation,</span>
+<a name="202"><font size=-1>202     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">bayes::<a href="dictionary_M.html#1035">CParticleFilter</a>::<a href="dictionary_M.html#1041">TParticleFilterOptions</a> &amp;PF_options );</span>
+<a name="203"><font size=-1>203     </font></a><span class="default">		</span><span class="comment">/** Performs the particle filter prediction/update stages for the algorithm &quot;pfAuxiliaryPFOptimal&quot; (if not implemented in heritated class, it will raise a 'non-implemented' exception).</span>
+<a name="204"><font size=-1>204     </font></a><span class="comment">		 * \sa prediction_and_update</span>
+<a name="205"><font size=-1>205     </font></a><span class="comment">		 */</span>
+<a name="206"><font size=-1>206     </font></a><span class="comment">		</span><span class="keyword">virtual void  <a href="dictionary_M.html#1059">prediction_and_update_pfAuxiliaryPFOptimal</a></span><span class="default">(</span>
+<a name="207"><font size=-1>207     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">mrpt::obs::<a href="dictionary_M.html#1050">CActionCollection</a>	* action,</span>
+<a name="208"><font size=-1>208     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">mrpt::obs::<a href="dictionary_M.html#1051">CSensoryFrame</a>		* observation,</span>
+<a name="209"><font size=-1>209     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">bayes::<a href="dictionary_M.html#1035">CParticleFilter</a>::<a href="dictionary_M.html#1041">TParticleFilterOptions</a> &amp;PF_options );</span>
+<a name="210"><font size=-1>210     </font></a><span class="default"></span>
+<a name="211"><font size=-1>211     </font></a><span class="default">		</span><span class="comment">/** Auxiliary vectors, see CParticleFilterCapable::prepareFastDrawSample for more information</span>
+<a name="212"><font size=-1>212     </font></a><span class="comment">		  */</span>
+<a name="213"><font size=-1>213     </font></a><span class="comment">		</span><span class="keyword">struct <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#1060">TFastDrawAuxVars</a></span>
+<a name="214"><font size=-1>214     </font></a><span class="keyword">		</span><span class="default">{</span>
+<a name="215"><font size=-1>215     </font></a><span class="default">			<a href="dictionary_M.html#1061">TFastDrawAuxVars</a>() :</span>
+<a name="216"><font size=-1>216     </font></a><span class="default">				<a href="dictionary_M.html#1062">CDF</a>(),</span>
+<a name="217"><font size=-1>217     </font></a><span class="default">				<a href="dictionary_M.html#1063">CDF_indexes</a>(),</span>
+<a name="218"><font size=-1>218     </font></a><span class="default">				<a href="dictionary_M.html#1065">PDF</a>(),</span>
+<a name="219"><font size=-1>219     </font></a><span class="default">				<a href="dictionary_M.html#1066">alreadyDrawnIndexes</a>(),</span>
+<a name="220"><font size=-1>220     </font></a><span class="default">				<a href="dictionary_M.html#1067">alreadyDrawnNextOne</a>(</span><span class="number">0</span><span class="default">)</span>
+<a name="221"><font size=-1>221     </font></a><span class="default">			{ }</span>
+<a name="222"><font size=-1>222     </font></a><span class="default"></span>
+<a name="223"><font size=-1>223     </font></a><span class="default">			std::<a href="dictionary_S.html#74">vector</a>&lt;</span><span class="keyword">double</span><span class="default">&gt;	<a href="dictionary_M.html#1062">CDF</a>;</span>
+<a name="224"><font size=-1>224     </font></a><span class="default">			<a href="dictionary_M.html#1064">vector_uint</a>		<a href="dictionary_M.html#1063">CDF_indexes</a>;</span>
+<a name="225"><font size=-1>225     </font></a><span class="default">			std::<a href="dictionary_S.html#74">vector</a>&lt;</span><span class="keyword">double</span><span class="default">&gt;	<a href="dictionary_M.html#1065">PDF</a>;</span>
+<a name="226"><font size=-1>226     </font></a><span class="default"></span>
+<a name="227"><font size=-1>227     </font></a><span class="default">			<a href="dictionary_M.html#1064">vector_uint</a>		<a href="dictionary_M.html#1066">alreadyDrawnIndexes</a>;</span>
+<a name="228"><font size=-1>228     </font></a><span class="default">			<a href="dictionary_S.html#56">size_t</a>			<a href="dictionary_M.html#1067">alreadyDrawnNextOne</a>;</span>
+<a name="229"><font size=-1>229     </font></a><span class="default">		};</span>
+<a name="230"><font size=-1>230     </font></a><span class="default"></span>
+<a name="231"><font size=-1>231     </font></a><span class="default">		</span><span class="comment">/** Auxiliary vectors, see CParticleFilterCapable::prepareFastDrawSample for more information</span>
+<a name="232"><font size=-1>232     </font></a><span class="comment">		  */</span>
+<a name="233"><font size=-1>233     </font></a><span class="comment">		</span><span class="keyword">mutable <a href="dictionary_M.html#1060">TFastDrawAuxVars</a>	<a href="dictionary_M.html#1068">m_fastDrawAuxiliary</a></span><span class="default">;</span>
+<a name="234"><font size=-1>234     </font></a><span class="default"></span>
+<a name="235"><font size=-1>235     </font></a><span class="default">	}; </span><span class="comment">// End of class def.</span>
+<a name="236"><font size=-1>236     </font></a><span class="comment"></span>
+<a name="237"><font size=-1>237     </font></a><span class="comment">	</span><span class="default">} </span><span class="comment">// end namespace</span>
+<a name="238"><font size=-1>238     </font></a><span class="comment"></span><span class="default">} </span><span class="comment">// end namespace</span>
+<a name="239"><font size=-1>239     </font></a><span class="comment"></span><span class="preproc">#endif</span>
+<a name="240"><font size=-1>240     </font></a><span class="preproc"></span>
+</pre></body></html>

@@ -1,0 +1,146 @@
+<html><head><title>containers_fixes.hpp</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/otherlibs/stlplus/containers_fixes.hpp</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/otherlibs/stlplus/containers_fixes.hpp";
+top.document.title  = "containers_fixes.hpp";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2014, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span>
+<a name="10"><font size=-1>10     </font></a><span class="comment"></span><span class="preproc">#ifndef <a href="dictionary_S.html#8569">STLPLUS_CONTAINERS_FIXES</a></span>
+<a name="11"><font size=-1>11     </font></a><span class="preproc">#define <a href="dictionary_S.html#8569">STLPLUS_CONTAINERS_FIXES</a></span>
+<a name="12"><font size=-1>12     </font></a><span class="preproc"></span><span class="comment">////////////////////////////////////////////////////////////////////////////////</span>
+<a name="13"><font size=-1>13     </font></a><span class="comment"></span>
+<a name="14"><font size=-1>14     </font></a><span class="comment">//   Author:    Andy Rushton</span>
+<a name="15"><font size=-1>15     </font></a><span class="comment">//   Copyright: (c) Andy Rushton, 2007</span>
+<a name="16"><font size=-1>16     </font></a><span class="comment">//   License:   BSD License, see ../docs/license.html</span>
+<a name="17"><font size=-1>17     </font></a><span class="comment"></span>
+<a name="18"><font size=-1>18     </font></a><span class="comment">//   Contains work arounds for OS or Compiler specific problems with container</span>
+<a name="19"><font size=-1>19     </font></a><span class="comment">//   templates</span>
+<a name="20"><font size=-1>20     </font></a><span class="comment"></span>
+<a name="21"><font size=-1>21     </font></a><span class="comment">////////////////////////////////////////////////////////////////////////////////</span>
+<a name="22"><font size=-1>22     </font></a><span class="comment"></span>
+<a name="23"><font size=-1>23     </font></a><span class="comment">////////////////////////////////////////////////////////////////////////////////</span>
+<a name="24"><font size=-1>24     </font></a><span class="comment">// Unnecessary compiler warnings</span>
+<a name="25"><font size=-1>25     </font></a><span class="comment">////////////////////////////////////////////////////////////////////////////////</span>
+<a name="26"><font size=-1>26     </font></a><span class="comment"></span>
+<a name="27"><font size=-1>27     </font></a><span class="comment"></span><span class="preproc">#ifdef <a href="dictionary_Non-Alpha.html#1000">_MSC_VER</a></span>
+<a name="28"><font size=-1>28     </font></a><span class="preproc"></span><span class="comment">// Microsoft Visual Studio</span>
+<a name="29"><font size=-1>29     </font></a><span class="comment">// shut up the following irritating warnings</span>
+<a name="30"><font size=-1>30     </font></a><span class="comment">//   4275 - VC6, exported class was derived from a class that was not exported</span>
+<a name="31"><font size=-1>31     </font></a><span class="comment">//   4786 - VC6, identifier string exceeded maximum allowable length and was truncated (only affects debugger)</span>
+<a name="32"><font size=-1>32     </font></a><span class="comment">//   4305 - VC6, identifier type was converted to a smaller type</span>
+<a name="33"><font size=-1>33     </font></a><span class="comment">//   4503 - VC6, decorated name was longer than the maximum the compiler allows (only affects debugger)</span>
+<a name="34"><font size=-1>34     </font></a><span class="comment">//   4309 - VC6, type conversion operation caused a constant to exceeded the space allocated for it</span>
+<a name="35"><font size=-1>35     </font></a><span class="comment">//   4290 - VC6, C++ exception specification ignored</span>
+<a name="36"><font size=-1>36     </font></a><span class="comment">//   4800 - VC6, forcing value to bool 'true' or 'false' (performance warning)</span>
+<a name="37"><font size=-1>37     </font></a><span class="comment">//   4355 - VC6, 'this' : used in base member initializer list</span>
+<a name="38"><font size=-1>38     </font></a><span class="comment">//   4675 - VC7.1, &quot;change&quot; in function overload resolution _might_ have altered program</span>
+<a name="39"><font size=-1>39     </font></a><span class="comment">//   4996 - VC8, 'xxxx' was declared deprecated</span>
+<a name="40"><font size=-1>40     </font></a><span class="comment"></span><span class="preproc">#pragma </span><span class="default">warning(push)  </span><span class="comment">// JLBC: Added for MRPT</span>
+<a name="41"><font size=-1>41     </font></a><span class="comment"></span><span class="preproc">#pragma </span><span class="default">warning(disable: </span><span class="number">4275 4786 4305 4503 4309 4290 4800 4355 4675 4996</span><span class="default">)</span>
+<a name="42"><font size=-1>42     </font></a><span class="default"></span><span class="preproc">#endif</span>
+<a name="43"><font size=-1>43     </font></a><span class="preproc"></span>
+<a name="44"><font size=-1>44     </font></a><span class="preproc">#ifdef <a href="dictionary_Non-Alpha.html#8571">__BORLANDC__</a></span>
+<a name="45"><font size=-1>45     </font></a><span class="preproc"></span><span class="comment">// Borland</span>
+<a name="46"><font size=-1>46     </font></a><span class="comment">// Shut up the following irritating warnings</span>
+<a name="47"><font size=-1>47     </font></a><span class="comment">//   8008 - Condition is always true.</span>
+<a name="48"><font size=-1>48     </font></a><span class="comment">//          Whenever the compiler encounters a constant comparison that (due to</span>
+<a name="49"><font size=-1>49     </font></a><span class="comment">//          the nature of the value being compared) is always true or false, it</span>
+<a name="50"><font size=-1>50     </font></a><span class="comment">//          issues this warning and evaluates the condition at compile time.</span>
+<a name="51"><font size=-1>51     </font></a><span class="comment">//   8060 - Possibly incorrect assignment.</span>
+<a name="52"><font size=-1>52     </font></a><span class="comment">//          This warning is generated when the compiler encounters an assignment</span>
+<a name="53"><font size=-1>53     </font></a><span class="comment">//          operator as the main operator of a conditional expression (part of</span>
+<a name="54"><font size=-1>54     </font></a><span class="comment">//          an if, while, or do-while statement). This is usually a</span>
+<a name="55"><font size=-1>55     </font></a><span class="comment">//          typographical error for the equality operator.</span>
+<a name="56"><font size=-1>56     </font></a><span class="comment">//   8066 - Unreachable code.</span>
+<a name="57"><font size=-1>57     </font></a><span class="comment">//          A break, continue, goto, or return statement was not followed by a</span>
+<a name="58"><font size=-1>58     </font></a><span class="comment">//          label or the end of a loop or function. The compiler checks while,</span>
+<a name="59"><font size=-1>59     </font></a><span class="comment">//          do, and for loops with a constant test condition, and attempts to</span>
+<a name="60"><font size=-1>60     </font></a><span class="comment">//          recognize loops that can't fall through.</span>
+<a name="61"><font size=-1>61     </font></a><span class="comment"></span><span class="preproc">#pragma </span><span class="default">warn -</span><span class="number">8008</span>
+<a name="62"><font size=-1>62     </font></a><span class="number"></span><span class="preproc">#pragma </span><span class="default">warn -</span><span class="number">8060</span>
+<a name="63"><font size=-1>63     </font></a><span class="number"></span><span class="preproc">#pragma </span><span class="default">warn -</span><span class="number">8066</span>
+<a name="64"><font size=-1>64     </font></a><span class="number"></span><span class="preproc">#endif</span>
+<a name="65"><font size=-1>65     </font></a><span class="preproc"></span>
+<a name="66"><font size=-1>66     </font></a><span class="preproc"></span><span class="comment">////////////////////////////////////////////////////////////////////////////////</span>
+<a name="67"><font size=-1>67     </font></a><span class="comment">// Problems with the typename keyword</span>
+<a name="68"><font size=-1>68     </font></a><span class="comment">////////////////////////////////////////////////////////////////////////////////</span>
+<a name="69"><font size=-1>69     </font></a><span class="comment"></span>
+<a name="70"><font size=-1>70     </font></a><span class="comment">// There are problems with using the 'typename' keyword. Technically, if you</span>
+<a name="71"><font size=-1>71     </font></a><span class="comment">// use a type member of a template class (i.e. a type declared within the</span>
+<a name="72"><font size=-1>72     </font></a><span class="comment">// template class by a local typedef), you need to tell the compiler that it</span>
+<a name="73"><font size=-1>73     </font></a><span class="comment">// is a type name. This is because the compiler cannot work out whether a</span>
+<a name="74"><font size=-1>74     </font></a><span class="comment">// member is a type, a method or a data field at compile time. However,</span>
+<a name="75"><font size=-1>75     </font></a><span class="comment">// support for the typename keyword has traditionally been incomplete in both</span>
+<a name="76"><font size=-1>76     </font></a><span class="comment">// gcc and Visual Studio. I have used macros to try to resolve this issue. The</span>
+<a name="77"><font size=-1>77     </font></a><span class="comment">// macros add the keyword for compiler versions that require it and omit it</span>
+<a name="78"><font size=-1>78     </font></a><span class="comment">// for compiler versions that do not support it</span>
+<a name="79"><font size=-1>79     </font></a><span class="comment"></span>
+<a name="80"><font size=-1>80     </font></a><span class="comment">// There are five places where typename keywords cause problems:</span>
+<a name="81"><font size=-1>81     </font></a><span class="comment">//</span>
+<a name="82"><font size=-1>82     </font></a><span class="comment">//   1) in a typedef where a template class's member type is being mapped onto</span>
+<a name="83"><font size=-1>83     </font></a><span class="comment">//      a type definition within another template class or function </span>
+<a name="84"><font size=-1>84     </font></a><span class="comment">//      e.g. template&lt;typename T&gt; fn () {</span>
+<a name="85"><font size=-1>85     </font></a><span class="comment">//             typedef typename someclass&lt;T&gt;::member_type local_type;</span>
+<a name="86"><font size=-1>86     </font></a><span class="comment">//                     ^^^^^^^^</span>
+<a name="87"><font size=-1>87     </font></a><span class="comment">//   2) in a function parameter declaration, with similar rules to the above</span>
+<a name="88"><font size=-1>88     </font></a><span class="comment">//      e.g. template&lt;typename T&gt; fn (typename someclass&lt;T&gt;::member_type)</span>
+<a name="89"><font size=-1>89     </font></a><span class="comment">//                                    ^^^^^^^^</span>
+<a name="90"><font size=-1>90     </font></a><span class="comment">//   3) in instantiating a template, the parameter to the template, with similar rules to the above</span>
+<a name="91"><font size=-1>91     </font></a><span class="comment">//      e.g. template_class&lt;typename someclass&lt;T&gt;::member_type&gt;</span>
+<a name="92"><font size=-1>92     </font></a><span class="comment">//                          ^^^^^^^^</span>
+<a name="93"><font size=-1>93     </font></a><span class="comment">//   4) Return expressions</span>
+<a name="94"><font size=-1>94     </font></a><span class="comment">//      e.g. return typename ntree&lt;T&gt;::const_iterator(this,m_root);</span>
+<a name="95"><font size=-1>95     </font></a><span class="comment">//                  ^^^^^^^^</span>
+<a name="96"><font size=-1>96     </font></a><span class="comment">//   5) Creating temporary objects when passing arguments to a function or constructor</span>
+<a name="97"><font size=-1>97     </font></a><span class="comment">//      e.g. return typename ntree&lt;T&gt;::const_prefix_iterator(typename ntree&lt;T&gt;::const_iterator(this,m_root));</span>
+<a name="98"><font size=-1>98     </font></a><span class="comment">//                                                           ^^^^^^^^</span>
+<a name="99"><font size=-1>99     </font></a><span class="comment">// Note that the typename keyword is only required when the type being referred to is a member of a template class</span>
+<a name="100"><font size=-1>100     </font></a><span class="comment">//</span>
+<a name="101"><font size=-1>101     </font></a><span class="comment">// So far it *seems* as if all compilers either require all of them or none of</span>
+<a name="102"><font size=-1>102     </font></a><span class="comment">// them, so this set of situations can be handled by a single macro</span>
+<a name="103"><font size=-1>103     </font></a><span class="comment"></span>
+<a name="104"><font size=-1>104     </font></a><span class="comment">// default values, overridden for individual problem cases below</span>
+<a name="105"><font size=-1>105     </font></a><span class="comment"></span><span class="preproc">#define <a href="dictionary_T.html#8570">TYPENAME</a> </span><span class="keyword">typename</span>
+<a name="106"><font size=-1>106     </font></a><span class="keyword"></span>
+<a name="107"><font size=-1>107     </font></a><span class="keyword"></span><span class="preproc">#ifdef <a href="dictionary_Non-Alpha.html#845">__GNUC__</a></span>
+<a name="108"><font size=-1>108     </font></a><span class="preproc"></span><span class="comment">// GCC </span>
+<a name="109"><font size=-1>109     </font></a><span class="comment">//   - pre-version 3 didn't handle typename in any of these cases</span>
+<a name="110"><font size=-1>110     </font></a><span class="comment">//   - version 3 onwards, typename is required for all three cases as per default</span>
+<a name="111"><font size=-1>111     </font></a><span class="comment"></span><span class="preproc">#if <a href="dictionary_Non-Alpha.html#845">__GNUC__</a> </span><span class="default">&lt; </span><span class="number">3</span>
+<a name="112"><font size=-1>112     </font></a><span class="number"></span><span class="comment">// gcc prior to v3</span>
+<a name="113"><font size=-1>113     </font></a><span class="comment"></span><span class="preproc">#undef <a href="dictionary_T.html#8570">TYPENAME</a></span>
+<a name="114"><font size=-1>114     </font></a><span class="preproc">#define <a href="dictionary_T.html#8570">TYPENAME</a></span>
+<a name="115"><font size=-1>115     </font></a><span class="preproc">#endif</span>
+<a name="116"><font size=-1>116     </font></a><span class="preproc">#endif</span>
+<a name="117"><font size=-1>117     </font></a><span class="preproc"></span>
+<a name="118"><font size=-1>118     </font></a><span class="preproc">#ifdef <a href="dictionary_Non-Alpha.html#1000">_MSC_VER</a></span>
+<a name="119"><font size=-1>119     </font></a><span class="preproc"></span><span class="comment">// Visual Studio</span>
+<a name="120"><font size=-1>120     </font></a><span class="comment">//   - version 6 (compiler v.12) cannot handle typename in any of these cases</span>
+<a name="121"><font size=-1>121     </font></a><span class="comment">//   - version 7 (.NET) (compiler v.13) requires a typename in a parameter specification but supports all</span>
+<a name="122"><font size=-1>122     </font></a><span class="comment">//   - version 8 (2005) (compiler v.14) requires parameters and templates, supports all</span>
+<a name="123"><font size=-1>123     </font></a><span class="comment"></span><span class="preproc">#if <a href="dictionary_Non-Alpha.html#1000">_MSC_VER</a> </span><span class="default">&lt; </span><span class="number">1300</span>
+<a name="124"><font size=-1>124     </font></a><span class="number"></span><span class="comment">// compiler version 12 and earlier</span>
+<a name="125"><font size=-1>125     </font></a><span class="comment"></span><span class="preproc">#undef <a href="dictionary_T.html#8570">TYPENAME</a></span>
+<a name="126"><font size=-1>126     </font></a><span class="preproc">#define <a href="dictionary_T.html#8570">TYPENAME</a></span>
+<a name="127"><font size=-1>127     </font></a><span class="preproc">#endif</span>
+<a name="128"><font size=-1>128     </font></a><span class="preproc">#endif</span>
+<a name="129"><font size=-1>129     </font></a><span class="preproc"></span>
+<a name="130"><font size=-1>130     </font></a><span class="preproc">#ifdef <a href="dictionary_Non-Alpha.html#1000">_MSC_VER</a></span>
+<a name="131"><font size=-1>131     </font></a><span class="preproc">#pragma </span><span class="default">warning(pop)  </span><span class="comment">// JLBC: Added for MRPT</span>
+<a name="132"><font size=-1>132     </font></a><span class="comment"></span><span class="preproc">#endif</span>
+<a name="133"><font size=-1>133     </font></a><span class="preproc"></span>
+<a name="134"><font size=-1>134     </font></a><span class="preproc"></span><span class="comment">////////////////////////////////////////////////////////////////////////////////</span>
+<a name="135"><font size=-1>135     </font></a><span class="comment"></span><span class="preproc">#endif</span>
+<a name="136"><font size=-1>136     </font></a><span class="preproc"></span>
+</pre></body></html>

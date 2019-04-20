@@ -1,0 +1,111 @@
+<html><head><title>SE_traits.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/poses/SE_traits.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/poses/SE_traits.h";
+top.document.title  = "SE_traits.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span><span class="preproc">#ifndef <a href="dictionary_M.html#17296">MRPT_SE3_TRAITS_H</a></span>
+<a name="10"><font size=-1>10     </font></a><span class="preproc">#define <a href="dictionary_M.html#17296">MRPT_SE3_TRAITS_H</a></span>
+<a name="11"><font size=-1>11     </font></a><span class="preproc"></span>
+<a name="12"><font size=-1>12     </font></a><span class="preproc">#include </span><span class="string">&lt;mrpt/poses/CPose3D.h&gt;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/poses/CPose2D.h&gt;</span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/math/CMatrixFixedNumeric.h&gt;</span>
+<a name="15"><font size=-1>15     </font></a><span class="string"></span>
+<a name="16"><font size=-1>16     </font></a><span class="string"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="17"><font size=-1>17     </font></a><span class="default">{</span>
+<a name="18"><font size=-1>18     </font></a><span class="default">	</span><span class="keyword">namespace </span><span class="default">poses</span>
+<a name="19"><font size=-1>19     </font></a><span class="default">	{</span>
+<a name="20"><font size=-1>20     </font></a><span class="default">		</span><span class="comment">/** \addtogroup poses_grp</span>
+<a name="21"><font size=-1>21     </font></a><span class="comment">		  *  @{ */</span>
+<a name="22"><font size=-1>22     </font></a><span class="comment"></span>
+<a name="23"><font size=-1>23     </font></a><span class="comment">		/** A helper class for SE(2) and SE(3) geometry-related transformations, on-manifold optimization Jacobians, etc.</span>
+<a name="24"><font size=-1>24     </font></a><span class="comment">		  * \sa SE_traits&lt;2&gt;, SE_traits&lt;3&gt;, CPose3D, CPose2D</span>
+<a name="25"><font size=-1>25     </font></a><span class="comment">		  */</span>
+<a name="26"><font size=-1>26     </font></a><span class="comment">		</span><span class="keyword">template </span><span class="default">&lt;size_t DOF&gt; </span><span class="keyword">struct <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#17297">SE_traits</a></span><span class="default">;</span>
+<a name="27"><font size=-1>27     </font></a><span class="default"></span>
+<a name="28"><font size=-1>28     </font></a><span class="default">		</span><span class="comment">/** Specialization of SE for 3D poses \sa SE_traits */</span>
+<a name="29"><font size=-1>29     </font></a><span class="comment">		</span><span class="keyword">template </span><span class="default">&lt;&gt; </span><span class="keyword">struct <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#17297">SE_traits</a></span><span class="default">&lt;</span><span class="number">3</span><span class="default">&gt;</span>
+<a name="30"><font size=-1>30     </font></a><span class="default">		{</span>
+<a name="31"><font size=-1>31     </font></a><span class="default">			</span><span class="keyword">enum </span><span class="default">{ VECTOR_SIZE = </span><span class="number">6 </span><span class="default">};</span>
+<a name="32"><font size=-1>32     </font></a><span class="default">			</span><span class="keyword">typedef </span><span class="default">mrpt::math::<a href="dictionary_M.html#563">CArrayDouble</a>&lt;VECTOR_SIZE&gt; <a href="dictionary_M.html#17300">array_t</a>;</span>
+<a name="33"><font size=-1>33     </font></a><span class="default">			</span><span class="keyword">typedef </span><span class="default">mrpt::math::<a href="dictionary_M.html#605">CMatrixFixedNumeric</a>&lt;</span><span class="keyword">double</span><span class="default">,VECTOR_SIZE,VECTOR_SIZE&gt; <a href="dictionary_M.html#17301">matrix_VxV_t</a>;</span>
+<a name="34"><font size=-1>34     </font></a><span class="default">			</span><span class="keyword">typedef <a href="dictionary_M.html#182">CPose3D</a>  <a href="dictionary_M.html#17302">pose_t</a></span><span class="default">;</span>
+<a name="35"><font size=-1>35     </font></a><span class="default"></span>
+<a name="36"><font size=-1>36     </font></a><span class="default">			</span><span class="comment">/** Exponential map in SE(3), with XYZ different from the first three values of &quot;x&quot; \sa pseudo_exp */</span>
+<a name="37"><font size=-1>37     </font></a><span class="comment">			</span><span class="keyword">static inline void <a href="dictionary_M.html#17303">exp</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#17300">array_t</a> </span><span class="default">&amp;<a href="dictionary_X.html#17304">x</a>, <a href="dictionary_M.html#182">CPose3D</a> &amp;<a href="dictionary_P.html#17305">P</a>) { <a href="dictionary_M.html#182">CPose3D</a>::<a href="dictionary_M.html#7092">exp</a>(<a href="dictionary_X.html#17304">x</a>, <a href="dictionary_P.html#17305">P</a>, </span><span class="keyword">false</span><span class="default">); }</span>
+<a name="38"><font size=-1>38     </font></a><span class="default">			</span>
+<a name="39"><font size=-1>39     </font></a><span class="default">			</span><span class="comment">/** Pseudo-Exponential map in SE(3), with XYZ copied from the first three values of &quot;x&quot; \sa exp */</span>
+<a name="40"><font size=-1>40     </font></a><span class="comment">			</span><span class="keyword">static inline void <a href="dictionary_M.html#17306">pseudo_exp</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#17300">array_t</a> </span><span class="default">&amp;<a href="dictionary_X.html#17307">x</a>, <a href="dictionary_M.html#182">CPose3D</a> &amp;<a href="dictionary_P.html#17308">P</a>) { <a href="dictionary_M.html#182">CPose3D</a>::<a href="dictionary_M.html#7092">exp</a>(<a href="dictionary_X.html#17307">x</a>, <a href="dictionary_P.html#17308">P</a>, </span><span class="keyword">true</span><span class="default">); }</span>
+<a name="41"><font size=-1>41     </font></a><span class="default"></span>
+<a name="42"><font size=-1>42     </font></a><span class="default">			</span><span class="comment">/** Logarithm map in SE(3) */</span>
+<a name="43"><font size=-1>43     </font></a><span class="comment">			</span><span class="keyword">static inline void <a href="dictionary_M.html#17309">ln</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#182">CPose3D</a> </span><span class="default">&amp;<a href="dictionary_P.html#17310">P</a>, <a href="dictionary_M.html#17300">array_t</a> &amp;<a href="dictionary_X.html#17311">x</a>) { <a href="dictionary_P.html#17310">P</a>.<a href="dictionary_M.html#7096">ln</a>(<a href="dictionary_X.html#17311">x</a>); }</span>
+<a name="44"><font size=-1>44     </font></a><span class="default"></span>
+<a name="45"><font size=-1>45     </font></a><span class="default">			</span><span class="comment">/** A pseudo-Logarithm map in SE(3), where the output = [X,Y,Z, Ln(ROT)], that is, the normal</span>
+<a name="46"><font size=-1>46     </font></a><span class="comment">			  *  SO(3) logarithm is used for the rotation components, but the translation is left unmodified. */</span>
+<a name="47"><font size=-1>47     </font></a><span class="comment">			</span><span class="keyword">static void <a href="dictionary_M.html#17312">pseudo_ln</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#182">CPose3D</a> </span><span class="default">&amp;P, <a href="dictionary_M.html#17300">array_t</a> &amp;x);</span>
+<a name="48"><font size=-1>48     </font></a><span class="default"></span>
+<a name="49"><font size=-1>49     </font></a><span class="default">			</span><span class="comment">/** Return one or both of the following 6x6 Jacobians, useful in graph-slam problems:</span>
+<a name="50"><font size=-1>50     </font></a><span class="comment">			  *   \f[  \frac{\partial pseudoLn(P_1 D P_2^{-1}) }{\partial \epsilon_1}  \f]</span>
+<a name="51"><font size=-1>51     </font></a><span class="comment">			  *   \f[  \frac{\partial pseudoLn(P_1 D P_2^{-1}) }{\partial \epsilon_2}  \f]</span>
+<a name="52"><font size=-1>52     </font></a><span class="comment">			  *  With \f$ \epsilon_1 \f$ and \f$ \epsilon_2 \f$ being increments in the linearized manifold for P1 and P2.</span>
+<a name="53"><font size=-1>53     </font></a><span class="comment">			  */</span>
+<a name="54"><font size=-1>54     </font></a><span class="comment">			</span><span class="keyword">static void <a href="dictionary_M.html#17313">jacobian_dP1DP2inv_depsilon</a></span><span class="default">(</span>
+<a name="55"><font size=-1>55     </font></a><span class="default">				</span><span class="keyword">const <a href="dictionary_M.html#182">CPose3D</a> </span><span class="default">&amp;P1DP2inv,</span>
+<a name="56"><font size=-1>56     </font></a><span class="default">				<a href="dictionary_M.html#17301">matrix_VxV_t</a> *df_de1,</span>
+<a name="57"><font size=-1>57     </font></a><span class="default">				<a href="dictionary_M.html#17301">matrix_VxV_t</a> *df_de2);</span>
+<a name="58"><font size=-1>58     </font></a><span class="default"></span>
+<a name="59"><font size=-1>59     </font></a><span class="default">		}; </span><span class="comment">// end SE_traits</span>
+<a name="60"><font size=-1>60     </font></a><span class="comment"></span>
+<a name="61"><font size=-1>61     </font></a><span class="comment">		/** Specialization of SE for 2D poses \sa SE_traits */</span>
+<a name="62"><font size=-1>62     </font></a><span class="comment">		</span><span class="keyword">template </span><span class="default">&lt;&gt; </span><span class="keyword">struct <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#17314">SE_traits</a></span><span class="default">&lt;</span><span class="number">2</span><span class="default">&gt;</span>
+<a name="63"><font size=-1>63     </font></a><span class="default">		{</span>
+<a name="64"><font size=-1>64     </font></a><span class="default">			</span><span class="keyword">enum </span><span class="default">{ VECTOR_SIZE = </span><span class="number">3 </span><span class="default">};</span>
+<a name="65"><font size=-1>65     </font></a><span class="default">			</span><span class="keyword">typedef </span><span class="default">mrpt::math::<a href="dictionary_M.html#563">CArrayDouble</a>&lt;VECTOR_SIZE&gt; <a href="dictionary_M.html#17317">array_t</a>;</span>
+<a name="66"><font size=-1>66     </font></a><span class="default">			</span><span class="keyword">typedef </span><span class="default">mrpt::math::<a href="dictionary_M.html#605">CMatrixFixedNumeric</a>&lt;</span><span class="keyword">double</span><span class="default">,VECTOR_SIZE,VECTOR_SIZE&gt; <a href="dictionary_M.html#17318">matrix_VxV_t</a>;</span>
+<a name="67"><font size=-1>67     </font></a><span class="default">			</span><span class="keyword">typedef <a href="dictionary_M.html#180">CPose2D</a>  <a href="dictionary_M.html#17319">pose_t</a></span><span class="default">;</span>
+<a name="68"><font size=-1>68     </font></a><span class="default"></span>
+<a name="69"><font size=-1>69     </font></a><span class="default">			</span><span class="comment">/** Exponential map in SE(2) */</span>
+<a name="70"><font size=-1>70     </font></a><span class="comment">			</span><span class="keyword">static inline void <a href="dictionary_M.html#17320">exp</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#17317">array_t</a> </span><span class="default">&amp;<a href="dictionary_X.html#17321">x</a>, <a href="dictionary_M.html#180">CPose2D</a> &amp;<a href="dictionary_P.html#17322">P</a>) { <a href="dictionary_P.html#17322">P</a>.<a href="dictionary_M.html#2377">x</a>(<a href="dictionary_X.html#17321">x</a>[</span><span class="number">0</span><span class="default">]); <a href="dictionary_P.html#17322">P</a>.<a href="dictionary_M.html#2378">y</a>(<a href="dictionary_X.html#17321">x</a>[</span><span class="number">1</span><span class="default">]); <a href="dictionary_P.html#17322">P</a>.<a href="dictionary_M.html#9347">phi</a>(<a href="dictionary_X.html#17321">x</a>[</span><span class="number">2</span><span class="default">]); }</span>
+<a name="71"><font size=-1>71     </font></a><span class="default">			</span>
+<a name="72"><font size=-1>72     </font></a><span class="default">			</span><span class="comment">/** Pseudo-Exponential map in SE(2), in this case identical to exp() */</span>
+<a name="73"><font size=-1>73     </font></a><span class="comment">			</span><span class="keyword">static inline void <a href="dictionary_M.html#17323">pseudo_exp</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#17317">array_t</a> </span><span class="default">&amp;<a href="dictionary_X.html#17324">x</a>, <a href="dictionary_M.html#180">CPose2D</a> &amp;<a href="dictionary_P.html#17325">P</a>) { <a href="dictionary_M.html#17320">exp</a>(<a href="dictionary_X.html#17324">x</a>,<a href="dictionary_P.html#17325">P</a>); }</span>
+<a name="74"><font size=-1>74     </font></a><span class="default"></span>
+<a name="75"><font size=-1>75     </font></a><span class="default">			</span><span class="comment">/** Logarithm map in SE(2) */</span>
+<a name="76"><font size=-1>76     </font></a><span class="comment">			</span><span class="keyword">static inline void <a href="dictionary_M.html#17326">ln</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a> </span><span class="default">&amp;<a href="dictionary_P.html#17327">P</a>, <a href="dictionary_M.html#17317">array_t</a> &amp;<a href="dictionary_X.html#17328">x</a>) { <a href="dictionary_X.html#17328">x</a>[</span><span class="number">0</span><span class="default">] = <a href="dictionary_P.html#17327">P</a>.<a href="dictionary_M.html#2377">x</a>(); <a href="dictionary_X.html#17328">x</a>[</span><span class="number">1</span><span class="default">] = <a href="dictionary_P.html#17327">P</a>.<a href="dictionary_M.html#2378">y</a>(); <a href="dictionary_X.html#17328">x</a>[</span><span class="number">2</span><span class="default">] = <a href="dictionary_P.html#17327">P</a>.<a href="dictionary_M.html#9347">phi</a>();  } </span><span class="comment">//-V537</span>
+<a name="77"><font size=-1>77     </font></a><span class="comment"></span>
+<a name="78"><font size=-1>78     </font></a><span class="comment">			/** A pseudo-Logarithm map in SE(2), where the output = [X,Y, Ln(ROT)], that is, the normal</span>
+<a name="79"><font size=-1>79     </font></a><span class="comment">			  *  SO(2) logarithm is used for the rotation components, but the translation is left unmodified.</span>
+<a name="80"><font size=-1>80     </font></a><span class="comment">			  */</span>
+<a name="81"><font size=-1>81     </font></a><span class="comment">			</span><span class="keyword">static inline void <a href="dictionary_M.html#17329">pseudo_ln</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a> </span><span class="default">&amp;<a href="dictionary_P.html#17330">P</a>, <a href="dictionary_M.html#17317">array_t</a> &amp;<a href="dictionary_X.html#17331">x</a>) { <a href="dictionary_M.html#17326">ln</a>(<a href="dictionary_P.html#17330">P</a>,<a href="dictionary_X.html#17331">x</a>); }</span>
+<a name="82"><font size=-1>82     </font></a><span class="default"></span>
+<a name="83"><font size=-1>83     </font></a><span class="default">			</span><span class="comment">/** Return one or both of the following 3x3 Jacobians, useful in graph-slam problems:</span>
+<a name="84"><font size=-1>84     </font></a><span class="comment">			  *   \f[  \frac{\partial pseudoLn(P_1 D P_2^{-1}) }{\partial \epsilon_1}  \f]</span>
+<a name="85"><font size=-1>85     </font></a><span class="comment">			  *   \f[  \frac{\partial pseudoLn(P_1 D P_2^{-1}) }{\partial \epsilon_2}  \f]</span>
+<a name="86"><font size=-1>86     </font></a><span class="comment">			  *  With \f$ \epsilon_1 \f$ and \f$ \epsilon_2 \f$ being increments in the linearized manifold for P1 and P2.</span>
+<a name="87"><font size=-1>87     </font></a><span class="comment">			  */</span>
+<a name="88"><font size=-1>88     </font></a><span class="comment">			</span><span class="keyword">static void <a href="dictionary_M.html#17332">jacobian_dP1DP2inv_depsilon</a></span><span class="default">(</span>
+<a name="89"><font size=-1>89     </font></a><span class="default">				</span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a> </span><span class="default">&amp;P1DP2inv,</span>
+<a name="90"><font size=-1>90     </font></a><span class="default">				<a href="dictionary_M.html#17318">matrix_VxV_t</a> *df_de1,</span>
+<a name="91"><font size=-1>91     </font></a><span class="default">				<a href="dictionary_M.html#17318">matrix_VxV_t</a> *df_de2);</span>
+<a name="92"><font size=-1>92     </font></a><span class="default"></span>
+<a name="93"><font size=-1>93     </font></a><span class="default">		}; </span><span class="comment">// end SE_traits</span>
+<a name="94"><font size=-1>94     </font></a><span class="comment"></span>
+<a name="95"><font size=-1>95     </font></a><span class="comment">		/** @} */ // end of grouping</span>
+<a name="96"><font size=-1>96     </font></a><span class="comment"></span>
+<a name="97"><font size=-1>97     </font></a><span class="comment">	</span><span class="default">} </span><span class="comment">// End of namespace</span>
+<a name="98"><font size=-1>98     </font></a><span class="comment"></span><span class="default">} </span><span class="comment">// End of namespace</span>
+<a name="99"><font size=-1>99     </font></a><span class="comment"></span>
+<a name="100"><font size=-1>100     </font></a><span class="comment"></span><span class="preproc">#endif</span>
+<a name="101"><font size=-1>101     </font></a><span class="preproc"></span>
+</pre></body></html>

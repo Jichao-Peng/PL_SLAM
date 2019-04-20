@@ -56,7 +56,9 @@
 #include <stereoFrameHandler.h>
 #include <keyFrame.h>
 #include <mapFeatures.h>
-
+#ifndef HAS_MRPT
+#define HAS_MRPT
+#endif
 using namespace std;
 using namespace Eigen;
 using namespace DBoW2;

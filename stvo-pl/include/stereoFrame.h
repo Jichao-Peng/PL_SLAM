@@ -99,8 +99,8 @@ public:
                     
     int frame_idx;      //双目帧索引
     Mat img_l, img_r;   //双目的左右图像
-    Matrix4d Tfw;       //两帧间的相对位姿  应该是Tk_k+1
-    Matrix4d DT;        //
+    Matrix4d Tfw;       //当前帧到上一个关键帧的相对位姿 Tprekey_cur
+    Matrix4d DT;        //两帧间的相对位姿 Tpre_cur
 
     Matrix6d Tfw_cov;   //三维变换的协方差矩阵
     Vector6d Tfw_cov_eig;   //三维变换的协方差矩阵的对数映射

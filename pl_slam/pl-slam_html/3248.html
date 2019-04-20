@@ -1,0 +1,225 @@
+<html><head><title>SwitchArg.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/otherlibs/tclap/SwitchArg.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/otherlibs/tclap/SwitchArg.h";
+top.document.title  = "SwitchArg.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span>
+<a name="10"><font size=-1>10     </font></a><span class="comment">/****************************************************************************** </span>
+<a name="11"><font size=-1>11     </font></a><span class="comment"> * </span>
+<a name="12"><font size=-1>12     </font></a><span class="comment"> *  file:  SwitchArg.h</span>
+<a name="13"><font size=-1>13     </font></a><span class="comment"> * </span>
+<a name="14"><font size=-1>14     </font></a><span class="comment"> *  Copyright (c) 2003, Michael E. Smoot .</span>
+<a name="15"><font size=-1>15     </font></a><span class="comment"> *  Copyright (c) 2004, Michael E. Smoot, Daniel Aarno.</span>
+<a name="16"><font size=-1>16     </font></a><span class="comment"> *  All rights reverved.</span>
+<a name="17"><font size=-1>17     </font></a><span class="comment"> * </span>
+<a name="18"><font size=-1>18     </font></a><span class="comment"> *  See the file COPYING in the top directory of this distribution for</span>
+<a name="19"><font size=-1>19     </font></a><span class="comment"> *  more information.</span>
+<a name="20"><font size=-1>20     </font></a><span class="comment"> *  </span>
+<a name="21"><font size=-1>21     </font></a><span class="comment"> *  THE SOFTWARE IS PROVIDED _AS IS_, WITHOUT WARRANTY OF ANY KIND, EXPRESS </span>
+<a name="22"><font size=-1>22     </font></a><span class="comment"> *  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, </span>
+<a name="23"><font size=-1>23     </font></a><span class="comment"> *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL </span>
+<a name="24"><font size=-1>24     </font></a><span class="comment"> *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER </span>
+<a name="25"><font size=-1>25     </font></a><span class="comment"> *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING </span>
+<a name="26"><font size=-1>26     </font></a><span class="comment"> *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER </span>
+<a name="27"><font size=-1>27     </font></a><span class="comment"> *  DEALINGS IN THE SOFTWARE.  </span>
+<a name="28"><font size=-1>28     </font></a><span class="comment"> *  </span>
+<a name="29"><font size=-1>29     </font></a><span class="comment"> *****************************************************************************/ </span>
+<a name="30"><font size=-1>30     </font></a><span class="comment"></span>
+<a name="31"><font size=-1>31     </font></a><span class="comment"></span>
+<a name="32"><font size=-1>32     </font></a><span class="comment"></span><span class="preproc">#ifndef <a href="dictionary_T.html#3249">TCLAP_SWITCH_ARG_H</a></span>
+<a name="33"><font size=-1>33     </font></a><span class="preproc">#define <a href="dictionary_T.html#3249">TCLAP_SWITCH_ARG_H</a></span>
+<a name="34"><font size=-1>34     </font></a><span class="preproc"></span>
+<a name="35"><font size=-1>35     </font></a><span class="preproc">#include </span><span class="string">&lt;string&gt;</span>
+<a name="36"><font size=-1>36     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;vector&gt;</span>
+<a name="37"><font size=-1>37     </font></a><span class="string"></span>
+<a name="38"><font size=-1>38     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/otherlibs/tclap/Arg.h&gt;</span>
+<a name="39"><font size=-1>39     </font></a><span class="string"></span>
+<a name="40"><font size=-1>40     </font></a><span class="string"></span><span class="keyword">namespace </span><span class="default">TCLAP {</span>
+<a name="41"><font size=-1>41     </font></a><span class="default"></span>
+<a name="42"><font size=-1>42     </font></a><span class="default"></span><span class="comment">/**</span>
+<a name="43"><font size=-1>43     </font></a><span class="comment"> * A simple switch argument.  If the switch is set on the command line, then</span>
+<a name="44"><font size=-1>44     </font></a><span class="comment"> * the getValue method will return the opposite of the default value for the</span>
+<a name="45"><font size=-1>45     </font></a><span class="comment"> * switch.</span>
+<a name="46"><font size=-1>46     </font></a><span class="comment"> */</span>
+<a name="47"><font size=-1>47     </font></a><span class="comment"></span><span class="keyword">class <a href="dictionary_T.html#3251">SwitchArg</a> </span><span class="default">: </span><span class="keyword">public <a href="dictionary_T.html#2110">Arg</a></span>
+<a name="48"><font size=-1>48     </font></a><span class="keyword"></span><span class="default">{</span>
+<a name="49"><font size=-1>49     </font></a><span class="default">	</span><span class="keyword">protected</span><span class="default">:</span>
+<a name="50"><font size=-1>50     </font></a><span class="default"></span>
+<a name="51"><font size=-1>51     </font></a><span class="default">		</span><span class="comment">/**</span>
+<a name="52"><font size=-1>52     </font></a><span class="comment">		 * The value of the switch.</span>
+<a name="53"><font size=-1>53     </font></a><span class="comment">		 */</span>
+<a name="54"><font size=-1>54     </font></a><span class="comment">		</span><span class="keyword">bool <a href="dictionary_T.html#3252">_value</a></span><span class="default">;</span>
+<a name="55"><font size=-1>55     </font></a><span class="default"></span>
+<a name="56"><font size=-1>56     </font></a><span class="default">	</span><span class="keyword">public</span><span class="default">:</span>
+<a name="57"><font size=-1>57     </font></a><span class="default"></span>
+<a name="58"><font size=-1>58     </font></a><span class="default">        </span><span class="comment">/**</span>
+<a name="59"><font size=-1>59     </font></a><span class="comment">		 * SwitchArg constructor.</span>
+<a name="60"><font size=-1>60     </font></a><span class="comment">		 * \param flag - The one character flag that identifies this</span>
+<a name="61"><font size=-1>61     </font></a><span class="comment">		 * argument on the command line.</span>
+<a name="62"><font size=-1>62     </font></a><span class="comment">		 * \param name - A one word name for the argument.  Can be</span>
+<a name="63"><font size=-1>63     </font></a><span class="comment">		 * used as a long flag on the command line.</span>
+<a name="64"><font size=-1>64     </font></a><span class="comment">		 * \param desc - A description of what the argument is for or</span>
+<a name="65"><font size=-1>65     </font></a><span class="comment">		 * does.</span>
+<a name="66"><font size=-1>66     </font></a><span class="comment">		 * \param def - The default value for this Switch. </span>
+<a name="67"><font size=-1>67     </font></a><span class="comment">		 * \param v - An optional visitor.  You probably should not</span>
+<a name="68"><font size=-1>68     </font></a><span class="comment">		 * use this unless you have a very good reason.</span>
+<a name="69"><font size=-1>69     </font></a><span class="comment">		 */</span>
+<a name="70"><font size=-1>70     </font></a><span class="comment">		<a href="dictionary_T.html#3253">SwitchArg</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a>&amp; flag, </span>
+<a name="71"><font size=-1>71     </font></a><span class="default">			      </span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a>&amp; name, </span>
+<a name="72"><font size=-1>72     </font></a><span class="default">			      </span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a>&amp; desc,</span>
+<a name="73"><font size=-1>73     </font></a><span class="default">			      </span><span class="keyword">bool </span><span class="default">def = </span><span class="keyword">false</span><span class="default">,</span>
+<a name="74"><font size=-1>74     </font></a><span class="default">				  <a href="dictionary_T.html#2102">Visitor</a>* v = NULL);</span>
+<a name="75"><font size=-1>75     </font></a><span class="default"></span>
+<a name="76"><font size=-1>76     </font></a><span class="default">				  </span>
+<a name="77"><font size=-1>77     </font></a><span class="default">		</span><span class="comment">/**</span>
+<a name="78"><font size=-1>78     </font></a><span class="comment">		 * SwitchArg constructor.</span>
+<a name="79"><font size=-1>79     </font></a><span class="comment">		 * \param flag - The one character flag that identifies this</span>
+<a name="80"><font size=-1>80     </font></a><span class="comment">		 * argument on the command line.</span>
+<a name="81"><font size=-1>81     </font></a><span class="comment">		 * \param name - A one word name for the argument.  Can be</span>
+<a name="82"><font size=-1>82     </font></a><span class="comment">		 * used as a long flag on the command line.</span>
+<a name="83"><font size=-1>83     </font></a><span class="comment">		 * \param desc - A description of what the argument is for or</span>
+<a name="84"><font size=-1>84     </font></a><span class="comment">		 * does.</span>
+<a name="85"><font size=-1>85     </font></a><span class="comment">		 * \param parser - A CmdLine parser object to add this Arg to</span>
+<a name="86"><font size=-1>86     </font></a><span class="comment">		 * \param def - The default value for this Switch.</span>
+<a name="87"><font size=-1>87     </font></a><span class="comment">		 * \param v - An optional visitor.  You probably should not</span>
+<a name="88"><font size=-1>88     </font></a><span class="comment">		 * use this unless you have a very good reason.</span>
+<a name="89"><font size=-1>89     </font></a><span class="comment">		 */</span>
+<a name="90"><font size=-1>90     </font></a><span class="comment">		<a href="dictionary_T.html#3254">SwitchArg</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a>&amp; flag, </span>
+<a name="91"><font size=-1>91     </font></a><span class="default">			      </span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a>&amp; name, </span>
+<a name="92"><font size=-1>92     </font></a><span class="default">			      </span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a>&amp; desc,</span>
+<a name="93"><font size=-1>93     </font></a><span class="default">				  <a href="dictionary_T.html#2104">CmdLineInterface</a>&amp; parser,</span>
+<a name="94"><font size=-1>94     </font></a><span class="default">			      </span><span class="keyword">bool </span><span class="default">def = </span><span class="keyword">false</span><span class="default">,</span>
+<a name="95"><font size=-1>95     </font></a><span class="default">				  <a href="dictionary_T.html#2102">Visitor</a>* v = NULL);</span>
+<a name="96"><font size=-1>96     </font></a><span class="default">				  </span>
+<a name="97"><font size=-1>97     </font></a><span class="default">				  </span>
+<a name="98"><font size=-1>98     </font></a><span class="default">        </span><span class="comment">/**</span>
+<a name="99"><font size=-1>99     </font></a><span class="comment">		 * Handles the processing of the argument.</span>
+<a name="100"><font size=-1>100     </font></a><span class="comment">		 * This re-implements the Arg version of this method to set the</span>
+<a name="101"><font size=-1>101     </font></a><span class="comment">		 * _value of the argument appropriately.</span>
+<a name="102"><font size=-1>102     </font></a><span class="comment">		 * \param i - Pointer the the current argument in the list.</span>
+<a name="103"><font size=-1>103     </font></a><span class="comment">		 * \param args - Mutable list of strings. Passed</span>
+<a name="104"><font size=-1>104     </font></a><span class="comment">		 * in from main().</span>
+<a name="105"><font size=-1>105     </font></a><span class="comment">		 */</span>
+<a name="106"><font size=-1>106     </font></a><span class="comment">		</span><span class="keyword">virtual bool <a href="dictionary_T.html#3255">processArg</a></span><span class="default">(</span><span class="keyword">int</span><span class="default">* i, std::<a href="dictionary_S.html#74">vector</a>&lt;std::string&gt;&amp; args); </span>
+<a name="107"><font size=-1>107     </font></a><span class="default"></span>
+<a name="108"><font size=-1>108     </font></a><span class="default">		</span><span class="comment">/**</span>
+<a name="109"><font size=-1>109     </font></a><span class="comment">		 * Checks a string to see if any of the chars in the string</span>
+<a name="110"><font size=-1>110     </font></a><span class="comment">		 * match the flag for this Switch.</span>
+<a name="111"><font size=-1>111     </font></a><span class="comment">		 */</span>
+<a name="112"><font size=-1>112     </font></a><span class="comment">		</span><span class="keyword">bool <a href="dictionary_T.html#3256">combinedSwitchesMatch</a></span><span class="default">(std::<a href="dictionary_S.html#118">string</a>&amp; combined);</span>
+<a name="113"><font size=-1>113     </font></a><span class="default"></span>
+<a name="114"><font size=-1>114     </font></a><span class="default">		</span><span class="comment">/**</span>
+<a name="115"><font size=-1>115     </font></a><span class="comment">		 * Returns bool, whether or not the switch has been set.</span>
+<a name="116"><font size=-1>116     </font></a><span class="comment">		 */</span>
+<a name="117"><font size=-1>117     </font></a><span class="comment">		</span><span class="keyword">bool <a href="dictionary_T.html#3257">getValue</a></span><span class="default">();</span>
+<a name="118"><font size=-1>118     </font></a><span class="default"></span>
+<a name="119"><font size=-1>119     </font></a><span class="default">};</span>
+<a name="120"><font size=-1>120     </font></a><span class="default"></span>
+<a name="121"><font size=-1>121     </font></a><span class="default"></span><span class="comment">//////////////////////////////////////////////////////////////////////</span>
+<a name="122"><font size=-1>122     </font></a><span class="comment">//BEGIN SwitchArg.cpp</span>
+<a name="123"><font size=-1>123     </font></a><span class="comment">//////////////////////////////////////////////////////////////////////</span>
+<a name="124"><font size=-1>124     </font></a><span class="comment"></span><span class="keyword">inline <a href="dictionary_T.html#3251">SwitchArg</a></span><span class="default">::<a href="dictionary_T.html#3253">SwitchArg</a>(</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a>&amp; <a href="dictionary_F.html#3258">flag</a>, </span>
+<a name="125"><font size=-1>125     </font></a><span class="default">	 		         </span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a>&amp; <a href="dictionary_N.html#3259">name</a>, </span>
+<a name="126"><font size=-1>126     </font></a><span class="default">     		   		 </span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a>&amp; <a href="dictionary_D.html#3260">desc</a>, </span>
+<a name="127"><font size=-1>127     </font></a><span class="default">	     	    	 </span><span class="keyword">bool <a href="dictionary_Non-Alpha.html#3261">_default</a></span><span class="default">,</span>
+<a name="128"><font size=-1>128     </font></a><span class="default">					 <a href="dictionary_T.html#2102">Visitor</a>* <a href="dictionary_V.html#3262">v</a> )</span>
+<a name="129"><font size=-1>129     </font></a><span class="default">: <a href="dictionary_T.html#3263">Arg</a>(<a href="dictionary_F.html#3258">flag</a>, <a href="dictionary_N.html#3259">name</a>, <a href="dictionary_D.html#3260">desc</a>, </span><span class="keyword">false</span><span class="default">, </span><span class="keyword">false</span><span class="default">, <a href="dictionary_V.html#3262">v</a>),</span>
+<a name="130"><font size=-1>130     </font></a><span class="default">  <a href="dictionary_T.html#3252">_value</a>( <a href="dictionary_Non-Alpha.html#3261">_default</a> )</span>
+<a name="131"><font size=-1>131     </font></a><span class="default">{ }</span>
+<a name="132"><font size=-1>132     </font></a><span class="default"></span>
+<a name="133"><font size=-1>133     </font></a><span class="default"></span><span class="keyword">inline <a href="dictionary_T.html#3251">SwitchArg</a></span><span class="default">::<a href="dictionary_T.html#3254">SwitchArg</a>(</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a>&amp; <a href="dictionary_F.html#3264">flag</a>, </span>
+<a name="134"><font size=-1>134     </font></a><span class="default">					</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a>&amp; <a href="dictionary_N.html#3265">name</a>, </span>
+<a name="135"><font size=-1>135     </font></a><span class="default">					</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a>&amp; <a href="dictionary_D.html#3266">desc</a>, </span>
+<a name="136"><font size=-1>136     </font></a><span class="default">					<a href="dictionary_T.html#2104">CmdLineInterface</a>&amp; <a href="dictionary_P.html#3267">parser</a>,</span>
+<a name="137"><font size=-1>137     </font></a><span class="default">					</span><span class="keyword">bool <a href="dictionary_Non-Alpha.html#3268">_default</a></span><span class="default">,</span>
+<a name="138"><font size=-1>138     </font></a><span class="default">					<a href="dictionary_T.html#2102">Visitor</a>* <a href="dictionary_V.html#3269">v</a> )</span>
+<a name="139"><font size=-1>139     </font></a><span class="default">: <a href="dictionary_T.html#3263">Arg</a>(<a href="dictionary_F.html#3264">flag</a>, <a href="dictionary_N.html#3265">name</a>, <a href="dictionary_D.html#3266">desc</a>, </span><span class="keyword">false</span><span class="default">, </span><span class="keyword">false</span><span class="default">, <a href="dictionary_V.html#3269">v</a>),</span>
+<a name="140"><font size=-1>140     </font></a><span class="default">  <a href="dictionary_T.html#3252">_value</a>( <a href="dictionary_Non-Alpha.html#3268">_default</a> )</span>
+<a name="141"><font size=-1>141     </font></a><span class="default">{ </span>
+<a name="142"><font size=-1>142     </font></a><span class="default">	<a href="dictionary_P.html#3267">parser</a>.<a href="dictionary_T.html#2143">add</a>( </span><span class="keyword">this </span><span class="default">);</span>
+<a name="143"><font size=-1>143     </font></a><span class="default">}</span>
+<a name="144"><font size=-1>144     </font></a><span class="default"></span>
+<a name="145"><font size=-1>145     </font></a><span class="default"></span><span class="keyword">inline bool <a href="dictionary_T.html#3251">SwitchArg</a></span><span class="default">::<a href="dictionary_T.html#3257">getValue</a>() { </span><span class="keyword">return <a href="dictionary_T.html#3252">_value</a></span><span class="default">; }</span>
+<a name="146"><font size=-1>146     </font></a><span class="default"></span>
+<a name="147"><font size=-1>147     </font></a><span class="default"></span><span class="keyword">inline bool <a href="dictionary_T.html#3251">SwitchArg</a></span><span class="default">::<a href="dictionary_T.html#3256">combinedSwitchesMatch</a>(std::<a href="dictionary_S.html#118">string</a>&amp; <a href="dictionary_C.html#3270">combinedSwitches</a> )</span>
+<a name="148"><font size=-1>148     </font></a><span class="default">{</span>
+<a name="149"><font size=-1>149     </font></a><span class="default">	</span><span class="comment">// make sure this is actually a combined switch</span>
+<a name="150"><font size=-1>150     </font></a><span class="comment">	</span><span class="keyword">if </span><span class="default">( <a href="dictionary_C.html#3270">combinedSwitches</a>[</span><span class="number">0</span><span class="default">] != <a href="dictionary_T.html#2110">Arg</a>::<a href="dictionary_T.html#3271">flagStartString</a>()[</span><span class="number">0</span><span class="default">] )</span>
+<a name="151"><font size=-1>151     </font></a><span class="default">		</span><span class="keyword">return false</span><span class="default">;</span>
+<a name="152"><font size=-1>152     </font></a><span class="default"></span>
+<a name="153"><font size=-1>153     </font></a><span class="default">	</span><span class="comment">// make sure it isn't a long name </span>
+<a name="154"><font size=-1>154     </font></a><span class="comment">	</span><span class="keyword">if </span><span class="default">( <a href="dictionary_C.html#3270">combinedSwitches</a>.<a href="dictionary_S.html#3272">substr</a>( </span><span class="number">0</span><span class="default">, <a href="dictionary_T.html#2110">Arg</a>::<a href="dictionary_T.html#3273">nameStartString</a>().<a href="dictionary_T.html#3274">length</a>() ) == </span>
+<a name="155"><font size=-1>155     </font></a><span class="default">		 <a href="dictionary_T.html#2110">Arg</a>::<a href="dictionary_T.html#3273">nameStartString</a>() )</span>
+<a name="156"><font size=-1>156     </font></a><span class="default">		</span><span class="keyword">return false</span><span class="default">;</span>
+<a name="157"><font size=-1>157     </font></a><span class="default"></span>
+<a name="158"><font size=-1>158     </font></a><span class="default">	</span><span class="comment">// ok, we're not specifying a ValueArg, so we know that we have</span>
+<a name="159"><font size=-1>159     </font></a><span class="comment">	// a combined switch list.  </span>
+<a name="160"><font size=-1>160     </font></a><span class="comment">	</span><span class="keyword">for </span><span class="default">( </span><span class="keyword">unsigned int <a href="dictionary_I.html#3275">i</a> </span><span class="default">= </span><span class="number">1</span><span class="default">; <a href="dictionary_I.html#3275">i</a> &lt; <a href="dictionary_C.html#3270">combinedSwitches</a>.<a href="dictionary_L.html#3276">length</a>(); <a href="dictionary_I.html#3275">i</a>++ )</span>
+<a name="161"><font size=-1>161     </font></a><span class="default">		</span><span class="keyword">if </span><span class="default">( <a href="dictionary_C.html#3270">combinedSwitches</a>[<a href="dictionary_I.html#3275">i</a>] == <a href="dictionary_T.html#3277">_flag</a>[</span><span class="number">0</span><span class="default">] ) </span>
+<a name="162"><font size=-1>162     </font></a><span class="default">		{</span>
+<a name="163"><font size=-1>163     </font></a><span class="default">			</span><span class="comment">// update the combined switches so this one is no longer present</span>
+<a name="164"><font size=-1>164     </font></a><span class="comment">			// this is necessary so that no unlabeled args are matched</span>
+<a name="165"><font size=-1>165     </font></a><span class="comment">			// later in the processing.</span>
+<a name="166"><font size=-1>166     </font></a><span class="comment">			//combinedSwitches.erase(i,1);</span>
+<a name="167"><font size=-1>167     </font></a><span class="comment">			<a href="dictionary_C.html#3270">combinedSwitches</a></span><span class="default">[<a href="dictionary_I.html#3275">i</a>] = <a href="dictionary_T.html#2110">Arg</a>::<a href="dictionary_T.html#3278">blankChar</a>(); </span>
+<a name="168"><font size=-1>168     </font></a><span class="default">			</span><span class="keyword">return true</span><span class="default">;</span>
+<a name="169"><font size=-1>169     </font></a><span class="default">		}</span>
+<a name="170"><font size=-1>170     </font></a><span class="default"></span>
+<a name="171"><font size=-1>171     </font></a><span class="default">	</span><span class="comment">// none of the switches passed in the list match. </span>
+<a name="172"><font size=-1>172     </font></a><span class="comment">	</span><span class="keyword">return false</span><span class="default">;	</span>
+<a name="173"><font size=-1>173     </font></a><span class="default">}</span>
+<a name="174"><font size=-1>174     </font></a><span class="default"></span>
+<a name="175"><font size=-1>175     </font></a><span class="default"></span>
+<a name="176"><font size=-1>176     </font></a><span class="default"></span><span class="keyword">inline bool <a href="dictionary_T.html#3251">SwitchArg</a></span><span class="default">::<a href="dictionary_T.html#3255">processArg</a>(</span><span class="keyword">int </span><span class="default">*<a href="dictionary_I.html#3279">i</a>, std::<a href="dictionary_S.html#74">vector</a>&lt;std::string&gt;&amp; <a href="dictionary_A.html#3280">args</a>)</span>
+<a name="177"><font size=-1>177     </font></a><span class="default">{</span>
+<a name="178"><font size=-1>178     </font></a><span class="default">	</span><span class="keyword">if </span><span class="default">( <a href="dictionary_T.html#2131">_ignoreable</a> &amp;&amp; <a href="dictionary_T.html#2110">Arg</a>::<a href="dictionary_T.html#3281">ignoreRest</a>() )</span>
+<a name="179"><font size=-1>179     </font></a><span class="default">		</span><span class="keyword">return false</span><span class="default">;</span>
+<a name="180"><font size=-1>180     </font></a><span class="default"></span>
+<a name="181"><font size=-1>181     </font></a><span class="default">	</span><span class="keyword">if </span><span class="default">( <a href="dictionary_T.html#3282">argMatches</a>( <a href="dictionary_A.html#3280">args</a>[*<a href="dictionary_I.html#3279">i</a>] ) || <a href="dictionary_T.html#3256">combinedSwitchesMatch</a>( <a href="dictionary_A.html#3280">args</a>[*<a href="dictionary_I.html#3279">i</a>] ) )</span>
+<a name="182"><font size=-1>182     </font></a><span class="default">	{</span>
+<a name="183"><font size=-1>183     </font></a><span class="default">		</span><span class="comment">// If we match on a combined switch, then we want to return false</span>
+<a name="184"><font size=-1>184     </font></a><span class="comment">		// so that other switches in the combination will also have a</span>
+<a name="185"><font size=-1>185     </font></a><span class="comment">		// chance to match.</span>
+<a name="186"><font size=-1>186     </font></a><span class="comment">		</span><span class="keyword">bool <a href="dictionary_R.html#3283">ret</a> </span><span class="default">= </span><span class="keyword">false</span><span class="default">;</span>
+<a name="187"><font size=-1>187     </font></a><span class="default">		</span><span class="keyword">if </span><span class="default">( <a href="dictionary_T.html#3282">argMatches</a>( <a href="dictionary_A.html#3280">args</a>[*<a href="dictionary_I.html#3279">i</a>] ) )</span>
+<a name="188"><font size=-1>188     </font></a><span class="default">			<a href="dictionary_R.html#3283">ret</a> = </span><span class="keyword">true</span><span class="default">;</span>
+<a name="189"><font size=-1>189     </font></a><span class="default"></span>
+<a name="190"><font size=-1>190     </font></a><span class="default">		</span><span class="keyword">if </span><span class="default">( <a href="dictionary_T.html#2161">_alreadySet</a> || ( !<a href="dictionary_R.html#3283">ret</a> &amp;&amp; <a href="dictionary_T.html#3256">combinedSwitchesMatch</a>( <a href="dictionary_A.html#3280">args</a>[*<a href="dictionary_I.html#3279">i</a>] ) ) )</span>
+<a name="191"><font size=-1>191     </font></a><span class="default">			</span><span class="keyword">throw</span><span class="default">(<a href="dictionary_T.html#3285">CmdLineParseException</a>(</span><span class="string">&quot;Argument already set!&quot;</span><span class="default">, <a href="dictionary_T.html#2134">toString</a>()));	</span>
+<a name="192"><font size=-1>192     </font></a><span class="default"></span>
+<a name="193"><font size=-1>193     </font></a><span class="default">		<a href="dictionary_T.html#2161">_alreadySet</a> = </span><span class="keyword">true</span><span class="default">;</span>
+<a name="194"><font size=-1>194     </font></a><span class="default"></span>
+<a name="195"><font size=-1>195     </font></a><span class="default">		</span><span class="keyword">if </span><span class="default">( <a href="dictionary_T.html#3252">_value</a> == </span><span class="keyword">true </span><span class="default">)</span>
+<a name="196"><font size=-1>196     </font></a><span class="default">			<a href="dictionary_T.html#3252">_value</a> = </span><span class="keyword">false</span><span class="default">;</span>
+<a name="197"><font size=-1>197     </font></a><span class="default">		</span><span class="keyword">else</span>
+<a name="198"><font size=-1>198     </font></a><span class="keyword">			<a href="dictionary_T.html#3252">_value</a> </span><span class="default">= </span><span class="keyword">true</span><span class="default">;</span>
+<a name="199"><font size=-1>199     </font></a><span class="default"></span>
+<a name="200"><font size=-1>200     </font></a><span class="default">		<a href="dictionary_T.html#3286">_checkWithVisitor</a>();</span>
+<a name="201"><font size=-1>201     </font></a><span class="default"></span>
+<a name="202"><font size=-1>202     </font></a><span class="default">		</span><span class="keyword">return <a href="dictionary_R.html#3283">ret</a></span><span class="default">;</span>
+<a name="203"><font size=-1>203     </font></a><span class="default">	}</span>
+<a name="204"><font size=-1>204     </font></a><span class="default">	</span><span class="keyword">else</span>
+<a name="205"><font size=-1>205     </font></a><span class="keyword">		return false</span><span class="default">;</span>
+<a name="206"><font size=-1>206     </font></a><span class="default">}</span>
+<a name="207"><font size=-1>207     </font></a><span class="default"></span>
+<a name="208"><font size=-1>208     </font></a><span class="default"></span><span class="comment">//////////////////////////////////////////////////////////////////////</span>
+<a name="209"><font size=-1>209     </font></a><span class="comment">//End SwitchArg.cpp</span>
+<a name="210"><font size=-1>210     </font></a><span class="comment">//////////////////////////////////////////////////////////////////////</span>
+<a name="211"><font size=-1>211     </font></a><span class="comment"></span>
+<a name="212"><font size=-1>212     </font></a><span class="comment"></span><span class="default">} </span><span class="comment">//namespace TCLAP</span>
+<a name="213"><font size=-1>213     </font></a><span class="comment"></span>
+<a name="214"><font size=-1>214     </font></a><span class="comment"></span><span class="preproc">#endif</span>
+<a name="215"><font size=-1>215     </font></a><span class="preproc"></span>
+</pre></body></html>

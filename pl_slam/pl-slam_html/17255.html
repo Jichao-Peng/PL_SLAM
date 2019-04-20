@@ -1,0 +1,73 @@
+<html><head><title>poly_roots.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/math/poly_roots.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/math/poly_roots.h";
+top.document.title  = "poly_roots.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span>
+<a name="10"><font size=-1>10     </font></a><span class="comment"></span><span class="preproc">#pragma </span><span class="default">once</span>
+<a name="11"><font size=-1>11     </font></a><span class="default"></span>
+<a name="12"><font size=-1>12     </font></a><span class="default"></span><span class="preproc">#include </span><span class="string">&lt;cstdlib&gt;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/mrpt_macros.h&gt;</span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/base/link_pragmas.h&gt;</span>
+<a name="15"><font size=-1>15     </font></a><span class="string"></span>
+<a name="16"><font size=-1>16     </font></a><span class="string"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="17"><font size=-1>17     </font></a><span class="default">{</span>
+<a name="18"><font size=-1>18     </font></a><span class="default">	</span><span class="keyword">namespace </span><span class="default">math</span>
+<a name="19"><font size=-1>19     </font></a><span class="default">	{</span>
+<a name="20"><font size=-1>20     </font></a><span class="default">		</span><span class="comment">/** @addtogroup  polynomial_roots Find polynomial roots (`#include &lt;mrpt/math/poly_roots.h&gt;`)</span>
+<a name="21"><font size=-1>21     </font></a><span class="comment">		  *  \ingroup mrpt_base_grp</span>
+<a name="22"><font size=-1>22     </font></a><span class="comment">		  * @{ */</span>
+<a name="23"><font size=-1>23     </font></a><span class="comment"></span>
+<a name="24"><font size=-1>24     </font></a><span class="comment">		/** Solves cubic equation `x^3 + a*x^2 + b*x + c = 0`. Returns the number of real roots `N`&lt;=3.</span>
+<a name="25"><font size=-1>25     </font></a><span class="comment">		  * The roots are returned in the first entries of `x`, i.e. `x[0]` if N=1, `x[0]` and `x[1]` if N=2, etc.</span>
+<a name="26"><font size=-1>26     </font></a><span class="comment">		  * \param x array of size 3</span>
+<a name="27"><font size=-1>27     </font></a><span class="comment">		  * \note Based on `poly34.h`, by Khashin S.I. http://math.ivanovo.ac.ru/dalgebra/Khashin/index.html - khash2 (at) gmail.com */</span>
+<a name="28"><font size=-1>28     </font></a><span class="comment">		</span><span class="keyword">int <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#17256">solve_poly3</a></span><span class="default">(</span><span class="keyword">double </span><span class="default">*x,</span><span class="keyword">double </span><span class="default">a,</span><span class="keyword">double </span><span class="default">b,</span><span class="keyword">double </span><span class="default">c) <a href="dictionary_M.html#8115">MRPT_NO_THROWS</a>;</span>
+<a name="29"><font size=-1>29     </font></a><span class="default"></span>
+<a name="30"><font size=-1>30     </font></a><span class="default">		</span><span class="comment">/** Solves quartic equation `x^4 + a*x^3 + b*x^2 + c*x + d = 0` by Dekart-Euler method. </span>
+<a name="31"><font size=-1>31     </font></a><span class="comment">		  * Returns the number of real roots `N`&lt;=4:</span>
+<a name="32"><font size=-1>32     </font></a><span class="comment">		  * - return 4: 4 real roots x[0], x[1], x[2], x[3], possible multiple roots</span>
+<a name="33"><font size=-1>33     </font></a><span class="comment">		  * - return 2: 2 real roots x[0], x[1] and complex x[2]+-i*x[3],</span>
+<a name="34"><font size=-1>34     </font></a><span class="comment">		  * - return 0: two pair of complex roots: x[0]+-i*x[1],  x[2]+-i*x[3],</span>
+<a name="35"><font size=-1>35     </font></a><span class="comment">		  *</span>
+<a name="36"><font size=-1>36     </font></a><span class="comment">		  * The roots are returned in the first entries of `x`, i.e. `x[0]` if N=1, `x[0]` and `x[1]` if N=2, etc.</span>
+<a name="37"><font size=-1>37     </font></a><span class="comment">		  * \param x array of size 4</span>
+<a name="38"><font size=-1>38     </font></a><span class="comment">		  * \note Based on `poly34.h`, by Khashin S.I. http://math.ivanovo.ac.ru/dalgebra/Khashin/index.html - khash2 (at) gmail.com */</span>
+<a name="39"><font size=-1>39     </font></a><span class="comment">		</span><span class="keyword">int <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#17257">solve_poly4</a></span><span class="default">(</span><span class="keyword">double </span><span class="default">*x,</span><span class="keyword">double </span><span class="default">a,</span><span class="keyword">double </span><span class="default">b,</span><span class="keyword">double </span><span class="default">c,</span><span class="keyword">double </span><span class="default">d) <a href="dictionary_M.html#8115">MRPT_NO_THROWS</a>;</span>
+<a name="40"><font size=-1>40     </font></a><span class="default"></span>
+<a name="41"><font size=-1>41     </font></a><span class="default">		</span><span class="comment">/** Solves equation `x^5 + a*x^4 + b*x^3 + c*x^2 + d*x + e = 0`.</span>
+<a name="42"><font size=-1>42     </font></a><span class="comment">		  * Returns the number of real roots `N`&lt;=5.</span>
+<a name="43"><font size=-1>43     </font></a><span class="comment">		  * The roots are returned in the first entries of `x`, i.e. `x[0]` if N=1, `x[0]` and `x[1]` if N=2, etc.</span>
+<a name="44"><font size=-1>44     </font></a><span class="comment">		  * \param x array of size 5</span>
+<a name="45"><font size=-1>45     </font></a><span class="comment">		  * \note Based on `poly34.h`, by Khashin S.I. http://math.ivanovo.ac.ru/dalgebra/Khashin/index.html - khash2 (at) gmail.com */</span>
+<a name="46"><font size=-1>46     </font></a><span class="comment">		</span><span class="keyword">int <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#17258">solve_poly5</a></span><span class="default">(</span><span class="keyword">double </span><span class="default">*x,</span><span class="keyword">double </span><span class="default">a,</span><span class="keyword">double </span><span class="default">b,</span><span class="keyword">double </span><span class="default">c,</span><span class="keyword">double </span><span class="default">d,</span><span class="keyword">double </span><span class="default">e) <a href="dictionary_M.html#8115">MRPT_NO_THROWS</a>;</span>
+<a name="47"><font size=-1>47     </font></a><span class="default"></span>
+<a name="48"><font size=-1>48     </font></a><span class="default">		</span><span class="keyword">int  <a href="dictionary_B.html#113">BASE_IMPEXP</a>  <a href="dictionary_M.html#17259">solve_poly4Bi</a></span><span class="default">(</span><span class="keyword">double </span><span class="default">*x, </span><span class="keyword">double </span><span class="default">b, </span><span class="keyword">double </span><span class="default">d) <a href="dictionary_M.html#8115">MRPT_NO_THROWS</a>; </span><span class="comment">//!&lt; Solve equation x^4 + b*x^2 + d = 0</span>
+<a name="49"><font size=-1>49     </font></a><span class="comment">		</span><span class="keyword">int  <a href="dictionary_B.html#113">BASE_IMPEXP</a>  <a href="dictionary_M.html#17260">solve_poly4De</a></span><span class="default">(</span><span class="keyword">double </span><span class="default">*x, </span><span class="keyword">double </span><span class="default">b, </span><span class="keyword">double </span><span class="default">c, </span><span class="keyword">double </span><span class="default">d) <a href="dictionary_M.html#8115">MRPT_NO_THROWS</a>;	</span><span class="comment">//!&lt; Solve equation x^4 + b*x^2 + c*x + d = 0</span>
+<a name="50"><font size=-1>50     </font></a><span class="comment"></span>
+<a name="51"><font size=-1>51     </font></a><span class="comment">		/** Solves equation `a*x^2 + b*x + c = 0`.</span>
+<a name="52"><font size=-1>52     </font></a><span class="comment">		  * Returns the number of real roots: either 0 or 2; or 1 if a=0 (in this case the root is in r1).</span>
+<a name="53"><font size=-1>53     </font></a><span class="comment">		  * r1, r2 are the roots. (r1&lt;=r2)</span>
+<a name="54"><font size=-1>54     </font></a><span class="comment">		  * \note Based on `poly34.h`, by Khashin S.I. http://math.ivanovo.ac.ru/dalgebra/Khashin/index.html - khash2 (at) gmail.com */</span>
+<a name="55"><font size=-1>55     </font></a><span class="comment">		</span><span class="keyword">int <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#17261">solve_poly2</a></span><span class="default">( </span><span class="keyword">double </span><span class="default">a, </span><span class="keyword">double </span><span class="default">b, </span><span class="keyword">double </span><span class="default">c, </span><span class="keyword">double </span><span class="default">&amp;r1, </span><span class="keyword">double </span><span class="default">&amp;r2) <a href="dictionary_M.html#8115">MRPT_NO_THROWS</a>;</span>
+<a name="56"><font size=-1>56     </font></a><span class="default"></span>
+<a name="57"><font size=-1>57     </font></a><span class="default">		</span><span class="comment">/** @} */</span>
+<a name="58"><font size=-1>58     </font></a><span class="comment"></span>
+<a name="59"><font size=-1>59     </font></a><span class="comment">	</span><span class="default">} </span><span class="comment">// End of MATH namespace</span>
+<a name="60"><font size=-1>60     </font></a><span class="comment"></span>
+<a name="61"><font size=-1>61     </font></a><span class="comment"></span><span class="default">} </span><span class="comment">// End of namespace</span>
+<a name="62"><font size=-1>62     </font></a><span class="comment"></span>
+<a name="63"><font size=-1>63     </font></a><span class="comment"></span>
+</pre></body></html>

@@ -1,0 +1,265 @@
+<html><head><title>Simple Invocation Tree [S]</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/></head><body bgcolor="#ffffff" TEXT="#000000"><h2>Simple Invocation Tree</h2><hr><pre>
+</pre><table BORDER CELLPADDING=4><tr><td><a href="simpleinvtree_Non-Alpha.html">Non-Alpha</a></td><td><a href="simpleinvtree_A.html">A</a></td><td><a href="simpleinvtree_B.html">B</a></td><td><a href="simpleinvtree_C.html">C</a></td><td><a href="simpleinvtree_D.html">D</a></td><td><a href="simpleinvtree_E.html">E</a></td><td><a href="simpleinvtree_F.html">F</a></td><td><a href="simpleinvtree_G.html">G</a></td><td>H</td><td><a href="simpleinvtree_I.html">I</a></td><td>J</td><td>K</td><td><a href="simpleinvtree_L.html">L</a></td><td><a href="simpleinvtree_M.html">M</a></td><td><a href="simpleinvtree_N.html">N</a></td><td><a href="simpleinvtree_O.html">O</a></td><td><a href="simpleinvtree_P.html">P</a></td><td>Q</td><td><a href="simpleinvtree_R.html">R</a></td><td><a href="simpleinvtree_S.html">S</a></td><td><a href="simpleinvtree_T.html">T</a></td><td><a href="simpleinvtree_U.html">U</a></td><td>V</td><td>W</td><td>X</td><td>Y</td><td><a href="simpleinvtree_Z.html">Z</a></td></tr></table><pre>
+
+<a href="dictionary_S.html#10226">scalarPow</a>
+| <a href="dictionary_A.html#10228">array</a>
+| <a href="dictionary_P.html#10229">pow</a>
+
+<a href="dictionary_S.html#10130">set_unsafe</a>
+| <a href="dictionary_D.html#10084">derived</a>
+| <a href="dictionary_C.html#5819">coeffRef</a>
+
+<a href="dictionary_S.html#10203">setSize</a>
+| <a href="dictionary_C.html#10101">cols</a>
+| <a href="dictionary_R.html#10099">rows</a>
+| <a href="dictionary_I.html#10210">internal_resize</a>
+| <a href="dictionary_D.html#10084">derived</a>
+| <a href="dictionary_B.html#4008">block</a>
+| <a href="dictionary_S.html#1394">setZero</a>
+
+<a href="dictionary_S.html#4135">SlamConfig::dbowVocL</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#4132">SlamConfig::dbowVocP</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#5211">SlamConfig::fastMatching</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+| <a href="dictionary_S.html#13530">SlamConfig::SlamConfig</a>
+| <a href="dictionary_S.html#13531">SlamConfig::~SlamConfig</a>
+
+<a href="dictionary_S.html#5248">SlamConfig::hasRefinement</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#5399">SlamConfig::kfInlierRatio</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#5575">SlamConfig::lambdaLbaK</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#5573">SlamConfig::lambdaLbaLM</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#6287">SlamConfig::lcInl</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#6188">SlamConfig::lcInlierRatio</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#6139">SlamConfig::lcKFDist</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#6141">SlamConfig::lcKFMaxDist</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#13538">SlamConfig::lcMat</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#6151">SlamConfig::lcNKFClosest</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#6273">SlamConfig::lcRes</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#6293">SlamConfig::lcRot</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#6291">SlamConfig::lcTrs</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#6280">SlamConfig::lcUnc</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#16863">SlamConfig::loadFromFile</a>
+| <a href="dictionary_B.html#4131">boost::filesystem::exists</a>
+| <a href="dictionary_B.html#16865">boost::filesystem::is_regular</a>
+| <a href="dictionary_C.html#16866">Config::loadFromFile</a>
+| <a href="dictionary_Y.html#16868">YAML::LoadFile</a>
+| <a href="dictionary_L.html#16853">loadSafe</a>
+| <a href="dictionary_S.html#6032">SlamConfig::minLMObs</a>
+| <a href="dictionary_S.html#6052">SlamConfig::maxCommonFtsKF</a>
+| <a href="dictionary_S.html#5345">SlamConfig::maxKFEpipP</a>
+| <a href="dictionary_S.html#5379">SlamConfig::maxKFEpipL</a>
+| <a href="dictionary_S.html#13533">SlamConfig::maxLM3DErr</a>
+| <a href="dictionary_S.html#13534">SlamConfig::maxLMDirErr</a>
+| <a href="dictionary_S.html#13537">SlamConfig::maxPointPointError</a>
+| <a href="dictionary_S.html#13536">SlamConfig::maxPointLineError</a>
+| <a href="dictionary_S.html#13535">SlamConfig::maxDirLineError</a>
+| <a href="dictionary_S.html#6475">SlamConfig::minLMEssGraph</a>
+| <a href="dictionary_S.html#3911">SlamConfig::minLMCovGraph</a>
+| <a href="dictionary_S.html#5419">SlamConfig::minKFLocalMap</a>
+| <a href="dictionary_S.html#5573">SlamConfig::lambdaLbaLM</a>
+| <a href="dictionary_S.html#5575">SlamConfig::lambdaLbaK</a>
+| <a href="dictionary_S.html#5577">SlamConfig::maxItersLba</a>
+| <a href="dictionary_S.html#4132">SlamConfig::dbowVocP</a>
+| <a href="dictionary_S.html#4135">SlamConfig::dbowVocL</a>
+| <a href="dictionary_S.html#13538">SlamConfig::lcMat</a>
+| <a href="dictionary_S.html#6273">SlamConfig::lcRes</a>
+| <a href="dictionary_S.html#6280">SlamConfig::lcUnc</a>
+| <a href="dictionary_S.html#6287">SlamConfig::lcInl</a>
+| <a href="dictionary_S.html#6291">SlamConfig::lcTrs</a>
+| <a href="dictionary_S.html#6293">SlamConfig::lcRot</a>
+| <a href="dictionary_S.html#6495">SlamConfig::maxItersPGO</a>
+| <a href="dictionary_S.html#6139">SlamConfig::lcKFDist</a>
+| <a href="dictionary_S.html#6141">SlamConfig::lcKFMaxDist</a>
+| <a href="dictionary_S.html#6151">SlamConfig::lcNKFClosest</a>
+| <a href="dictionary_S.html#6188">SlamConfig::lcInlierRatio</a>
+| <a href="dictionary_S.html#5235">SlamConfig::minPointMatches</a>
+| <a href="dictionary_S.html#5287">SlamConfig::minLineMatches</a>
+| <a href="dictionary_S.html#5399">SlamConfig::kfInlierRatio</a>
+| <a href="dictionary_S.html#5211">SlamConfig::fastMatching</a>
+| <a href="dictionary_S.html#5248">SlamConfig::hasRefinement</a>
+| <a href="dictionary_S.html#5180">SlamConfig::multithreadSLAM</a>
+
+<a href="dictionary_S.html#6052">SlamConfig::maxCommonFtsKF</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#13535">SlamConfig::maxDirLineError</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#5577">SlamConfig::maxItersLba</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#6495">SlamConfig::maxItersPGO</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#5379">SlamConfig::maxKFEpipL</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#5345">SlamConfig::maxKFEpipP</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#13533">SlamConfig::maxLM3DErr</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#13534">SlamConfig::maxLMDirErr</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#13536">SlamConfig::maxPointLineError</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#13537">SlamConfig::maxPointPointError</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#5419">SlamConfig::minKFLocalMap</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#5287">SlamConfig::minLineMatches</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#3911">SlamConfig::minLMCovGraph</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#6475">SlamConfig::minLMEssGraph</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#6032">SlamConfig::minLMObs</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#5235">SlamConfig::minPointMatches</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#5180">SlamConfig::multithreadSLAM</a>
+| <a href="dictionary_S.html#13532">SlamConfig::getInstance</a>
+
+<a href="dictionary_S.html#10193">squareNorm</a>
+| <a href="dictionary_S.html#10194">squaredNorm</a>
+
+<a href="dictionary_S.html#6942">std::operator!=</a>
+| <a href="dictionary_S.html#6941">stlplus::smart_ptr_base::aliases</a>
+
+<a href="dictionary_S.html#6935">std::operator==</a>
+| <a href="dictionary_S.html#6941">stlplus::smart_ptr_base::aliases</a>
+
+<a href="dictionary_S.html#15815">stlplus::clone_copy::operator()</a>
+| <a href="dictionary_C.html#4545">clone</a>
+
+<a href="dictionary_S.html#15811">stlplus::constructor_copy::operator()</a>
+
+<a href="dictionary_S.html#15819">stlplus::no_copy::operator()</a>
+| <a href="dictionary_S.html#4617">stlplus::illegal_copy::illegal_copy</a>
+| <a href="dictionary_S.html#4619">stlplus::illegal_copy::~illegal_copy</a>
+
+<a href="dictionary_S.html#4605">stlplus::null_dereference::null_dereference</a>
+
+<a href="dictionary_S.html#15829">stlplus::smart_ptr::operator=</a>
+| <a href="dictionary_S.html#15797">stlplus::smart_ptr_base::set_value</a>
+
+<a href="dictionary_S.html#15831">stlplus::smart_ptr::operator=</a>
+| <a href="dictionary_S.html#15801">stlplus::smart_ptr_base::alias</a>
+
+<a href="dictionary_S.html#15824">stlplus::smart_ptr::smart_ptr</a>
+| <a href="dictionary_S.html#15785">stlplus::smart_ptr_base::smart_ptr_base</a>
+
+<a href="dictionary_S.html#15825">stlplus::smart_ptr::smart_ptr</a>
+| <a href="dictionary_S.html#15785">stlplus::smart_ptr_base::smart_ptr_base</a>
+
+<a href="dictionary_S.html#15827">stlplus::smart_ptr::smart_ptr</a>
+| <a href="dictionary_S.html#15785">stlplus::smart_ptr_base::smart_ptr_base</a>
+
+<a href="dictionary_S.html#15833">stlplus::smart_ptr::~smart_ptr</a>
+| <a href="dictionary_S.html#15789">stlplus::smart_ptr_base::~smart_ptr_base</a>
+
+<a href="dictionary_S.html#6890">stlplus::smart_ptr_clone::operator=</a>
+| <a href="dictionary_S.html#15797">stlplus::smart_ptr_base::set_value</a>
+
+<a href="dictionary_S.html#15841">stlplus::smart_ptr_clone::operator=</a>
+| <a href="dictionary_S.html#15801">stlplus::smart_ptr_base::alias</a>
+
+<a href="dictionary_S.html#6889">stlplus::smart_ptr_clone::smart_ptr_clone</a>
+| <a href="dictionary_S.html#15785">stlplus::smart_ptr_base::smart_ptr_base</a>
+
+<a href="dictionary_S.html#15836">stlplus::smart_ptr_clone::smart_ptr_clone</a>
+| <a href="dictionary_S.html#15785">stlplus::smart_ptr_base::smart_ptr_base</a>
+
+<a href="dictionary_S.html#15838">stlplus::smart_ptr_clone::smart_ptr_clone</a>
+| <a href="dictionary_S.html#15785">stlplus::smart_ptr_base::smart_ptr_base</a>
+
+<a href="dictionary_S.html#15843">stlplus::smart_ptr_clone::~smart_ptr_clone</a>
+| <a href="dictionary_S.html#15789">stlplus::smart_ptr_base::~smart_ptr_base</a>
+
+<a href="dictionary_S.html#15852">stlplus::smart_ptr_nocopy::operator=</a>
+| <a href="dictionary_S.html#15797">stlplus::smart_ptr_base::set_value</a>
+
+<a href="dictionary_S.html#15854">stlplus::smart_ptr_nocopy::operator=</a>
+| <a href="dictionary_S.html#15801">stlplus::smart_ptr_base::alias</a>
+
+<a href="dictionary_S.html#15847">stlplus::smart_ptr_nocopy::smart_ptr_nocopy</a>
+| <a href="dictionary_S.html#15785">stlplus::smart_ptr_base::smart_ptr_base</a>
+
+<a href="dictionary_S.html#15848">stlplus::smart_ptr_nocopy::smart_ptr_nocopy</a>
+| <a href="dictionary_S.html#15785">stlplus::smart_ptr_base::smart_ptr_base</a>
+
+<a href="dictionary_S.html#15850">stlplus::smart_ptr_nocopy::smart_ptr_nocopy</a>
+| <a href="dictionary_S.html#15785">stlplus::smart_ptr_base::smart_ptr_base</a>
+
+<a href="dictionary_S.html#15856">stlplus::smart_ptr_nocopy::~smart_ptr_nocopy</a>
+| <a href="dictionary_S.html#15789">stlplus::smart_ptr_base::~smart_ptr_base</a>
+
+<a href="dictionary_S.html#10333">substract_AAt</a>
+| <a href="dictionary_N.html#10329">noalias</a>
+| <a href="dictionary_A.html#10265">adjoint</a>
+
+<a href="dictionary_S.html#10325">substract_An</a>
+| <a href="dictionary_N.html#10329">noalias</a>
+
+<a href="dictionary_S.html#10322">substract_At</a>
+| <a href="dictionary_A.html#10265">adjoint</a>
+
+<a href="dictionary_S.html#10195">sumAll</a>
+| <a href="dictionary_D.html#10084">derived</a>
+| <a href="dictionary_S.html#8474">sum</a>
+
+<a href="dictionary_S.html#10157">swapCols</a>
+| <a href="dictionary_D.html#10084">derived</a>
+| <a href="dictionary_C.html#3847">col</a>
+| <a href="dictionary_S.html#3709">swap</a>
+
+<a href="dictionary_S.html#10160">swapRows</a>
+| <a href="dictionary_D.html#10084">derived</a>
+| <a href="dictionary_R.html#5172">row</a>
+| <a href="dictionary_S.html#3709">swap</a>
+</pre><hr>
+<table BORDER CELLPADDING=4><tr><td><a href="simpleinvtree_Non-Alpha.html">Non-Alpha</a></td><td><a href="simpleinvtree_A.html">A</a></td><td><a href="simpleinvtree_B.html">B</a></td><td><a href="simpleinvtree_C.html">C</a></td><td><a href="simpleinvtree_D.html">D</a></td><td><a href="simpleinvtree_E.html">E</a></td><td><a href="simpleinvtree_F.html">F</a></td><td><a href="simpleinvtree_G.html">G</a></td><td>H</td><td><a href="simpleinvtree_I.html">I</a></td><td>J</td><td>K</td><td><a href="simpleinvtree_L.html">L</a></td><td><a href="simpleinvtree_M.html">M</a></td><td><a href="simpleinvtree_N.html">N</a></td><td><a href="simpleinvtree_O.html">O</a></td><td><a href="simpleinvtree_P.html">P</a></td><td>Q</td><td><a href="simpleinvtree_R.html">R</a></td><td><a href="simpleinvtree_S.html">S</a></td><td><a href="simpleinvtree_T.html">T</a></td><td><a href="simpleinvtree_U.html">U</a></td><td>V</td><td>W</td><td>X</td><td>Y</td><td><a href="simpleinvtree_Z.html">Z</a></td></tr></table></body></html>

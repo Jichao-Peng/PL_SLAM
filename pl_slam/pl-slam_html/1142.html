@@ -1,0 +1,54 @@
+<html><head><title>CMatrixB.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/math/CMatrixB.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/math/CMatrixB.h";
+top.document.title  = "CMatrixB.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span><span class="preproc">#ifndef <a href="dictionary_C.html#1143">CMATRIXB_H</a></span>
+<a name="10"><font size=-1>10     </font></a><span class="preproc">#define <a href="dictionary_C.html#1143">CMATRIXB_H</a></span>
+<a name="11"><font size=-1>11     </font></a><span class="preproc"></span>
+<a name="12"><font size=-1>12     </font></a><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/CSerializable.h&gt;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/math/CMatrixTemplate.h&gt;</span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span>
+<a name="15"><font size=-1>15     </font></a><span class="string"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="16"><font size=-1>16     </font></a><span class="default">{</span>
+<a name="17"><font size=-1>17     </font></a><span class="default">	</span><span class="keyword">namespace </span><span class="default">math</span>
+<a name="18"><font size=-1>18     </font></a><span class="default">	{</span>
+<a name="19"><font size=-1>19     </font></a><span class="default">		</span><span class="comment">// This must be added to any CSerializable derived class:</span>
+<a name="20"><font size=-1>20     </font></a><span class="comment">		<a href="dictionary_D.html#859">DEFINE_SERIALIZABLE_PRE_CUSTOM_BASE</a></span><span class="default">( <a href="dictionary_M.html#1145">CMatrixB</a>, mrpt::utils::CSerializable )</span>
+<a name="21"><font size=-1>21     </font></a><span class="default"></span>
+<a name="22"><font size=-1>22     </font></a><span class="default">		</span><span class="comment">/**  This class is a &quot;CSerializable&quot; wrapper for &quot;CMatrixBool&quot;.</span>
+<a name="23"><font size=-1>23     </font></a><span class="comment">		 * \note For a complete introduction to Matrices and vectors in MRPT, see: http://www.mrpt.org/Matrices_vectors_arrays_and_Linear_Algebra_MRPT_and_Eigen_classes</span>
+<a name="24"><font size=-1>24     </font></a><span class="comment">		 * \ingroup mrpt_base_grp</span>
+<a name="25"><font size=-1>25     </font></a><span class="comment">		 */</span>
+<a name="26"><font size=-1>26     </font></a><span class="comment">		</span><span class="keyword">class <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#1145">CMatrixB</a> </span><span class="default">: </span><span class="keyword">public </span><span class="default">mrpt::utils::<a href="dictionary_M.html#520">CSerializable</a>, </span><span class="keyword">public <a href="dictionary_M.html#1148">CMatrixBool</a></span>
+<a name="27"><font size=-1>27     </font></a><span class="keyword">		</span><span class="default">{</span>
+<a name="28"><font size=-1>28     </font></a><span class="default">			</span><span class="comment">// This must be added to any CSerializable derived class:</span>
+<a name="29"><font size=-1>29     </font></a><span class="comment">			<a href="dictionary_D.html#561">DEFINE_SERIALIZABLE</a></span><span class="default">( <a href="dictionary_M.html#1145">CMatrixB</a> )</span>
+<a name="30"><font size=-1>30     </font></a><span class="default">		</span><span class="keyword">public</span><span class="default">:</span>
+<a name="31"><font size=-1>31     </font></a><span class="default">			</span><span class="comment">/** Constructor */</span>
+<a name="32"><font size=-1>32     </font></a><span class="comment">			<a href="dictionary_M.html#1180">CMatrixB</a></span><span class="default">(<a href="dictionary_S.html#56">size_t</a> <a href="dictionary_R.html#1181">row</a> = </span><span class="number">1</span><span class="default">, <a href="dictionary_S.html#56">size_t</a> <a href="dictionary_C.html#1182">col</a> = </span><span class="number">1</span><span class="default">) : <a href="dictionary_M.html#1187">CMatrixBool</a>(<a href="dictionary_R.html#1181">row</a>,<a href="dictionary_C.html#1182">col</a>) { }</span>
+<a name="33"><font size=-1>33     </font></a><span class="default">			</span><span class="comment">/** Copy constructor */</span>
+<a name="34"><font size=-1>34     </font></a><span class="comment">			<a href="dictionary_M.html#1183">CMatrixB</a></span><span class="default">( </span><span class="keyword">const <a href="dictionary_M.html#1148">CMatrixBool</a> </span><span class="default">&amp;<a href="dictionary_M.html#1184">m</a> ) : <a href="dictionary_M.html#1187">CMatrixBool</a>(<a href="dictionary_M.html#1184">m</a>)  { }</span>
+<a name="35"><font size=-1>35     </font></a><span class="default">			</span><span class="comment">/** Assignment operator for float matrixes */</span>
+<a name="36"><font size=-1>36     </font></a><span class="comment">			<a href="dictionary_M.html#1145">CMatrixB</a> </span><span class="default">&amp; </span><span class="keyword">operator </span><span class="default">= (</span><span class="keyword">const <a href="dictionary_M.html#1148">CMatrixBool</a></span><span class="default">&amp; <a href="dictionary_M.html#1186">m</a>) { <a href="dictionary_M.html#1148">CMatrixBool</a>::</span><span class="keyword">operator </span><span class="default">=(<a href="dictionary_M.html#1186">m</a>); </span><span class="keyword">return </span><span class="default">*</span><span class="keyword">this</span><span class="default">; }</span>
+<a name="37"><font size=-1>37     </font></a><span class="default">		}; </span><span class="comment">// end of class definition</span>
+<a name="38"><font size=-1>38     </font></a><span class="comment">		<a href="dictionary_D.html#897">DEFINE_SERIALIZABLE_POST_CUSTOM_BASE</a></span><span class="default">( <a href="dictionary_M.html#1145">CMatrixB</a>, mrpt::utils::<a href="dictionary_M.html#520">CSerializable</a> )</span>
+<a name="39"><font size=-1>39     </font></a><span class="default"></span>
+<a name="40"><font size=-1>40     </font></a><span class="default">	} </span><span class="comment">// End of namespace</span>
+<a name="41"><font size=-1>41     </font></a><span class="comment"></span><span class="default">} </span><span class="comment">// End of namespace</span>
+<a name="42"><font size=-1>42     </font></a><span class="comment"></span>
+<a name="43"><font size=-1>43     </font></a><span class="comment"></span><span class="preproc">#endif</span>
+<a name="44"><font size=-1>44     </font></a><span class="preproc"></span>
+</pre></body></html>

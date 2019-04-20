@@ -32,9 +32,8 @@ KeyFrame::KeyFrame( const StereoFrame* sf )
 {
     int i=0;
     kf_idx    = -1;
-    x_kf_w    = logmap_se3( T_kf_w );
-
     T_kf_w    = sf->Tfw ;
+    x_kf_w    = logmap_se3( T_kf_w );
     xcov_kf_w = sf->Tfw_cov;
 
     //这里并没有直接使用指针赋值，而是把内容复制了一遍

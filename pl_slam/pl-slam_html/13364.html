@@ -1,0 +1,245 @@
+<html><head><title>CLevenbergMarquardt.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/math/CLevenbergMarquardt.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/math/CLevenbergMarquardt.h";
+top.document.title  = "CLevenbergMarquardt.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span><span class="preproc">#ifndef  <a href="dictionary_C.html#13365">CLevenbergMarquardt_H</a></span>
+<a name="10"><font size=-1>10     </font></a><span class="preproc">#define  <a href="dictionary_C.html#13365">CLevenbergMarquardt_H</a></span>
+<a name="11"><font size=-1>11     </font></a><span class="preproc"></span>
+<a name="12"><font size=-1>12     </font></a><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/CDebugOutputCapable.h&gt;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/types_math.h&gt;</span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/math/num_jacobian.h&gt;</span>
+<a name="15"><font size=-1>15     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/printf_vector.h&gt;</span>
+<a name="16"><font size=-1>16     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/math/ops_containers.h&gt;</span>
+<a name="17"><font size=-1>17     </font></a><span class="string"></span>
+<a name="18"><font size=-1>18     </font></a><span class="string"></span><span class="comment">/*---------------------------------------------------------------</span>
+<a name="19"><font size=-1>19     </font></a><span class="comment">	Class</span>
+<a name="20"><font size=-1>20     </font></a><span class="comment">  ---------------------------------------------------------------*/</span>
+<a name="21"><font size=-1>21     </font></a><span class="comment"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="22"><font size=-1>22     </font></a><span class="default">{</span>
+<a name="23"><font size=-1>23     </font></a><span class="default"></span><span class="keyword">namespace </span><span class="default">math</span>
+<a name="24"><font size=-1>24     </font></a><span class="default">{</span>
+<a name="25"><font size=-1>25     </font></a><span class="default">	</span><span class="comment">/** An implementation of the Levenberg-Marquardt algorithm for least-square minimization.</span>
+<a name="26"><font size=-1>26     </font></a><span class="comment">	 *</span>
+<a name="27"><font size=-1>27     </font></a><span class="comment">	 *  Refer to this &lt;a href=&quot;http://www.mrpt.org/Levenberg%E2%80%93Marquardt_algorithm&quot; &gt;page&lt;/a&gt; for more details on the algorithm and its usage.</span>
+<a name="28"><font size=-1>28     </font></a><span class="comment">	 *</span>
+<a name="29"><font size=-1>29     </font></a><span class="comment">	 * \tparam NUMTYPE The numeric type for all the operations (float, double, or long double)</span>
+<a name="30"><font size=-1>30     </font></a><span class="comment">	 * \tparam USERPARAM The type of the &quot;y&quot; input to the user supplied evaluation functor. Default type is a vector of NUMTYPE.</span>
+<a name="31"><font size=-1>31     </font></a><span class="comment">	 * \ingroup mrpt_base_grp</span>
+<a name="32"><font size=-1>32     </font></a><span class="comment">	 */</span>
+<a name="33"><font size=-1>33     </font></a><span class="comment">	</span><span class="keyword">template </span><span class="default">&lt;</span><span class="keyword">typename <a href="dictionary_M.html#13367">VECTORTYPE</a> </span><span class="default">= Eigen::VectorXd, </span><span class="keyword">class <a href="dictionary_M.html#13368">USERPARAM</a> </span><span class="default">= VECTORTYPE &gt;</span>
+<a name="34"><font size=-1>34     </font></a><span class="default">	</span><span class="keyword">class <a href="dictionary_M.html#13366">CLevenbergMarquardtTempl</a> </span><span class="default">: </span><span class="keyword">public </span><span class="default">mrpt::utils::<a href="dictionary_M.html#8069">CDebugOutputCapable</a></span>
+<a name="35"><font size=-1>35     </font></a><span class="default">	{</span>
+<a name="36"><font size=-1>36     </font></a><span class="default">	</span><span class="keyword">public</span><span class="default">:</span>
+<a name="37"><font size=-1>37     </font></a><span class="default">		</span><span class="keyword">typedef typename <a href="dictionary_M.html#13367">VECTORTYPE</a></span><span class="default">::<a href="dictionary_M.html#3522">Scalar</a>  <a href="dictionary_M.html#13369">NUMTYPE</a>;</span>
+<a name="38"><font size=-1>38     </font></a><span class="default">		</span><span class="keyword">typedef </span><span class="default">Eigen::<a href="dictionary_E.html#1671">Matrix</a>&lt;NUMTYPE,Eigen::Dynamic,Eigen::Dynamic&gt;  <a href="dictionary_M.html#13371">matrix_t</a>;</span>
+<a name="39"><font size=-1>39     </font></a><span class="default">		</span><span class="keyword">typedef <a href="dictionary_M.html#13367">VECTORTYPE</a> <a href="dictionary_M.html#13372">vector_t</a></span><span class="default">;</span>
+<a name="40"><font size=-1>40     </font></a><span class="default"></span>
+<a name="41"><font size=-1>41     </font></a><span class="default"></span>
+<a name="42"><font size=-1>42     </font></a><span class="default">		</span><span class="comment">/** The type of the function passed to execute. The user must supply a function which evaluates the error of a given point in the solution space.</span>
+<a name="43"><font size=-1>43     </font></a><span class="comment">		  *  \param x The state point under examination.</span>
+<a name="44"><font size=-1>44     </font></a><span class="comment">		  *  \param y The same object passed to &quot;execute&quot; as the parameter &quot;userParam&quot;.</span>
+<a name="45"><font size=-1>45     </font></a><span class="comment">		  *  \param out The vector of (non-squared) errors, of the average square root error, for the given &quot;x&quot;. The functor code must set the size of this vector.</span>
+<a name="46"><font size=-1>46     </font></a><span class="comment">		  */</span>
+<a name="47"><font size=-1>47     </font></a><span class="comment">		</span><span class="keyword">typedef void </span><span class="default">(*<a href="dictionary_M.html#13373">TFunctorEval</a>)(</span>
+<a name="48"><font size=-1>48     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">VECTORTYPE &amp;x,</span>
+<a name="49"><font size=-1>49     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">USERPARAM &amp;y,</span>
+<a name="50"><font size=-1>50     </font></a><span class="default">			VECTORTYPE &amp;out);</span>
+<a name="51"><font size=-1>51     </font></a><span class="default"></span>
+<a name="52"><font size=-1>52     </font></a><span class="default">		</span><span class="comment">/** The type of an optional functor passed to \a execute to replace the Euclidean addition &quot;x_new = x_old + x_incr&quot; by any other operation.</span>
+<a name="53"><font size=-1>53     </font></a><span class="comment">		  */</span>
+<a name="54"><font size=-1>54     </font></a><span class="comment">		</span><span class="keyword">typedef void </span><span class="default">(*<a href="dictionary_M.html#13374">TFunctorIncrement</a>)(</span>
+<a name="55"><font size=-1>55     </font></a><span class="default">			VECTORTYPE &amp;x_new,</span>
+<a name="56"><font size=-1>56     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">VECTORTYPE &amp;x_old,</span>
+<a name="57"><font size=-1>57     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">VECTORTYPE &amp;x_incr,</span>
+<a name="58"><font size=-1>58     </font></a><span class="default">			</span><span class="keyword">const </span><span class="default">USERPARAM &amp;user_param);</span>
+<a name="59"><font size=-1>59     </font></a><span class="default"></span>
+<a name="60"><font size=-1>60     </font></a><span class="default">		</span><span class="keyword">struct <a href="dictionary_M.html#13375">TResultInfo</a></span>
+<a name="61"><font size=-1>61     </font></a><span class="keyword">		</span><span class="default">{</span>
+<a name="62"><font size=-1>62     </font></a><span class="default">			<a href="dictionary_M.html#13369">NUMTYPE</a>		<a href="dictionary_M.html#13376">final_sqr_err</a>;</span>
+<a name="63"><font size=-1>63     </font></a><span class="default">			<a href="dictionary_S.html#56">size_t</a>		<a href="dictionary_M.html#13377">iterations_executed</a>;</span>
+<a name="64"><font size=-1>64     </font></a><span class="default">			<a href="dictionary_M.html#13367">VECTORTYPE</a>	<a href="dictionary_M.html#13378">last_err_vector</a>;		</span><span class="comment">//!&lt; The last error vector returned by the user-provided functor.</span>
+<a name="65"><font size=-1>65     </font></a><span class="comment">			<a href="dictionary_M.html#13371">matrix_t</a>	<a href="dictionary_M.html#13379">path</a></span><span class="default">;	</span><span class="comment">//!&lt; Each row is the optimized value at each iteration.</span>
+<a name="66"><font size=-1>66     </font></a><span class="comment"></span>
+<a name="67"><font size=-1>67     </font></a><span class="comment">			/** This matrix can be used to obtain an estimate of the optimal parameters covariance matrix:</span>
+<a name="68"><font size=-1>68     </font></a><span class="comment">			  *  \f[ COV = H M H^\top \f]</span>
+<a name="69"><font size=-1>69     </font></a><span class="comment">			  *  With COV the covariance matrix of the optimal parameters, H this matrix, and M the covariance of the input (observations).</span>
+<a name="70"><font size=-1>70     </font></a><span class="comment">			  */</span>
+<a name="71"><font size=-1>71     </font></a><span class="comment"> 			<a href="dictionary_M.html#13371">matrix_t</a> <a href="dictionary_M.html#13380">H</a></span><span class="default">;</span>
+<a name="72"><font size=-1>72     </font></a><span class="default">		};</span>
+<a name="73"><font size=-1>73     </font></a><span class="default"></span>
+<a name="74"><font size=-1>74     </font></a><span class="default">		</span><span class="comment">/** Executes the LM-method, with derivatives estimated from</span>
+<a name="75"><font size=-1>75     </font></a><span class="comment">		  *  \a functor is a user-provided function which takes as input two vectors, in this order:</span>
+<a name="76"><font size=-1>76     </font></a><span class="comment">		  *		- x: The parameters to be optimized.</span>
+<a name="77"><font size=-1>77     </font></a><span class="comment">		  *		- userParam: The vector passed to the LM algorithm, unmodified.</span>
+<a name="78"><font size=-1>78     </font></a><span class="comment">		  *	  and must return the &quot;error vector&quot;, or the error (not squared) in each measured dimension, so the sum of the square of that output is the overall square error.</span>
+<a name="79"><font size=-1>79     </font></a><span class="comment">		  *</span>
+<a name="80"><font size=-1>80     </font></a><span class="comment">		  * \a x_increment_adder Is an optional functor which may replace the Euclidean &quot;x_new = x + x_increment&quot; at the core of the incremental optimizer by</span>
+<a name="81"><font size=-1>81     </font></a><span class="comment">		  *     any other operation. It can be used for example, in on-manifold optimizations.</span>
+<a name="82"><font size=-1>82     </font></a><span class="comment">		  */</span>
+<a name="83"><font size=-1>83     </font></a><span class="comment">		</span><span class="keyword">static void	<a href="dictionary_M.html#13381">execute</a></span><span class="default">(</span>
+<a name="84"><font size=-1>84     </font></a><span class="default">			<a href="dictionary_M.html#13367">VECTORTYPE</a>			&amp;<a href="dictionary_O.html#13382">out_optimal_x</a>,</span>
+<a name="85"><font size=-1>85     </font></a><span class="default">			</span><span class="keyword">const <a href="dictionary_M.html#13367">VECTORTYPE</a>	</span><span class="default">&amp;<a href="dictionary_X.html#13383">x0</a>,</span>
+<a name="86"><font size=-1>86     </font></a><span class="default">			<a href="dictionary_M.html#13373">TFunctorEval</a>		<a href="dictionary_F.html#13384">functor</a>,</span>
+<a name="87"><font size=-1>87     </font></a><span class="default">			</span><span class="keyword">const <a href="dictionary_M.html#13367">VECTORTYPE</a>	</span><span class="default">&amp;<a href="dictionary_I.html#13385">increments</a>,</span>
+<a name="88"><font size=-1>88     </font></a><span class="default">			</span><span class="keyword">const <a href="dictionary_M.html#13368">USERPARAM</a>		</span><span class="default">&amp;<a href="dictionary_U.html#13386">userParam</a>,</span>
+<a name="89"><font size=-1>89     </font></a><span class="default">			<a href="dictionary_M.html#13375">TResultInfo</a>			&amp;<a href="dictionary_O.html#13387">out_info</a>,</span>
+<a name="90"><font size=-1>90     </font></a><span class="default">			</span><span class="keyword">bool				<a href="dictionary_V.html#13388">verbose</a> </span><span class="default">= </span><span class="keyword">false</span><span class="default">,</span>
+<a name="91"><font size=-1>91     </font></a><span class="default">			</span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a>		<a href="dictionary_M.html#13389">maxIter</a> </span><span class="default">= </span><span class="number">200</span><span class="default">,</span>
+<a name="92"><font size=-1>92     </font></a><span class="default">			</span><span class="keyword">const <a href="dictionary_M.html#13369">NUMTYPE</a>		<a href="dictionary_T.html#13390">tau</a> </span><span class="default">= </span><span class="number">1e-3</span><span class="default">,</span>
+<a name="93"><font size=-1>93     </font></a><span class="default">			</span><span class="keyword">const <a href="dictionary_M.html#13369">NUMTYPE</a>		<a href="dictionary_E.html#13391">e1</a> </span><span class="default">= </span><span class="number">1e-8</span><span class="default">,</span>
+<a name="94"><font size=-1>94     </font></a><span class="default">			</span><span class="keyword">const <a href="dictionary_M.html#13369">NUMTYPE</a>		<a href="dictionary_E.html#13392">e2</a> </span><span class="default">= </span><span class="number">1e-8</span><span class="default">,</span>
+<a name="95"><font size=-1>95     </font></a><span class="default">			</span><span class="keyword">bool                <a href="dictionary_R.html#13393">returnPath</a> </span><span class="default">=</span><span class="keyword">true</span><span class="default">,</span>
+<a name="96"><font size=-1>96     </font></a><span class="default">			<a href="dictionary_M.html#13374">TFunctorIncrement</a>	<a href="dictionary_X.html#13394">x_increment_adder</a> = NULL</span>
+<a name="97"><font size=-1>97     </font></a><span class="default">			)</span>
+<a name="98"><font size=-1>98     </font></a><span class="default">		{</span>
+<a name="99"><font size=-1>99     </font></a><span class="default">			</span><span class="keyword">using namespace </span><span class="default">mrpt;</span>
+<a name="100"><font size=-1>100     </font></a><span class="default">			</span><span class="keyword">using namespace </span><span class="default">mrpt::utils;</span>
+<a name="101"><font size=-1>101     </font></a><span class="default">			</span><span class="keyword">using namespace </span><span class="default">mrpt::math;</span>
+<a name="102"><font size=-1>102     </font></a><span class="default">			</span><span class="keyword">using namespace </span><span class="default">std;</span>
+<a name="103"><font size=-1>103     </font></a><span class="default"></span>
+<a name="104"><font size=-1>104     </font></a><span class="default">			<a href="dictionary_M.html#432">MRPT_START</a></span>
+<a name="105"><font size=-1>105     </font></a><span class="default"></span>
+<a name="106"><font size=-1>106     </font></a><span class="default">			<a href="dictionary_V.html#13395">VECTORTYPE</a> &amp;<a href="dictionary_X.html#8247">x</a>=<a href="dictionary_O.html#13382">out_optimal_x</a>; </span><span class="comment">// Var rename</span>
+<a name="107"><font size=-1>107     </font></a><span class="comment"></span>
+<a name="108"><font size=-1>108     </font></a><span class="comment">			// Asserts:</span>
+<a name="109"><font size=-1>109     </font></a><span class="comment">			<a href="dictionary_A.html#440">ASSERT_</a></span><span class="default">( <a href="dictionary_I.html#13385">increments</a>.<a href="dictionary_S.html#442">size</a>() == <a href="dictionary_X.html#13383">x0</a>.size() );</span>
+<a name="110"><font size=-1>110     </font></a><span class="default"></span>
+<a name="111"><font size=-1>111     </font></a><span class="default">			<a href="dictionary_X.html#8247">x</a>=<a href="dictionary_X.html#13383">x0</a>;									</span><span class="comment">// Start with the starting point</span>
+<a name="112"><font size=-1>112     </font></a><span class="comment">			<a href="dictionary_M.html#13367">VECTORTYPE</a>	<a href="dictionary_F.html#13396">f_x</a></span><span class="default">;					</span><span class="comment">// The vector error from the user function</span>
+<a name="113"><font size=-1>113     </font></a><span class="comment">			<a href="dictionary_M.html#13371">matrix_t</a> <a href="dictionary_A.html#13397">AUX</a></span><span class="default">;</span>
+<a name="114"><font size=-1>114     </font></a><span class="default">			<a href="dictionary_M.html#13371">matrix_t</a> <a href="dictionary_J.html#13398">J</a>;		</span><span class="comment">// The Jacobian of &quot;f&quot;</span>
+<a name="115"><font size=-1>115     </font></a><span class="comment">			<a href="dictionary_M.html#13367">VECTORTYPE</a>	<a href="dictionary_G.html#13399">g</a></span><span class="default">;						</span><span class="comment">// The gradient</span>
+<a name="116"><font size=-1>116     </font></a><span class="comment"></span>
+<a name="117"><font size=-1>117     </font></a><span class="comment">			// Compute the jacobian and the Hessian:</span>
+<a name="118"><font size=-1>118     </font></a><span class="comment">			</span><span class="default">mrpt::math::<a href="dictionary_M.html#7219">estimateJacobian</a>( <a href="dictionary_X.html#8247">x</a>, <a href="dictionary_F.html#13384">functor</a>, <a href="dictionary_I.html#13385">increments</a>, <a href="dictionary_U.html#13386">userParam</a>, <a href="dictionary_J.html#13398">J</a>);</span>
+<a name="119"><font size=-1>119     </font></a><span class="default">			<a href="dictionary_O.html#13387">out_info</a>.<a href="dictionary_M.html#13380">H</a>.<a href="dictionary_M.html#13400">multiply_AtA</a>(<a href="dictionary_J.html#13398">J</a>);</span>
+<a name="120"><font size=-1>120     </font></a><span class="default"></span>
+<a name="121"><font size=-1>121     </font></a><span class="default">			</span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a>  <a href="dictionary_H.html#13401">H_len</a> </span><span class="default">= <a href="dictionary_O.html#13387">out_info</a>.<a href="dictionary_M.html#13380">H</a>.<a href="dictionary_G.html#1787">getColCount</a>();</span>
+<a name="122"><font size=-1>122     </font></a><span class="default"></span>
+<a name="123"><font size=-1>123     </font></a><span class="default">			</span><span class="comment">// Compute the gradient:</span>
+<a name="124"><font size=-1>124     </font></a><span class="comment">			<a href="dictionary_F.html#13384">functor</a></span><span class="default">(<a href="dictionary_X.html#8247">x</a>, <a href="dictionary_U.html#13386">userParam</a> ,<a href="dictionary_F.html#13396">f_x</a>);</span>
+<a name="125"><font size=-1>125     </font></a><span class="default">			<a href="dictionary_J.html#13398">J</a>.<a href="dictionary_M.html#13402">multiply_Atb</a>(<a href="dictionary_F.html#13396">f_x</a>, <a href="dictionary_G.html#13399">g</a>);</span>
+<a name="126"><font size=-1>126     </font></a><span class="default"></span>
+<a name="127"><font size=-1>127     </font></a><span class="default">			</span><span class="comment">// Start iterations:</span>
+<a name="128"><font size=-1>128     </font></a><span class="comment">			</span><span class="keyword">bool	<a href="dictionary_F.html#13403">found</a> </span><span class="default">= math::<a href="dictionary_M.html#8417">norm_inf</a>(<a href="dictionary_G.html#13399">g</a>)&lt;=<a href="dictionary_E.html#13391">e1</a>;</span>
+<a name="129"><font size=-1>129     </font></a><span class="default">			</span><span class="keyword">if </span><span class="default">(<a href="dictionary_V.html#13388">verbose</a> &amp;&amp; <a href="dictionary_F.html#13403">found</a>)	<a href="dictionary_M.html#13404">printf_debug</a>(</span><span class="string">&quot;[LM] End condition: math::norm_inf(g)&lt;=e1 :%f\n&quot;</span><span class="default">,math::<a href="dictionary_M.html#8417">norm_inf</a>(<a href="dictionary_G.html#13399">g</a>));</span>
+<a name="130"><font size=-1>130     </font></a><span class="default"></span>
+<a name="131"><font size=-1>131     </font></a><span class="default">			<a href="dictionary_M.html#13369">NUMTYPE</a>	<a href="dictionary_L.html#13405">lambda</a> = <a href="dictionary_T.html#13390">tau</a> * <a href="dictionary_O.html#13387">out_info</a>.<a href="dictionary_M.html#13380">H</a>.<a href="dictionary_M.html#13406">maximumDiagonal</a>();</span>
+<a name="132"><font size=-1>132     </font></a><span class="default">			<a href="dictionary_S.html#56">size_t</a>  <a href="dictionary_I.html#13407">iter</a> = </span><span class="number">0</span><span class="default">;</span>
+<a name="133"><font size=-1>133     </font></a><span class="default">			<a href="dictionary_M.html#13369">NUMTYPE</a>	<a href="dictionary_V.html#13408">v</a> = </span><span class="number">2</span><span class="default">;</span>
+<a name="134"><font size=-1>134     </font></a><span class="default"></span>
+<a name="135"><font size=-1>135     </font></a><span class="default">			<a href="dictionary_M.html#13367">VECTORTYPE</a>	<a href="dictionary_H.html#13409">h_lm</a>;</span>
+<a name="136"><font size=-1>136     </font></a><span class="default">			<a href="dictionary_M.html#13367">VECTORTYPE</a>	<a href="dictionary_X.html#13410">xnew</a>, <a href="dictionary_F.html#13411">f_xnew</a> ;</span>
+<a name="137"><font size=-1>137     </font></a><span class="default">			<a href="dictionary_M.html#13369">NUMTYPE</a>			<a href="dictionary_F.html#13412">F_x</a>  = <a href="dictionary_S.html#7536">pow</a>( math::<a href="dictionary_M.html#8421">norm</a>( <a href="dictionary_F.html#13396">f_x</a> ), </span><span class="number">2</span><span class="default">);</span>
+<a name="138"><font size=-1>138     </font></a><span class="default"></span>
+<a name="139"><font size=-1>139     </font></a><span class="default">			</span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a>	<a href="dictionary_N.html#13413">N</a> </span><span class="default">= <a href="dictionary_X.html#8247">x</a>.<a href="dictionary_S.html#442">size</a>();</span>
+<a name="140"><font size=-1>140     </font></a><span class="default"></span>
+<a name="141"><font size=-1>141     </font></a><span class="default">			</span><span class="keyword">if </span><span class="default">(<a href="dictionary_R.html#13393">returnPath</a>)	{</span>
+<a name="142"><font size=-1>142     </font></a><span class="default">				<a href="dictionary_O.html#13387">out_info</a>.<a href="dictionary_M.html#13379">path</a>.<a href="dictionary_S.html#1680">setSize</a>(<a href="dictionary_M.html#13389">maxIter</a>,<a href="dictionary_N.html#13413">N</a>+</span><span class="number">1</span><span class="default">);</span>
+<a name="143"><font size=-1>143     </font></a><span class="default">				<a href="dictionary_O.html#13387">out_info</a>.<a href="dictionary_M.html#13379">path</a>.<a href="dictionary_B.html#4008">block</a>(<a href="dictionary_I.html#13407">iter</a>,</span><span class="number">0</span><span class="default">,</span><span class="number">1</span><span class="default">,<a href="dictionary_N.html#13413">N</a>) = <a href="dictionary_X.html#8247">x</a>.<a href="dictionary_T.html#4189">transpose</a>();</span>
+<a name="144"><font size=-1>144     </font></a><span class="default">			}	</span><span class="keyword">else <a href="dictionary_O.html#13387">out_info</a></span><span class="default">.<a href="dictionary_M.html#13379">path</a> = Eigen::<a href="dictionary_E.html#1671">Matrix</a>&lt;<a href="dictionary_M.html#13369">NUMTYPE</a>,Eigen::<a href="dictionary_E.html#13414">Dynamic</a>,Eigen::<a href="dictionary_E.html#13414">Dynamic</a>&gt;(); </span><span class="comment">// Empty matrix</span>
+<a name="145"><font size=-1>145     </font></a><span class="comment"></span>
+<a name="146"><font size=-1>146     </font></a><span class="comment">			</span><span class="keyword">while </span><span class="default">(!<a href="dictionary_F.html#13403">found</a> &amp;&amp; ++<a href="dictionary_I.html#13407">iter</a>&lt;<a href="dictionary_M.html#13389">maxIter</a>)</span>
+<a name="147"><font size=-1>147     </font></a><span class="default">			{</span>
+<a name="148"><font size=-1>148     </font></a><span class="default">				</span><span class="comment">// H_lm = -( H + \lambda I ) ^-1 * g</span>
+<a name="149"><font size=-1>149     </font></a><span class="comment">				<a href="dictionary_M.html#13371">matrix_t</a> <a href="dictionary_H.html#13415">H</a> </span><span class="default">= <a href="dictionary_O.html#13387">out_info</a>.<a href="dictionary_M.html#13380">H</a>;</span>
+<a name="150"><font size=-1>150     </font></a><span class="default">				</span><span class="keyword">for </span><span class="default">(<a href="dictionary_S.html#56">size_t</a> <a href="dictionary_K.html#13416">k</a>=</span><span class="number">0</span><span class="default">;<a href="dictionary_K.html#13416">k</a>&lt;<a href="dictionary_H.html#13401">H_len</a>;<a href="dictionary_K.html#13416">k</a>++)</span>
+<a name="151"><font size=-1>151     </font></a><span class="default">					<a href="dictionary_H.html#13415">H</a>(<a href="dictionary_K.html#13416">k</a>,<a href="dictionary_K.html#13416">k</a>)+= <a href="dictionary_L.html#13405">lambda</a>;</span>
+<a name="152"><font size=-1>152     </font></a><span class="default"></span>
+<a name="153"><font size=-1>153     </font></a><span class="default">				<a href="dictionary_H.html#13415">H</a>.<a href="dictionary_I.html#13417">inv_fast</a>(<a href="dictionary_A.html#13397">AUX</a>);</span>
+<a name="154"><font size=-1>154     </font></a><span class="default">				<a href="dictionary_A.html#13397">AUX</a>.<a href="dictionary_M.html#13418">multiply_Ab</a>(<a href="dictionary_G.html#13399">g</a>,<a href="dictionary_H.html#13409">h_lm</a>);</span>
+<a name="155"><font size=-1>155     </font></a><span class="default">				<a href="dictionary_H.html#13409">h_lm</a> *= <a href="dictionary_M.html#13369">NUMTYPE</a>(-</span><span class="number">1.0</span><span class="default">);</span>
+<a name="156"><font size=-1>156     </font></a><span class="default"></span>
+<a name="157"><font size=-1>157     </font></a><span class="default">				</span><span class="keyword">double <a href="dictionary_H.html#13419">h_lm_n2</a> </span><span class="default">= math::<a href="dictionary_M.html#8421">norm</a>(<a href="dictionary_H.html#13409">h_lm</a>);</span>
+<a name="158"><font size=-1>158     </font></a><span class="default">				</span><span class="keyword">double <a href="dictionary_X.html#13420">x_n2</a> </span><span class="default">= math::<a href="dictionary_M.html#8421">norm</a>(<a href="dictionary_X.html#8247">x</a>);</span>
+<a name="159"><font size=-1>159     </font></a><span class="default"></span>
+<a name="160"><font size=-1>160     </font></a><span class="default">				</span><span class="keyword">if </span><span class="default">(<a href="dictionary_V.html#13388">verbose</a>) <a href="dictionary_M.html#13404">printf_debug</a>(</span><span class="string">&quot;[LM] Iter:%u x=%s\n&quot;</span><span class="default">,(</span><span class="keyword">unsigned</span><span class="default">)<a href="dictionary_I.html#13407">iter</a>,<a href="dictionary_M.html#4656">sprintf_vector</a>(</span><span class="string">&quot; %f&quot;</span><span class="default">,<a href="dictionary_X.html#8247">x</a>).<a href="dictionary_C.html#59">c_str</a>() );</span>
+<a name="161"><font size=-1>161     </font></a><span class="default"></span>
+<a name="162"><font size=-1>162     </font></a><span class="default">				</span><span class="keyword">if </span><span class="default">(<a href="dictionary_H.html#13419">h_lm_n2</a>&lt;<a href="dictionary_E.html#13392">e2</a>*(<a href="dictionary_X.html#13420">x_n2</a>+<a href="dictionary_E.html#13392">e2</a>))</span>
+<a name="163"><font size=-1>163     </font></a><span class="default">				{</span>
+<a name="164"><font size=-1>164     </font></a><span class="default">					</span><span class="comment">// Done:</span>
+<a name="165"><font size=-1>165     </font></a><span class="comment">					<a href="dictionary_F.html#13403">found</a> </span><span class="default">= </span><span class="keyword">true</span><span class="default">;</span>
+<a name="166"><font size=-1>166     </font></a><span class="default">					</span><span class="keyword">if </span><span class="default">(<a href="dictionary_V.html#13388">verbose</a>) <a href="dictionary_M.html#13404">printf_debug</a>(</span><span class="string">&quot;[LM] End condition: %e &lt; %e\n&quot;</span><span class="default">, <a href="dictionary_H.html#13419">h_lm_n2</a>, <a href="dictionary_E.html#13392">e2</a>*(<a href="dictionary_X.html#13420">x_n2</a>+<a href="dictionary_E.html#13392">e2</a>) );</span>
+<a name="167"><font size=-1>167     </font></a><span class="default">				}</span>
+<a name="168"><font size=-1>168     </font></a><span class="default">				</span><span class="keyword">else</span>
+<a name="169"><font size=-1>169     </font></a><span class="keyword">				</span><span class="default">{</span>
+<a name="170"><font size=-1>170     </font></a><span class="default">					</span><span class="comment">// Improvement: xnew = x + h_lm;</span>
+<a name="171"><font size=-1>171     </font></a><span class="comment">					</span><span class="keyword">if </span><span class="default">(!<a href="dictionary_X.html#13394">x_increment_adder</a>)</span>
+<a name="172"><font size=-1>172     </font></a><span class="default">							<a href="dictionary_X.html#13410">xnew</a> = <a href="dictionary_X.html#8247">x</a> + <a href="dictionary_H.html#13409">h_lm</a>; </span><span class="comment">// Normal Euclidean space addition.</span>
+<a name="173"><font size=-1>173     </font></a><span class="comment">					</span><span class="keyword">else 	<a href="dictionary_X.html#13394">x_increment_adder</a></span><span class="default">(<a href="dictionary_X.html#13410">xnew</a>, <a href="dictionary_X.html#8247">x</a>, <a href="dictionary_H.html#13409">h_lm</a>, <a href="dictionary_U.html#13386">userParam</a>);</span>
+<a name="174"><font size=-1>174     </font></a><span class="default"></span>
+<a name="175"><font size=-1>175     </font></a><span class="default">					<a href="dictionary_F.html#13384">functor</a>(<a href="dictionary_X.html#13410">xnew</a>, <a href="dictionary_U.html#13386">userParam</a> ,<a href="dictionary_F.html#13411">f_xnew</a> );</span>
+<a name="176"><font size=-1>176     </font></a><span class="default">					</span><span class="keyword">const double <a href="dictionary_F.html#13421">F_xnew</a> </span><span class="default">= <a href="dictionary_S.html#7536">pow</a>( math::<a href="dictionary_M.html#8421">norm</a>(<a href="dictionary_F.html#13411">f_xnew</a>), </span><span class="number">2</span><span class="default">);</span>
+<a name="177"><font size=-1>177     </font></a><span class="default"></span>
+<a name="178"><font size=-1>178     </font></a><span class="default">					</span><span class="comment">// denom = h_lm^t * ( \lambda * h_lm - g )</span>
+<a name="179"><font size=-1>179     </font></a><span class="comment">					<a href="dictionary_M.html#13367">VECTORTYPE</a>	<a href="dictionary_T.html#13422">tmp</a></span><span class="default">(<a href="dictionary_H.html#13409">h_lm</a>);</span>
+<a name="180"><font size=-1>180     </font></a><span class="default">					<a href="dictionary_T.html#13422">tmp</a> *= <a href="dictionary_L.html#13405">lambda</a>;</span>
+<a name="181"><font size=-1>181     </font></a><span class="default">					<a href="dictionary_T.html#13422">tmp</a> -= <a href="dictionary_G.html#13399">g</a>;</span>
+<a name="182"><font size=-1>182     </font></a><span class="default">					<a href="dictionary_T.html#13422">tmp</a>.<a href="dictionary_A.html#10053">array</a>() *=<a href="dictionary_H.html#13409">h_lm</a>.<a href="dictionary_A.html#10053">array</a>();</span>
+<a name="183"><font size=-1>183     </font></a><span class="default">					</span><span class="keyword">double <a href="dictionary_D.html#13423">denom</a> </span><span class="default">= <a href="dictionary_T.html#13422">tmp</a>.<a href="dictionary_S.html#8474">sum</a>();</span>
+<a name="184"><font size=-1>184     </font></a><span class="default">					</span><span class="keyword">double <a href="dictionary_L.html#13424">l</a> </span><span class="default">= (<a href="dictionary_F.html#13412">F_x</a> - <a href="dictionary_F.html#13421">F_xnew</a>) / <a href="dictionary_D.html#13423">denom</a>;</span>
+<a name="185"><font size=-1>185     </font></a><span class="default"></span>
+<a name="186"><font size=-1>186     </font></a><span class="default">					</span><span class="keyword">if </span><span class="default">(<a href="dictionary_L.html#13424">l</a>&gt;</span><span class="number">0</span><span class="default">) </span><span class="comment">// There is an improvement:</span>
+<a name="187"><font size=-1>187     </font></a><span class="comment">					</span><span class="default">{</span>
+<a name="188"><font size=-1>188     </font></a><span class="default">						</span><span class="comment">// Accept new point:</span>
+<a name="189"><font size=-1>189     </font></a><span class="comment">						<a href="dictionary_X.html#8247">x</a>   </span><span class="default">= <a href="dictionary_X.html#13410">xnew</a>;</span>
+<a name="190"><font size=-1>190     </font></a><span class="default">						<a href="dictionary_F.html#13396">f_x</a> = <a href="dictionary_F.html#13411">f_xnew</a>;</span>
+<a name="191"><font size=-1>191     </font></a><span class="default">						<a href="dictionary_F.html#13412">F_x</a> = <a href="dictionary_F.html#13421">F_xnew</a>;</span>
+<a name="192"><font size=-1>192     </font></a><span class="default"></span>
+<a name="193"><font size=-1>193     </font></a><span class="default">						math::<a href="dictionary_M.html#7219">estimateJacobian</a>( <a href="dictionary_X.html#8247">x</a>, <a href="dictionary_F.html#13384">functor</a>, <a href="dictionary_I.html#13385">increments</a>, <a href="dictionary_U.html#13386">userParam</a>, <a href="dictionary_J.html#13398">J</a>);</span>
+<a name="194"><font size=-1>194     </font></a><span class="default">						<a href="dictionary_O.html#13387">out_info</a>.<a href="dictionary_M.html#13380">H</a>.<a href="dictionary_M.html#13400">multiply_AtA</a>(<a href="dictionary_J.html#13398">J</a>);</span>
+<a name="195"><font size=-1>195     </font></a><span class="default">						<a href="dictionary_J.html#13398">J</a>.<a href="dictionary_M.html#13402">multiply_Atb</a>(<a href="dictionary_F.html#13396">f_x</a>, <a href="dictionary_G.html#13399">g</a>);</span>
+<a name="196"><font size=-1>196     </font></a><span class="default"></span>
+<a name="197"><font size=-1>197     </font></a><span class="default">						<a href="dictionary_F.html#13403">found</a> = math::<a href="dictionary_M.html#8417">norm_inf</a>(<a href="dictionary_G.html#13399">g</a>)&lt;=<a href="dictionary_E.html#13391">e1</a>;</span>
+<a name="198"><font size=-1>198     </font></a><span class="default">						</span><span class="keyword">if </span><span class="default">(<a href="dictionary_V.html#13388">verbose</a> &amp;&amp; <a href="dictionary_F.html#13403">found</a>)	<a href="dictionary_M.html#13404">printf_debug</a>(</span><span class="string">&quot;[LM] End condition: math::norm_inf(g)&lt;=e1 : %e\n&quot;</span><span class="default">, math::<a href="dictionary_M.html#8417">norm_inf</a>(<a href="dictionary_G.html#13399">g</a>) );</span>
+<a name="199"><font size=-1>199     </font></a><span class="default"></span>
+<a name="200"><font size=-1>200     </font></a><span class="default">						<a href="dictionary_L.html#13405">lambda</a> *= <a href="dictionary_S.html#450">max</a>(</span><span class="number">0.33</span><span class="default">, </span><span class="number">1</span><span class="default">-<a href="dictionary_S.html#7536">pow</a>(</span><span class="number">2</span><span class="default">*<a href="dictionary_L.html#13424">l</a>-</span><span class="number">1</span><span class="default">,</span><span class="number">3</span><span class="default">) );</span>
+<a name="201"><font size=-1>201     </font></a><span class="default">						<a href="dictionary_V.html#13408">v</a> = </span><span class="number">2</span><span class="default">;</span>
+<a name="202"><font size=-1>202     </font></a><span class="default">					}</span>
+<a name="203"><font size=-1>203     </font></a><span class="default">					</span><span class="keyword">else</span>
+<a name="204"><font size=-1>204     </font></a><span class="keyword">					</span><span class="default">{</span>
+<a name="205"><font size=-1>205     </font></a><span class="default">						</span><span class="comment">// Nope...</span>
+<a name="206"><font size=-1>206     </font></a><span class="comment">						<a href="dictionary_L.html#13405">lambda</a> </span><span class="default">*= <a href="dictionary_V.html#13408">v</a>;</span>
+<a name="207"><font size=-1>207     </font></a><span class="default">						<a href="dictionary_V.html#13408">v</a>*= </span><span class="number">2</span><span class="default">;</span>
+<a name="208"><font size=-1>208     </font></a><span class="default">					}</span>
+<a name="209"><font size=-1>209     </font></a><span class="default"></span>
+<a name="210"><font size=-1>210     </font></a><span class="default"></span>
+<a name="211"><font size=-1>211     </font></a><span class="default">					</span><span class="keyword">if </span><span class="default">(<a href="dictionary_R.html#13393">returnPath</a>)	{</span>
+<a name="212"><font size=-1>212     </font></a><span class="default">						<a href="dictionary_O.html#13387">out_info</a>.<a href="dictionary_M.html#13379">path</a>.<a href="dictionary_B.html#4008">block</a>(<a href="dictionary_I.html#13407">iter</a>,</span><span class="number">0</span><span class="default">,</span><span class="number">1</span><span class="default">,<a href="dictionary_X.html#8247">x</a>.<a href="dictionary_S.html#442">size</a>()) = <a href="dictionary_X.html#8247">x</a>.<a href="dictionary_T.html#4189">transpose</a>();</span>
+<a name="213"><font size=-1>213     </font></a><span class="default">						<a href="dictionary_O.html#13387">out_info</a>.<a href="dictionary_M.html#13379">path</a>(<a href="dictionary_I.html#13407">iter</a>,<a href="dictionary_X.html#8247">x</a>.<a href="dictionary_S.html#442">size</a>()) = <a href="dictionary_F.html#13412">F_x</a>;</span>
+<a name="214"><font size=-1>214     </font></a><span class="default">					}</span>
+<a name="215"><font size=-1>215     </font></a><span class="default">				}</span>
+<a name="216"><font size=-1>216     </font></a><span class="default">			} </span><span class="comment">// end while</span>
+<a name="217"><font size=-1>217     </font></a><span class="comment"></span>
+<a name="218"><font size=-1>218     </font></a><span class="comment">			// Output info:</span>
+<a name="219"><font size=-1>219     </font></a><span class="comment">			<a href="dictionary_O.html#13387">out_info</a></span><span class="default">.<a href="dictionary_M.html#13376">final_sqr_err</a> = <a href="dictionary_F.html#13412">F_x</a>;</span>
+<a name="220"><font size=-1>220     </font></a><span class="default">			<a href="dictionary_O.html#13387">out_info</a>.<a href="dictionary_M.html#13377">iterations_executed</a> = <a href="dictionary_I.html#13407">iter</a>;</span>
+<a name="221"><font size=-1>221     </font></a><span class="default">			<a href="dictionary_O.html#13387">out_info</a>.<a href="dictionary_M.html#13378">last_err_vector</a> = <a href="dictionary_F.html#13396">f_x</a>;</span>
+<a name="222"><font size=-1>222     </font></a><span class="default">			</span><span class="keyword">if </span><span class="default">(<a href="dictionary_R.html#13393">returnPath</a>) <a href="dictionary_O.html#13387">out_info</a>.<a href="dictionary_M.html#13379">path</a>.<a href="dictionary_S.html#1680">setSize</a>(<a href="dictionary_I.html#13407">iter</a>,<a href="dictionary_N.html#13413">N</a>+</span><span class="number">1</span><span class="default">);</span>
+<a name="223"><font size=-1>223     </font></a><span class="default"></span>
+<a name="224"><font size=-1>224     </font></a><span class="default">			<a href="dictionary_M.html#433">MRPT_END</a></span>
+<a name="225"><font size=-1>225     </font></a><span class="default">		}</span>
+<a name="226"><font size=-1>226     </font></a><span class="default"></span>
+<a name="227"><font size=-1>227     </font></a><span class="default">	}; </span><span class="comment">// End of class def.</span>
+<a name="228"><font size=-1>228     </font></a><span class="comment"></span>
+<a name="229"><font size=-1>229     </font></a><span class="comment"></span>
+<a name="230"><font size=-1>230     </font></a><span class="comment">	</span><span class="keyword">typedef <a href="dictionary_M.html#13366">CLevenbergMarquardtTempl</a></span><span class="default">&lt;mrpt::math::CVectorDouble&gt; <a href="dictionary_M.html#13425">CLevenbergMarquardt</a>;  </span><span class="comment">//!&lt; The default name for the LM class is an instantiation for &quot;double&quot;</span>
+<a name="231"><font size=-1>231     </font></a><span class="comment"></span>
+<a name="232"><font size=-1>232     </font></a><span class="comment">	</span><span class="default">} </span><span class="comment">// End of namespace</span>
+<a name="233"><font size=-1>233     </font></a><span class="comment"></span><span class="default">} </span><span class="comment">// End of namespace</span>
+<a name="234"><font size=-1>234     </font></a><span class="comment"></span><span class="preproc">#endif</span>
+<a name="235"><font size=-1>235     </font></a><span class="preproc"></span>
+</pre></body></html>

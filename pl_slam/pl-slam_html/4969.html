@@ -1,0 +1,163 @@
+<html><head><title>datetime.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/system/datetime.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/system/datetime.h";
+top.document.title  = "datetime.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span><span class="preproc">#ifndef  <a href="dictionary_M.html#4970">MRPT_SYSTEM_DATETIME_H</a></span>
+<a name="10"><font size=-1>10     </font></a><span class="preproc">#define  <a href="dictionary_M.html#4970">MRPT_SYSTEM_DATETIME_H</a></span>
+<a name="11"><font size=-1>11     </font></a><span class="preproc"></span>
+<a name="12"><font size=-1>12     </font></a><span class="preproc">#include </span><span class="string">&lt;mrpt/base/link_pragmas.h&gt;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/mrpt_stdint.h&gt;    </span><span class="comment">// compiler-independent version of &quot;stdint.h&quot;</span>
+<a name="14"><font size=-1>14     </font></a><span class="comment"></span><span class="preproc">#include </span><span class="string">&lt;string&gt;</span>
+<a name="15"><font size=-1>15     </font></a><span class="string"></span>
+<a name="16"><font size=-1>16     </font></a><span class="string"></span><span class="comment">/** Represents an invalid timestamp, where applicable. */</span>
+<a name="17"><font size=-1>17     </font></a><span class="comment"></span><span class="preproc">#define <a href="dictionary_I.html#4971">INVALID_TIMESTAMP</a> </span><span class="default">(</span><span class="number">0</span><span class="default">)</span>
+<a name="18"><font size=-1>18     </font></a><span class="default"></span>
+<a name="19"><font size=-1>19     </font></a><span class="default"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="20"><font size=-1>20     </font></a><span class="default">{</span>
+<a name="21"><font size=-1>21     </font></a><span class="default">	</span><span class="keyword">namespace </span><span class="default">system</span>
+<a name="22"><font size=-1>22     </font></a><span class="default">	{</span>
+<a name="23"><font size=-1>23     </font></a><span class="default">		</span><span class="comment">/** @defgroup time_date Time and date functions (in #include &lt;mrpt/system/datetime.h&gt;)</span>
+<a name="24"><font size=-1>24     </font></a><span class="comment">		  * \ingroup mrpt_base_grp</span>
+<a name="25"><font size=-1>25     </font></a><span class="comment">		  * @{ */</span>
+<a name="26"><font size=-1>26     </font></a><span class="comment"></span>
+<a name="27"><font size=-1>27     </font></a><span class="comment">		/** A system independent time type, it holds the the number of 100-nanosecond intervals since January 1, 1601 (UTC).</span>
+<a name="28"><font size=-1>28     </font></a><span class="comment">		 * \sa system::getCurrentTime, system::timeDifference, INVALID_TIMESTAMP, TTimeParts</span>
+<a name="29"><font size=-1>29     </font></a><span class="comment">		 */</span>
+<a name="30"><font size=-1>30     </font></a><span class="comment">		</span><span class="keyword">typedef <a href="dictionary_U.html#763">uint64_t</a> <a href="dictionary_M.html#4972">TTimeStamp</a></span><span class="default">;</span>
+<a name="31"><font size=-1>31     </font></a><span class="default"></span>
+<a name="32"><font size=-1>32     </font></a><span class="default">		</span><span class="comment">/** The parts of a date/time (it's like the standard 'tm' but with fractions of seconds).</span>
+<a name="33"><font size=-1>33     </font></a><span class="comment">		 * \sa TTimeStamp, timestampToParts, buildTimestampFromParts</span>
+<a name="34"><font size=-1>34     </font></a><span class="comment">		 */</span>
+<a name="35"><font size=-1>35     </font></a><span class="comment">		</span><span class="keyword">struct <a href="dictionary_M.html#4973">TTimeParts</a></span>
+<a name="36"><font size=-1>36     </font></a><span class="keyword">		</span><span class="default">{</span>
+<a name="37"><font size=-1>37     </font></a><span class="default">			<a href="dictionary_U.html#4975">uint16_t</a>	<a href="dictionary_M.html#4974">year</a>;	</span><span class="comment">/** The year */</span>
+<a name="38"><font size=-1>38     </font></a><span class="comment">			<a href="dictionary_U.html#4977">uint8_t</a>		<a href="dictionary_M.html#4976">month</a></span><span class="default">;  </span><span class="comment">/** Month (1-12) */</span>
+<a name="39"><font size=-1>39     </font></a><span class="comment">			<a href="dictionary_U.html#4977">uint8_t</a>		<a href="dictionary_M.html#4978">day</a></span><span class="default">;    </span><span class="comment">/** Day (1-31) */</span>
+<a name="40"><font size=-1>40     </font></a><span class="comment">			<a href="dictionary_U.html#4977">uint8_t</a>		<a href="dictionary_M.html#4979">hour</a></span><span class="default">;   </span><span class="comment">/** Hour (0-23) */</span>
+<a name="41"><font size=-1>41     </font></a><span class="comment">			<a href="dictionary_U.html#4977">uint8_t</a>		<a href="dictionary_M.html#4980">minute</a></span><span class="default">; </span><span class="comment">/** Minute (0-59) */</span>
+<a name="42"><font size=-1>42     </font></a><span class="comment">			</span><span class="keyword">double		<a href="dictionary_M.html#4981">second</a></span><span class="default">; </span><span class="comment">/** Seconds (0.0000-59.9999) */</span>
+<a name="43"><font size=-1>43     </font></a><span class="comment">			<a href="dictionary_U.html#4977">uint8_t</a>		<a href="dictionary_M.html#4982">day_of_week</a></span><span class="default">; </span><span class="comment">/** Day of week (1:Sunday, 7:Saturday) */</span>
+<a name="44"><font size=-1>44     </font></a><span class="comment">			</span><span class="keyword">int			<a href="dictionary_M.html#4983">daylight_saving</a></span><span class="default">;</span>
+<a name="45"><font size=-1>45     </font></a><span class="default">		};</span>
+<a name="46"><font size=-1>46     </font></a><span class="default"></span>
+<a name="47"><font size=-1>47     </font></a><span class="default">		</span><span class="comment">/** Builds a timestamp from the parts (Parts are in UTC)</span>
+<a name="48"><font size=-1>48     </font></a><span class="comment">		  * \sa timestampToParts</span>
+<a name="49"><font size=-1>49     </font></a><span class="comment">		  */</span>
+<a name="50"><font size=-1>50     </font></a><span class="comment">		</span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#4984">buildTimestampFromParts</a>( </span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4973">TTimeParts</a> &amp;p );</span>
+<a name="51"><font size=-1>51     </font></a><span class="default"></span>
+<a name="52"><font size=-1>52     </font></a><span class="default">		</span><span class="comment">/** Builds a timestamp from the parts (Parts are in local time)</span>
+<a name="53"><font size=-1>53     </font></a><span class="comment">		  * \sa timestampToParts, buildTimestampFromParts</span>
+<a name="54"><font size=-1>54     </font></a><span class="comment">		  */</span>
+<a name="55"><font size=-1>55     </font></a><span class="comment">		</span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#4985">buildTimestampFromPartsLocalTime</a>( </span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4973">TTimeParts</a> &amp;p );</span>
+<a name="56"><font size=-1>56     </font></a><span class="default"></span>
+<a name="57"><font size=-1>57     </font></a><span class="default">		</span><span class="comment">/** Gets the individual parts of a date/time (days, hours, minutes, seconds) - UTC time or local time</span>
+<a name="58"><font size=-1>58     </font></a><span class="comment">		  * \sa buildTimestampFromParts</span>
+<a name="59"><font size=-1>59     </font></a><span class="comment">		  */</span>
+<a name="60"><font size=-1>60     </font></a><span class="comment">		</span><span class="keyword">void <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#4986">timestampToParts</a></span><span class="default">( <a href="dictionary_M.html#4972">TTimeStamp</a> t, <a href="dictionary_M.html#4973">TTimeParts</a> &amp;p, </span><span class="keyword">bool </span><span class="default">localTime = </span><span class="keyword">false </span><span class="default">);</span>
+<a name="61"><font size=-1>61     </font></a><span class="default"></span>
+<a name="62"><font size=-1>62     </font></a><span class="default">		</span><span class="comment">/** Returns the current (UTC) system time.</span>
+<a name="63"><font size=-1>63     </font></a><span class="comment">		  * \sa now,getCurrentLocalTime</span>
+<a name="64"><font size=-1>64     </font></a><span class="comment">		  */</span>
+<a name="65"><font size=-1>65     </font></a><span class="comment">		</span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a>  <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#4987">getCurrentTime</a>( );</span>
+<a name="66"><font size=-1>66     </font></a><span class="default"></span>
+<a name="67"><font size=-1>67     </font></a><span class="default">		</span><span class="comment">/** A shortcut for system::getCurrentTime</span>
+<a name="68"><font size=-1>68     </font></a><span class="comment">		  * \sa getCurrentTime, getCurrentLocalTime</span>
+<a name="69"><font size=-1>69     </font></a><span class="comment">		 */</span>
+<a name="70"><font size=-1>70     </font></a><span class="comment">		</span><span class="keyword">inline </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> <a href="dictionary_M.html#4988">now</a>() {</span>
+<a name="71"><font size=-1>71     </font></a><span class="default">			</span><span class="keyword">return <a href="dictionary_M.html#4987">getCurrentTime</a></span><span class="default">();</span>
+<a name="72"><font size=-1>72     </font></a><span class="default">		}</span>
+<a name="73"><font size=-1>73     </font></a><span class="default"></span>
+<a name="74"><font size=-1>74     </font></a><span class="default">		</span><span class="comment">/** Returns the current (local) time.</span>
+<a name="75"><font size=-1>75     </font></a><span class="comment">		  * \sa now,getCurrentTime</span>
+<a name="76"><font size=-1>76     </font></a><span class="comment">		  */</span>
+<a name="77"><font size=-1>77     </font></a><span class="comment">		</span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a>  <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#4989">getCurrentLocalTime</a>( );</span>
+<a name="78"><font size=-1>78     </font></a><span class="default"></span>
+<a name="79"><font size=-1>79     </font></a><span class="default">		</span><span class="comment">/** Transform from standard &quot;time_t&quot; (actually a double number, it can contain fractions of seconds) to TTimeStamp.</span>
+<a name="80"><font size=-1>80     </font></a><span class="comment">		  * \sa timestampTotime_t</span>
+<a name="81"><font size=-1>81     </font></a><span class="comment">		  */</span>
+<a name="82"><font size=-1>82     </font></a><span class="comment">		</span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a>  <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#4990">time_tToTimestamp</a>( </span><span class="keyword">const double </span><span class="default">&amp;t );</span>
+<a name="83"><font size=-1>83     </font></a><span class="default"></span>
+<a name="84"><font size=-1>84     </font></a><span class="default">		</span><span class="comment">/** Transform from standard &quot;time_t&quot; to TTimeStamp.</span>
+<a name="85"><font size=-1>85     </font></a><span class="comment">		  * \sa timestampTotime_t</span>
+<a name="86"><font size=-1>86     </font></a><span class="comment">		  */</span>
+<a name="87"><font size=-1>87     </font></a><span class="comment">		</span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a>  <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#4991">time_tToTimestamp</a>( </span><span class="keyword">const <a href="dictionary_T.html#4992">time_t</a> </span><span class="default">&amp;t );</span>
+<a name="88"><font size=-1>88     </font></a><span class="default"></span>
+<a name="89"><font size=-1>89     </font></a><span class="default">		</span><span class="comment">/** Transform from TTimeStamp to standard &quot;time_t&quot; (actually a double number, it can contain fractions of seconds).</span>
+<a name="90"><font size=-1>90     </font></a><span class="comment">		  * \sa time_tToTimestamp, secondsToTimestamp</span>
+<a name="91"><font size=-1>91     </font></a><span class="comment">		  */</span>
+<a name="92"><font size=-1>92     </font></a><span class="comment">		</span><span class="keyword">double <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#4993">timestampTotime_t</a></span><span class="default">( </span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a>  &amp;t );</span>
+<a name="93"><font size=-1>93     </font></a><span class="default"></span>
+<a name="94"><font size=-1>94     </font></a><span class="default">		</span><span class="comment">/** Transform from TTimeStamp to standard &quot;time_t&quot; (actually a double number, it can contain fractions of seconds).</span>
+<a name="95"><font size=-1>95     </font></a><span class="comment">		  * This function is just an (inline) alias of timestampTotime_t(), with a more significant name.</span>
+<a name="96"><font size=-1>96     </font></a><span class="comment">		  * \sa time_tToTimestamp, secondsToTimestamp</span>
+<a name="97"><font size=-1>97     </font></a><span class="comment">		  */</span>
+<a name="98"><font size=-1>98     </font></a><span class="comment">		</span><span class="keyword">inline double <a href="dictionary_M.html#4994">timestampToDouble</a></span><span class="default">( </span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a>  &amp;<a href="dictionary_T.html#4995">t</a> ) { </span><span class="keyword">return <a href="dictionary_M.html#4993">timestampTotime_t</a></span><span class="default">(<a href="dictionary_T.html#4995">t</a>); }</span>
+<a name="99"><font size=-1>99     </font></a><span class="default"></span>
+<a name="100"><font size=-1>100     </font></a><span class="default">		</span><span class="keyword">double <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#4996">timeDifference</a></span><span class="default">( </span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> &amp;t_first, </span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> &amp;t_later ); </span><span class="comment">//!&lt; Returns the time difference from t1 to t2 (positive if t2 is posterior to t1), in seconds \sa secondsToTimestamp</span>
+<a name="101"><font size=-1>101     </font></a><span class="comment"></span>
+<a name="102"><font size=-1>102     </font></a><span class="comment">		</span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#4997">timestampAdd</a>( </span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> &amp;tim, </span><span class="keyword">const double </span><span class="default">num_seconds); </span><span class="comment">//!&lt; Shifts a timestamp the given amount of seconds (&gt;0: forwards in time, &lt;0: backwards) \sa secondsToTimestamp </span>
+<a name="103"><font size=-1>103     </font></a><span class="comment"></span>
+<a name="104"><font size=-1>104     </font></a><span class="comment">		/** Transform a time interval (in seconds) into TTimeStamp (e.g. which can be added to an existing valid timestamp)</span>
+<a name="105"><font size=-1>105     </font></a><span class="comment">		  * \sa timeDifference</span>
+<a name="106"><font size=-1>106     </font></a><span class="comment">		  */</span>
+<a name="107"><font size=-1>107     </font></a><span class="comment">		</span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#4998">secondsToTimestamp</a>( </span><span class="keyword">const double </span><span class="default">&amp;nSeconds );</span>
+<a name="108"><font size=-1>108     </font></a><span class="default"></span>
+<a name="109"><font size=-1>109     </font></a><span class="default">		</span><span class="comment">/** Returns a formated string with the given time difference (passed as the number of seconds), as a string [H]H:MM:SS.MILISECS</span>
+<a name="110"><font size=-1>110     </font></a><span class="comment">		  * \sa unitsFormat</span>
+<a name="111"><font size=-1>111     </font></a><span class="comment">		  */</span>
+<a name="112"><font size=-1>112     </font></a><span class="comment">		</span><span class="default">std::<a href="dictionary_S.html#118">string</a> <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#4999">formatTimeInterval</a>( </span><span class="keyword">const double </span><span class="default">&amp;timeSeconds );</span>
+<a name="113"><font size=-1>113     </font></a><span class="default"></span>
+<a name="114"><font size=-1>114     </font></a><span class="default">		</span><span class="comment">/** Convert a timestamp into this textual form (UTC time): YEAR/MONTH/DAY,HH:MM:SS.MMM</span>
+<a name="115"><font size=-1>115     </font></a><span class="comment">		  * \sa dateTimeLocalToString</span>
+<a name="116"><font size=-1>116     </font></a><span class="comment">		  */</span>
+<a name="117"><font size=-1>117     </font></a><span class="comment">		</span><span class="default">std::<a href="dictionary_S.html#118">string</a>  <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#5000">dateTimeToString</a>(</span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> &amp;t);</span>
+<a name="118"><font size=-1>118     </font></a><span class="default"></span>
+<a name="119"><font size=-1>119     </font></a><span class="default">		</span><span class="comment">/** Convert a timestamp into this textual form (in local time): YEAR/MONTH/DAY,HH:MM:SS.MMM</span>
+<a name="120"><font size=-1>120     </font></a><span class="comment">		  * \sa dateTimeToString</span>
+<a name="121"><font size=-1>121     </font></a><span class="comment">		  */</span>
+<a name="122"><font size=-1>122     </font></a><span class="comment">		</span><span class="default">std::<a href="dictionary_S.html#118">string</a>  <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#5001">dateTimeLocalToString</a>(</span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> &amp;t);</span>
+<a name="123"><font size=-1>123     </font></a><span class="default"></span>
+<a name="124"><font size=-1>124     </font></a><span class="default">		</span><span class="comment">/** Convert a timestamp into this textual form: YEAR/MONTH/DAY</span>
+<a name="125"><font size=-1>125     </font></a><span class="comment">		 */</span>
+<a name="126"><font size=-1>126     </font></a><span class="comment">		</span><span class="default">std::<a href="dictionary_S.html#118">string</a>  <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#5002">dateToString</a>(</span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> &amp;t);</span>
+<a name="127"><font size=-1>127     </font></a><span class="default"></span>
+<a name="128"><font size=-1>128     </font></a><span class="default">		</span><span class="comment">/** Returns the number of seconds ellapsed from midnight in the given timestamp</span>
+<a name="129"><font size=-1>129     </font></a><span class="comment">		 */</span>
+<a name="130"><font size=-1>130     </font></a><span class="comment">		</span><span class="keyword">double  <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#5003">extractDayTimeFromTimestamp</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> &amp;t);</span>
+<a name="131"><font size=-1>131     </font></a><span class="default"></span>
+<a name="132"><font size=-1>132     </font></a><span class="default">		</span><span class="comment">/** Convert a timestamp into this textual form (UTC): HH:MM:SS.MMMMMM</span>
+<a name="133"><font size=-1>133     </font></a><span class="comment">		 */</span>
+<a name="134"><font size=-1>134     </font></a><span class="comment">		</span><span class="default">std::<a href="dictionary_S.html#118">string</a>  <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#5004">timeToString</a>(</span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> &amp;t);</span>
+<a name="135"><font size=-1>135     </font></a><span class="default"></span>
+<a name="136"><font size=-1>136     </font></a><span class="default">		</span><span class="comment">/** Convert a timestamp into this textual form (in local time): HH:MM:SS.MMMMMM</span>
+<a name="137"><font size=-1>137     </font></a><span class="comment">		 */</span>
+<a name="138"><font size=-1>138     </font></a><span class="comment">		</span><span class="default">std::<a href="dictionary_S.html#118">string</a>  <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#5005">timeLocalToString</a>(</span><span class="keyword">const </span><span class="default">mrpt::system::<a href="dictionary_M.html#4972">TTimeStamp</a> &amp;t, </span><span class="keyword">unsigned int </span><span class="default">secondFractionDigits=</span><span class="number">6</span><span class="default">);</span>
+<a name="139"><font size=-1>139     </font></a><span class="default"></span>
+<a name="140"><font size=-1>140     </font></a><span class="default">		</span><span class="comment">/** This function implements time interval formatting: Given a time in seconds, it will return a string describing the interval with the most appropriate unit.</span>
+<a name="141"><font size=-1>141     </font></a><span class="comment">		 * E.g.: 1.23 year, 3.50 days, 9.3 hours, 5.3 minutes, 3.34 sec, 178.1 ms,  87.1 us.</span>
+<a name="142"><font size=-1>142     </font></a><span class="comment">		 * \sa unitsFormat</span>
+<a name="143"><font size=-1>143     </font></a><span class="comment">		 */</span>
+<a name="144"><font size=-1>144     </font></a><span class="comment">		</span><span class="default">std::<a href="dictionary_S.html#118">string</a> <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#5006">intervalFormat</a>(</span><span class="keyword">const double </span><span class="default">seconds);</span>
+<a name="145"><font size=-1>145     </font></a><span class="default"></span>
+<a name="146"><font size=-1>146     </font></a><span class="default">		</span><span class="comment">/** @} */</span>
+<a name="147"><font size=-1>147     </font></a><span class="comment"></span>
+<a name="148"><font size=-1>148     </font></a><span class="comment">	</span><span class="default">} </span><span class="comment">// End of namespace</span>
+<a name="149"><font size=-1>149     </font></a><span class="comment"></span>
+<a name="150"><font size=-1>150     </font></a><span class="comment"></span><span class="default">} </span><span class="comment">// End of namespace</span>
+<a name="151"><font size=-1>151     </font></a><span class="comment"></span>
+<a name="152"><font size=-1>152     </font></a><span class="comment"></span><span class="preproc">#endif</span>
+<a name="153"><font size=-1>153     </font></a><span class="preproc"></span>
+</pre></body></html>

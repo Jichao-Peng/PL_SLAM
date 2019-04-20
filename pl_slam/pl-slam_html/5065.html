@@ -1,0 +1,43 @@
+<html><head><title>crc.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/utils/crc.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/utils/crc.h";
+top.document.title  = "crc.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span><span class="preproc">#ifndef  <a href="dictionary_M.html#5066">MRPT_UTILS_CRC_H</a></span>
+<a name="10"><font size=-1>10     </font></a><span class="preproc">#define  <a href="dictionary_M.html#5066">MRPT_UTILS_CRC_H</a></span>
+<a name="11"><font size=-1>11     </font></a><span class="preproc"></span>
+<a name="12"><font size=-1>12     </font></a><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/utils_defs.h&gt;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="15"><font size=-1>15     </font></a><span class="default">{</span>
+<a name="16"><font size=-1>16     </font></a><span class="default">	</span><span class="keyword">namespace </span><span class="default">utils</span>
+<a name="17"><font size=-1>17     </font></a><span class="default">	{</span>
+<a name="18"><font size=-1>18     </font></a><span class="default">		</span><span class="comment">/** \addtogroup mrpt_crc CRC functions (in #include &lt;mrpt/utils/crc.h&gt;)</span>
+<a name="19"><font size=-1>19     </font></a><span class="comment">		  *  \ingroup mrpt_base_grp</span>
+<a name="20"><font size=-1>20     </font></a><span class="comment">		  * @{ */</span>
+<a name="21"><font size=-1>21     </font></a><span class="comment"></span>
+<a name="22"><font size=-1>22     </font></a><span class="comment">		/** Computes the CRC16 checksum of a block of data.  */</span>
+<a name="23"><font size=-1>23     </font></a><span class="comment">		<a href="dictionary_U.html#4975">uint16_t</a> <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#5067">compute_CRC16</a></span><span class="default">( </span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#74">vector</a>&lt;uint8_t&gt; &amp;data, </span><span class="keyword">const <a href="dictionary_U.html#4975">uint16_t</a> </span><span class="default">gen_pol = </span><span class="number">0x8005 </span><span class="default">);</span>
+<a name="24"><font size=-1>24     </font></a><span class="default">		<a href="dictionary_U.html#4975">uint16_t</a> <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#5068">compute_CRC16</a>(</span><span class="keyword">const <a href="dictionary_U.html#4977">uint8_t</a> </span><span class="default">*data, </span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a>  </span><span class="default">len, </span><span class="keyword">const <a href="dictionary_U.html#4975">uint16_t</a> </span><span class="default">gen_pol = </span><span class="number">0x8005 </span><span class="default">); </span><span class="comment">//!&lt; \overload</span>
+<a name="25"><font size=-1>25     </font></a><span class="comment">		/** Computes the CRC32 checksum of a block of data.  */</span>
+<a name="26"><font size=-1>26     </font></a><span class="comment">		<a href="dictionary_U.html#497">uint32_t</a> <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#5069">compute_CRC32</a></span><span class="default">( </span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#74">vector</a>&lt;uint8_t&gt; &amp;data, </span><span class="keyword">const <a href="dictionary_U.html#497">uint32_t</a> </span><span class="default">gen_pol = </span><span class="number">0xEDB88320L </span><span class="default">);</span>
+<a name="27"><font size=-1>27     </font></a><span class="default">		<a href="dictionary_U.html#497">uint32_t</a> <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#5070">compute_CRC32</a>(</span><span class="keyword">const <a href="dictionary_U.html#4977">uint8_t</a> </span><span class="default">*data, </span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a>  </span><span class="default">len, </span><span class="keyword">const <a href="dictionary_U.html#497">uint32_t</a> </span><span class="default">gen_pol = </span><span class="number">0xEDB88320L </span><span class="default">); </span><span class="comment">//!&lt; \overload</span>
+<a name="28"><font size=-1>28     </font></a><span class="comment">		/** @} */</span>
+<a name="29"><font size=-1>29     </font></a><span class="comment">	</span><span class="default">}</span>
+<a name="30"><font size=-1>30     </font></a><span class="default">}</span>
+<a name="31"><font size=-1>31     </font></a><span class="default"></span>
+<a name="32"><font size=-1>32     </font></a><span class="default"></span><span class="preproc">#endif</span>
+<a name="33"><font size=-1>33     </font></a><span class="preproc"></span>
+</pre></body></html>

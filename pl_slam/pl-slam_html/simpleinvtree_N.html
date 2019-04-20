@@ -1,0 +1,257 @@
+<html><head><title>Simple Invocation Tree [N]</title><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/></head><body bgcolor="#ffffff" TEXT="#000000"><h2>Simple Invocation Tree</h2><hr><pre>
+</pre><table BORDER CELLPADDING=4><tr><td><a href="simpleinvtree_Non-Alpha.html">Non-Alpha</a></td><td><a href="simpleinvtree_A.html">A</a></td><td><a href="simpleinvtree_B.html">B</a></td><td><a href="simpleinvtree_C.html">C</a></td><td><a href="simpleinvtree_D.html">D</a></td><td><a href="simpleinvtree_E.html">E</a></td><td><a href="simpleinvtree_F.html">F</a></td><td><a href="simpleinvtree_G.html">G</a></td><td>H</td><td><a href="simpleinvtree_I.html">I</a></td><td>J</td><td>K</td><td><a href="simpleinvtree_L.html">L</a></td><td><a href="simpleinvtree_M.html">M</a></td><td><a href="simpleinvtree_N.html">N</a></td><td><a href="simpleinvtree_O.html">O</a></td><td><a href="simpleinvtree_P.html">P</a></td><td>Q</td><td><a href="simpleinvtree_R.html">R</a></td><td><a href="simpleinvtree_S.html">S</a></td><td><a href="simpleinvtree_T.html">T</a></td><td><a href="simpleinvtree_U.html">U</a></td><td>V</td><td>W</td><td>X</td><td>Y</td><td><a href="simpleinvtree_Z.html">Z</a></td></tr></table><pre>
+
+<a href="dictionary_N.html#17737">nanoflann::allocate</a>
+| <a href="dictionary_M.html#14195">malloc</a>
+
+<a href="dictionary_N.html#17821">nanoflann::CArray::assign</a>
+| <a href="dictionary_A.html#8782">assert</a>
+
+<a href="dictionary_N.html#17797">nanoflann::CArray::at</a>
+| <a href="dictionary_N.html#17824">nanoflann::CArray::rangecheck</a>
+
+<a href="dictionary_N.html#17799">nanoflann::CArray::at</a>
+| <a href="dictionary_N.html#17824">nanoflann::CArray::rangecheck</a>
+
+<a href="dictionary_N.html#17816">nanoflann::CArray::operator=</a>
+| <a href="dictionary_S.html#4090">std::copy</a>
+| <a href="dictionary_N.html#17783">nanoflann::CArray::begin</a>
+| <a href="dictionary_N.html#17785">nanoflann::CArray::end</a>
+
+<a href="dictionary_N.html#17824">nanoflann::CArray::rangecheck</a>
+| <a href="dictionary_N.html#17805">nanoflann::CArray::size</a>
+| <a href="dictionary_S.html#104">std::out_of_range</a>
+
+<a href="dictionary_N.html#17789">nanoflann::CArray::rbegin</a>
+| <a href="dictionary_N.html#17785">nanoflann::CArray::end</a>
+
+<a href="dictionary_N.html#17790">nanoflann::CArray::rbegin</a>
+| <a href="dictionary_N.html#17785">nanoflann::CArray::end</a>
+
+<a href="dictionary_N.html#17791">nanoflann::CArray::rend</a>
+| <a href="dictionary_N.html#17783">nanoflann::CArray::begin</a>
+
+<a href="dictionary_N.html#17792">nanoflann::CArray::rend</a>
+| <a href="dictionary_N.html#17783">nanoflann::CArray::begin</a>
+
+<a href="dictionary_N.html#17810">nanoflann::CArray::resize</a>
+| <a href="dictionary_S.html#150">std::logic_error</a>
+
+<a href="dictionary_N.html#17812">nanoflann::CArray::swap</a>
+| <a href="dictionary_S.html#16999">std::swap_ranges</a>
+| <a href="dictionary_N.html#17783">nanoflann::CArray::begin</a>
+| <a href="dictionary_N.html#17785">nanoflann::CArray::end</a>
+
+<a href="dictionary_N.html#18050">nanoflann::KDTreeEigenMatrixAdaptor::kdtree_distance</a>
+| <a href="dictionary_C.html#10122">coeff</a>
+
+<a href="dictionary_N.html#18049">nanoflann::KDTreeEigenMatrixAdaptor::kdtree_get_point_count</a>
+| <a href="dictionary_R.html#10258">rows</a>
+
+<a href="dictionary_N.html#18054">nanoflann::KDTreeEigenMatrixAdaptor::kdtree_get_pt</a>
+| <a href="dictionary_C.html#10122">coeff</a>
+
+<a href="dictionary_N.html#18034">nanoflann::KDTreeEigenMatrixAdaptor::KDTreeEigenMatrixAdaptor</a>
+| <a href="dictionary_C.html#10259">cols</a>
+| <a href="dictionary_S.html#713">std::runtime_error</a>
+| <a href="dictionary_N.html#17840">nanoflann::KDTreeSingleIndexAdaptor::KDTreeSingleIndexAdaptor</a>
+| <a href="dictionary_N.html#17726">nanoflann::KDTreeSingleIndexAdaptorParams::KDTreeSingleIndexAdaptorParams</a>
+| <a href="dictionary_N.html#17880">nanoflann::KDTreeSingleIndexAdaptor::buildIndex</a>
+
+<a href="dictionary_N.html#18041">nanoflann::KDTreeEigenMatrixAdaptor::query</a>
+| <a href="dictionary_N.html#17566">nanoflann::KNNResultSet::KNNResultSet</a>
+| <a href="dictionary_N.html#17568">nanoflann::KNNResultSet::init</a>
+| <a href="dictionary_N.html#17884">nanoflann::KDTreeSingleIndexAdaptor::findNeighbors</a>
+| <a href="dictionary_N.html#17730">nanoflann::SearchParams::SearchParams</a>
+
+<a href="dictionary_N.html#17880">nanoflann::KDTreeSingleIndexAdaptor::buildIndex</a>
+| <a href="dictionary_N.html#17905">nanoflann::KDTreeSingleIndexAdaptor::init_vind</a>
+| <a href="dictionary_N.html#17879">nanoflann::KDTreeSingleIndexAdaptor::freeIndex</a>
+| <a href="dictionary_N.html#17915">nanoflann::KDTreeSingleIndexAdaptor::computeBoundingBox</a>
+| <a href="dictionary_N.html#17917">nanoflann::KDTreeSingleIndexAdaptor::divideTree</a>
+
+<a href="dictionary_N.html#17915">nanoflann::KDTreeSingleIndexAdaptor::computeBoundingBox</a>
+| <a href="dictionary_R.html#472">resize</a>
+| <a href="dictionary_K.html#17967">kdtree_get_bbox</a>
+| <a href="dictionary_K.html#17956">kdtree_get_point_count</a>
+| <a href="dictionary_S.html#713">std::runtime_error</a>
+| <a href="dictionary_N.html#17906">nanoflann::KDTreeSingleIndexAdaptor::dataset_get</a>
+
+<a href="dictionary_N.html#17941">nanoflann::KDTreeSingleIndexAdaptor::computeInitialDistances</a>
+| <a href="dictionary_A.html#8782">assert</a>
+| <a href="dictionary_A.html#18005">accum_dist</a>
+
+<a href="dictionary_N.html#17921">nanoflann::KDTreeSingleIndexAdaptor::computeMinMax</a>
+| <a href="dictionary_N.html#17906">nanoflann::KDTreeSingleIndexAdaptor::dataset_get</a>
+
+<a href="dictionary_N.html#17906">nanoflann::KDTreeSingleIndexAdaptor::dataset_get</a>
+| <a href="dictionary_K.html#17657">kdtree_get_pt</a>
+
+<a href="dictionary_N.html#17917">nanoflann::KDTreeSingleIndexAdaptor::divideTree</a>
+| <a href="dictionary_N.html#17756">nanoflann::PooledAllocator::allocate</a>
+| <a href="dictionary_N.html#17906">nanoflann::KDTreeSingleIndexAdaptor::dataset_get</a>
+| <a href="dictionary_N.html#17927">nanoflann::KDTreeSingleIndexAdaptor::middleSplit_</a>
+| <a href="dictionary_N.html#17917">nanoflann::KDTreeSingleIndexAdaptor::divideTree</a>
+| <a href="dictionary_S.html#451">std::min</a>
+| <a href="dictionary_S.html#450">std::max</a>
+
+<a href="dictionary_N.html#17884">nanoflann::KDTreeSingleIndexAdaptor::findNeighbors</a>
+| <a href="dictionary_A.html#8782">assert</a>
+| <a href="dictionary_N.html#17881">nanoflann::KDTreeSingleIndexAdaptor::size</a>
+| <a href="dictionary_S.html#713">std::runtime_error</a>
+| <a href="dictionary_A.html#4916">assign</a>
+| <a href="dictionary_N.html#17941">nanoflann::KDTreeSingleIndexAdaptor::computeInitialDistances</a>
+| <a href="dictionary_N.html#17944">nanoflann::KDTreeSingleIndexAdaptor::searchLevel</a>
+| <a href="dictionary_F.html#17961">full</a>
+
+<a href="dictionary_N.html#17879">nanoflann::KDTreeSingleIndexAdaptor::freeIndex</a>
+| <a href="dictionary_N.html#17752">nanoflann::PooledAllocator::free_all</a>
+
+<a href="dictionary_N.html#17905">nanoflann::KDTreeSingleIndexAdaptor::init_vind</a>
+| <a href="dictionary_K.html#17956">kdtree_get_point_count</a>
+| <a href="dictionary_S.html#442">size</a>
+| <a href="dictionary_R.html#472">resize</a>
+
+<a href="dictionary_N.html#17874">nanoflann::KDTreeSingleIndexAdaptor::KDTreeSingleIndexAdaptor</a>
+| <a href="dictionary_N.html#17726">nanoflann::KDTreeSingleIndexAdaptorParams::KDTreeSingleIndexAdaptorParams</a>
+| <a href="dictionary_K.html#17956">kdtree_get_point_count</a>
+| <a href="dictionary_N.html#17905">nanoflann::KDTreeSingleIndexAdaptor::init_vind</a>
+| <a href="dictionary_N.html#17750">nanoflann::PooledAllocator::PooledAllocator</a>
+
+<a href="dictionary_N.html#17889">nanoflann::KDTreeSingleIndexAdaptor::knnSearch</a>
+| <a href="dictionary_N.html#17566">nanoflann::KNNResultSet::KNNResultSet</a>
+| <a href="dictionary_N.html#17568">nanoflann::KNNResultSet::init</a>
+| <a href="dictionary_N.html#17884">nanoflann::KDTreeSingleIndexAdaptor::findNeighbors</a>
+| <a href="dictionary_N.html#17730">nanoflann::SearchParams::SearchParams</a>
+
+<a href="dictionary_N.html#17912">nanoflann::KDTreeSingleIndexAdaptor::load_tree</a>
+| <a href="dictionary_N.html#17756">nanoflann::PooledAllocator::allocate</a>
+| <a href="dictionary_N.html#17619">nanoflann::load_value</a>
+| <a href="dictionary_N.html#17912">nanoflann::KDTreeSingleIndexAdaptor::load_tree</a>
+
+<a href="dictionary_N.html#17954">nanoflann::KDTreeSingleIndexAdaptor::loadIndex</a>
+| <a href="dictionary_N.html#17619">nanoflann::load_value</a>
+| <a href="dictionary_N.html#17912">nanoflann::KDTreeSingleIndexAdaptor::load_tree</a>
+
+<a href="dictionary_N.html#17927">nanoflann::KDTreeSingleIndexAdaptor::middleSplit_</a>
+| <a href="dictionary_N.html#17921">nanoflann::KDTreeSingleIndexAdaptor::computeMinMax</a>
+| <a href="dictionary_N.html#17934">nanoflann::KDTreeSingleIndexAdaptor::planeSplit</a>
+
+<a href="dictionary_N.html#17934">nanoflann::KDTreeSingleIndexAdaptor::planeSplit</a>
+| <a href="dictionary_N.html#17906">nanoflann::KDTreeSingleIndexAdaptor::dataset_get</a>
+| <a href="dictionary_S.html#4519">std::swap</a>
+
+<a href="dictionary_N.html#17895">nanoflann::KDTreeSingleIndexAdaptor::radiusSearch</a>
+| <a href="dictionary_N.html#17585">nanoflann::RadiusResultSet::RadiusResultSet</a>
+| <a href="dictionary_N.html#17900">nanoflann::KDTreeSingleIndexAdaptor::radiusSearchCustomCallback</a>
+| <a href="dictionary_S.html#471">std::sort</a>
+| <a href="dictionary_B.html#448">begin</a>
+| <a href="dictionary_E.html#449">end</a>
+| <a href="dictionary_I.html#17965">IndexDist_Sorter</a>
+| <a href="dictionary_N.html#17588">nanoflann::RadiusResultSet::~RadiusResultSet</a>
+
+<a href="dictionary_N.html#17900">nanoflann::KDTreeSingleIndexAdaptor::radiusSearchCustomCallback</a>
+| <a href="dictionary_N.html#17884">nanoflann::KDTreeSingleIndexAdaptor::findNeighbors</a>
+| <a href="dictionary_S.html#442">size</a>
+
+<a href="dictionary_N.html#17909">nanoflann::KDTreeSingleIndexAdaptor::save_tree</a>
+| <a href="dictionary_N.html#17608">nanoflann::save_value</a>
+| <a href="dictionary_N.html#17909">nanoflann::KDTreeSingleIndexAdaptor::save_tree</a>
+
+<a href="dictionary_N.html#17952">nanoflann::KDTreeSingleIndexAdaptor::saveIndex</a>
+| <a href="dictionary_N.html#17608">nanoflann::save_value</a>
+| <a href="dictionary_N.html#17909">nanoflann::KDTreeSingleIndexAdaptor::save_tree</a>
+
+<a href="dictionary_N.html#17944">nanoflann::KDTreeSingleIndexAdaptor::searchLevel</a>
+| <a href="dictionary_W.html#18007">worstDist</a>
+| <a href="dictionary_A.html#18011">addPoint</a>
+| <a href="dictionary_A.html#18005">accum_dist</a>
+| <a href="dictionary_N.html#17944">nanoflann::KDTreeSingleIndexAdaptor::searchLevel</a>
+
+<a href="dictionary_N.html#17883">nanoflann::KDTreeSingleIndexAdaptor::usedMemory</a>
+| <a href="dictionary_K.html#17956">kdtree_get_point_count</a>
+
+<a href="dictionary_N.html#17878">nanoflann::KDTreeSingleIndexAdaptor::~KDTreeSingleIndexAdaptor</a>
+| <a href="dictionary_N.html#17751">nanoflann::PooledAllocator::~PooledAllocator</a>
+
+<a href="dictionary_N.html#17646">nanoflann::L1_Adaptor::accum_dist</a>
+| <a href="dictionary_S.html#10142">std::abs</a>
+
+<a href="dictionary_N.html#17641">nanoflann::L1_Adaptor::operator()</a>
+| <a href="dictionary_S.html#10142">std::abs</a>
+| <a href="dictionary_K.html#17657">kdtree_get_pt</a>
+
+<a href="dictionary_N.html#17670">nanoflann::L2_Adaptor::operator()</a>
+| <a href="dictionary_K.html#17657">kdtree_get_pt</a>
+
+<a href="dictionary_N.html#17699">nanoflann::L2_Simple_Adaptor::operator()</a>
+| <a href="dictionary_K.html#17709">kdtree_distance</a>
+
+<a href="dictionary_N.html#17619">nanoflann::load_value</a>
+| <a href="dictionary_F.html#17625">fread</a>
+| <a href="dictionary_S.html#713">std::runtime_error</a>
+
+<a href="dictionary_N.html#17626">nanoflann::load_value</a>
+| <a href="dictionary_F.html#17625">fread</a>
+| <a href="dictionary_S.html#713">std::runtime_error</a>
+| <a href="dictionary_R.html#472">resize</a>
+
+<a href="dictionary_N.html#17756">nanoflann::PooledAllocator::allocate</a>
+| <a href="dictionary_N.html#17753">nanoflann::PooledAllocator::malloc</a>
+
+<a href="dictionary_N.html#17752">nanoflann::PooledAllocator::free_all</a>
+| <a href="dictionary_F.html#17761">free</a>
+| <a href="dictionary_N.html#17747">nanoflann::PooledAllocator::internal_init</a>
+
+<a href="dictionary_N.html#17753">nanoflann::PooledAllocator::malloc</a>
+| <a href="dictionary_M.html#14195">malloc</a>
+| <a href="dictionary_F.html#17766">fprintf</a>
+
+<a href="dictionary_N.html#17750">nanoflann::PooledAllocator::PooledAllocator</a>
+| <a href="dictionary_N.html#17747">nanoflann::PooledAllocator::internal_init</a>
+
+<a href="dictionary_N.html#17751">nanoflann::PooledAllocator::~PooledAllocator</a>
+| <a href="dictionary_N.html#17752">nanoflann::PooledAllocator::free_all</a>
+
+<a href="dictionary_N.html#17593">nanoflann::RadiusResultSet::addPoint</a>
+| <a href="dictionary_P.html#1599">push_back</a>
+| <a href="dictionary_S.html#5195">std::make_pair</a>
+
+<a href="dictionary_N.html#17590">nanoflann::RadiusResultSet::clear</a>
+| <a href="dictionary_C.html#142">clear</a>
+
+<a href="dictionary_N.html#17589">nanoflann::RadiusResultSet::init</a>
+| <a href="dictionary_N.html#17590">nanoflann::RadiusResultSet::clear</a>
+
+<a href="dictionary_N.html#17585">nanoflann::RadiusResultSet::RadiusResultSet</a>
+| <a href="dictionary_N.html#17589">nanoflann::RadiusResultSet::init</a>
+
+<a href="dictionary_N.html#17597">nanoflann::RadiusResultSet::set_radius_and_clear</a>
+| <a href="dictionary_N.html#17590">nanoflann::RadiusResultSet::clear</a>
+
+<a href="dictionary_N.html#17591">nanoflann::RadiusResultSet::size</a>
+| <a href="dictionary_S.html#442">size</a>
+
+<a href="dictionary_N.html#17599">nanoflann::RadiusResultSet::worst_item</a>
+| <a href="dictionary_E.html#160">empty</a>
+| <a href="dictionary_S.html#713">std::runtime_error</a>
+| <a href="dictionary_S.html#17602">std::max_element</a>
+| <a href="dictionary_B.html#448">begin</a>
+| <a href="dictionary_E.html#449">end</a>
+
+<a href="dictionary_N.html#17608">nanoflann::save_value</a>
+| <a href="dictionary_F.html#17613">fwrite</a>
+
+<a href="dictionary_N.html#17614">nanoflann::save_value</a>
+| <a href="dictionary_S.html#442">size</a>
+| <a href="dictionary_F.html#17613">fwrite</a>
+
+<a href="dictionary_N.html#10191">norm_inf</a>
+| <a href="dictionary_L.html#10192">lpNorm</a>
+
+<a href="dictionary_N.html#10485">normalize</a>
+| <a href="dictionary_S.html#10087">size</a>
+| <a href="dictionary_M.html#10169">minimum_maximum</a>
+| <a href="dictionary_A.html#10053">array</a>
+</pre><hr>
+<table BORDER CELLPADDING=4><tr><td><a href="simpleinvtree_Non-Alpha.html">Non-Alpha</a></td><td><a href="simpleinvtree_A.html">A</a></td><td><a href="simpleinvtree_B.html">B</a></td><td><a href="simpleinvtree_C.html">C</a></td><td><a href="simpleinvtree_D.html">D</a></td><td><a href="simpleinvtree_E.html">E</a></td><td><a href="simpleinvtree_F.html">F</a></td><td><a href="simpleinvtree_G.html">G</a></td><td>H</td><td><a href="simpleinvtree_I.html">I</a></td><td>J</td><td>K</td><td><a href="simpleinvtree_L.html">L</a></td><td><a href="simpleinvtree_M.html">M</a></td><td><a href="simpleinvtree_N.html">N</a></td><td><a href="simpleinvtree_O.html">O</a></td><td><a href="simpleinvtree_P.html">P</a></td><td>Q</td><td><a href="simpleinvtree_R.html">R</a></td><td><a href="simpleinvtree_S.html">S</a></td><td><a href="simpleinvtree_T.html">T</a></td><td><a href="simpleinvtree_U.html">U</a></td><td>V</td><td>W</td><td>X</td><td>Y</td><td><a href="simpleinvtree_Z.html">Z</a></td></tr></table></body></html>

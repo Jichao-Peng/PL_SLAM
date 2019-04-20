@@ -79,7 +79,7 @@ Config::Config()
     // -----------------------------------------------------------------------------------------------------
     homog_th         = 1e-7;        // avoid points in the infinite
     min_features     = 10;          // min. number of features to perform StVO
-    max_iters        = 5;           // max. number of iterations in the first stage of the optimization
+    max_iters        = 10;           // max. number of iterations in the first stage of the optimization
     max_iters_ref    = 10;          // max. number of iterations in the refinement stage
     min_error        = 1e-7;        // min. error to stop the optimization
     min_error_change = 1e-7;        // min. error change to stop the optimization

@@ -904,6 +904,7 @@ void sceneRepresentation::setImage(const Mat &image_){
     img_sz = cv::Size(0.5*image_.cols, 0.5*image_.rows);
     cv::resize( image_, aux, img_sz );
 
+	//转变乘彩色图啊
     bool color;
     if (aux.channels() == 3) {
         aux.convertTo(aux, CV_8UC3);
@@ -917,6 +918,7 @@ void sceneRepresentation::setImage(const Mat &image_){
         throw std::runtime_error(std::string("[SceneRepresentation->setImage] unsupported image format: ") +
                                  std::to_string(aux.channels()));
 
+	//加载图片
     img_mrpt_image.loadFromMemoryBuffer(img_sz.width, img_sz.height, color, aux.data, false);
 }
 

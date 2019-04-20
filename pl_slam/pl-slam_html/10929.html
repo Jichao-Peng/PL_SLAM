@@ -1,0 +1,78 @@
+<html><head><title>TTypeName_impl.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/utils/TTypeName_impl.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/utils/TTypeName_impl.h";
+top.document.title  = "TTypeName_impl.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span><span class="preproc">#ifndef  <a href="dictionary_T.html#10930">TTYPENAME_IMPL_H</a></span>
+<a name="10"><font size=-1>10     </font></a><span class="preproc">#define  <a href="dictionary_T.html#10930">TTYPENAME_IMPL_H</a></span>
+<a name="11"><font size=-1>11     </font></a><span class="preproc"></span>
+<a name="12"><font size=-1>12     </font></a><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/TTypeName.h&gt;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;list&gt;</span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;vector&gt;</span>
+<a name="15"><font size=-1>15     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;deque&gt;</span>
+<a name="16"><font size=-1>16     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;set&gt;</span>
+<a name="17"><font size=-1>17     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;map&gt;</span>
+<a name="18"><font size=-1>18     </font></a><span class="string"></span>
+<a name="19"><font size=-1>19     </font></a><span class="string"></span><span class="comment">// This file extends TTypeName.h for STL C++ types.</span>
+<a name="20"><font size=-1>20     </font></a><span class="comment"></span>
+<a name="21"><font size=-1>21     </font></a><span class="comment"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="22"><font size=-1>22     </font></a><span class="default">{</span>
+<a name="23"><font size=-1>23     </font></a><span class="default">	</span><span class="keyword">namespace </span><span class="default">utils</span>
+<a name="24"><font size=-1>24     </font></a><span class="default">	{</span>
+<a name="25"><font size=-1>25     </font></a><span class="default">		</span><span class="comment">/** @name Conversion of type to string at compile time</span>
+<a name="26"><font size=-1>26     </font></a><span class="comment">		@{ */</span>
+<a name="27"><font size=-1>27     </font></a><span class="comment"></span>
+<a name="28"><font size=-1>28     </font></a><span class="comment">		<a href="dictionary_M.html#10935">MRPT_DECLARE_TTYPENAME</a></span><span class="default">(std::<a href="dictionary_S.html#118">string</a>)</span>
+<a name="29"><font size=-1>29     </font></a><span class="default"></span>
+<a name="30"><font size=-1>30     </font></a><span class="default">		</span><span class="preproc">#define <a href="dictionary_M.html#10934">MRPT_DECLARE_TTYPENAME_CONTAINER</a></span><span class="default">(_CONTAINER) </span><span class="preproc">\</span>
+<a name="31"><font size=-1>31     </font></a><span class="preproc">			</span><span class="keyword">template</span><span class="default">&lt; </span><span class="keyword">typename </span><span class="default">V &gt; </span><span class="preproc">\</span>
+<a name="32"><font size=-1>32     </font></a><span class="preproc">			</span><span class="keyword">struct <a href="dictionary_M.html#10932">TTypeName</a> </span><span class="default">&lt;_CONTAINER&lt;V&gt; &gt; { </span><span class="preproc">\</span>
+<a name="33"><font size=-1>33     </font></a><span class="preproc">				</span><span class="keyword">static </span><span class="default">std::string get() { </span><span class="preproc">\</span>
+<a name="34"><font size=-1>34     </font></a><span class="preproc">					</span><span class="keyword">return </span><span class="default">std::string( </span><span class="preproc">#</span><span class="default">_CONTAINER )+std::string(</span><span class="string">&quot;&lt;&quot;</span><span class="default">)+std::string( <a href="dictionary_M.html#10932">TTypeName</a>&lt;V&gt;::get() ) + std::string(</span><span class="string">&quot;&gt;&quot;</span><span class="default">); </span><span class="preproc">\</span>
+<a name="35"><font size=-1>35     </font></a><span class="preproc">				</span><span class="default">} </span><span class="preproc">\</span>
+<a name="36"><font size=-1>36     </font></a><span class="preproc">			</span><span class="default">};</span>
+<a name="37"><font size=-1>37     </font></a><span class="default"></span>
+<a name="38"><font size=-1>38     </font></a><span class="default">		<a href="dictionary_M.html#10934">MRPT_DECLARE_TTYPENAME_CONTAINER</a>( std::vector )</span>
+<a name="39"><font size=-1>39     </font></a><span class="default">		<a href="dictionary_M.html#10934">MRPT_DECLARE_TTYPENAME_CONTAINER</a>( std::deque )</span>
+<a name="40"><font size=-1>40     </font></a><span class="default">		<a href="dictionary_M.html#10934">MRPT_DECLARE_TTYPENAME_CONTAINER</a>( std::list )</span>
+<a name="41"><font size=-1>41     </font></a><span class="default">		<a href="dictionary_M.html#10934">MRPT_DECLARE_TTYPENAME_CONTAINER</a>( std::set )</span>
+<a name="42"><font size=-1>42     </font></a><span class="default"></span>
+<a name="43"><font size=-1>43     </font></a><span class="default">		</span><span class="preproc">#define <a href="dictionary_M.html#10948">MRPT_DECLARE_TTYPENAME_CONTAINER_ASSOC</a></span><span class="default">(_CONTAINER) </span><span class="preproc">\</span>
+<a name="44"><font size=-1>44     </font></a><span class="preproc">			</span><span class="keyword">template</span><span class="default">&lt; </span><span class="keyword">typename </span><span class="default">K, </span><span class="keyword">typename </span><span class="default">V &gt; </span><span class="preproc">\</span>
+<a name="45"><font size=-1>45     </font></a><span class="preproc">			</span><span class="keyword">struct <a href="dictionary_M.html#10945">TTypeName</a> </span><span class="default">&lt;_CONTAINER&lt;K,V&gt; &gt; { </span><span class="preproc">\</span>
+<a name="46"><font size=-1>46     </font></a><span class="preproc">				</span><span class="keyword">static </span><span class="default">std::string get() { </span><span class="preproc">\</span>
+<a name="47"><font size=-1>47     </font></a><span class="preproc">					</span><span class="keyword">return </span><span class="default">std::string( </span><span class="preproc">#</span><span class="default">_CONTAINER )+std::string(</span><span class="string">&quot;&lt;&quot;</span><span class="default">)+std::string( <a href="dictionary_M.html#10945">TTypeName</a>&lt;K&gt;::get() )+ std::string(</span><span class="string">&quot;,&quot;</span><span class="default">)+std::string( TTypeName&lt;V&gt;::get() )+std::string(</span><span class="string">&quot;&gt;&quot;</span><span class="default">); </span><span class="preproc">\</span>
+<a name="48"><font size=-1>48     </font></a><span class="preproc">				</span><span class="default">} </span><span class="preproc">\</span>
+<a name="49"><font size=-1>49     </font></a><span class="preproc">			</span><span class="default">};</span>
+<a name="50"><font size=-1>50     </font></a><span class="default"></span>
+<a name="51"><font size=-1>51     </font></a><span class="default">		<a href="dictionary_M.html#10948">MRPT_DECLARE_TTYPENAME_CONTAINER_ASSOC</a>( std::map )</span>
+<a name="52"><font size=-1>52     </font></a><span class="default">		<a href="dictionary_M.html#10948">MRPT_DECLARE_TTYPENAME_CONTAINER_ASSOC</a>( std::multimap )</span>
+<a name="53"><font size=-1>53     </font></a><span class="default"></span>
+<a name="54"><font size=-1>54     </font></a><span class="default"></span>
+<a name="55"><font size=-1>55     </font></a><span class="default">		</span><span class="keyword">template</span><span class="default">&lt; </span><span class="keyword">typename <a href="dictionary_M.html#10958">T1</a></span><span class="default">, </span><span class="keyword">typename <a href="dictionary_M.html#10959">T2</a> </span><span class="default">&gt;</span>
+<a name="56"><font size=-1>56     </font></a><span class="default">		</span><span class="keyword">struct <a href="dictionary_M.html#10957">TTypeName</a> </span><span class="default">&lt;std::pair&lt;T1,T2&gt; &gt;	{</span>
+<a name="57"><font size=-1>57     </font></a><span class="default">			</span><span class="keyword">static </span><span class="default">std::<a href="dictionary_S.html#118">string</a> <a href="dictionary_M.html#19781">get</a>() {</span>
+<a name="58"><font size=-1>58     </font></a><span class="default">				</span><span class="keyword">return </span><span class="default">std::<a href="dictionary_S.html#118">string</a>(</span><span class="string">&quot;std::pair&lt;&quot;</span><span class="default">)+std::<a href="dictionary_S.html#118">string</a>( <a href="dictionary_M.html#10957">TTypeName</a>&lt;T1&gt;::<a href="dictionary_M.html#19781">get</a>() )+ std::<a href="dictionary_S.html#118">string</a>(</span><span class="string">&quot;,&quot;</span><span class="default">)+std::<a href="dictionary_S.html#118">string</a>( <a href="dictionary_M.html#10957">TTypeName</a>&lt;T2&gt;::<a href="dictionary_M.html#19781">get</a>() )+std::<a href="dictionary_S.html#118">string</a>(</span><span class="string">&quot;&gt;&quot;</span><span class="default">);</span>
+<a name="59"><font size=-1>59     </font></a><span class="default">			}</span>
+<a name="60"><font size=-1>60     </font></a><span class="default">		};</span>
+<a name="61"><font size=-1>61     </font></a><span class="default"></span>
+<a name="62"><font size=-1>62     </font></a><span class="default">		</span><span class="comment">/** @} */</span>
+<a name="63"><font size=-1>63     </font></a><span class="comment"></span>
+<a name="64"><font size=-1>64     </font></a><span class="comment">	</span><span class="default">} </span><span class="comment">// End of namespace</span>
+<a name="65"><font size=-1>65     </font></a><span class="comment"></span><span class="default">} </span><span class="comment">// End of namespace</span>
+<a name="66"><font size=-1>66     </font></a><span class="comment"></span>
+<a name="67"><font size=-1>67     </font></a><span class="comment"></span><span class="preproc">#endif</span>
+<a name="68"><font size=-1>68     </font></a><span class="preproc"></span>
+</pre></body></html>

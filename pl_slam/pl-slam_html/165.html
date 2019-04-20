@@ -1,0 +1,289 @@
+<html><head><title>CPose2D.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/poses/CPose2D.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/poses/CPose2D.h";
+top.document.title  = "CPose2D.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span><span class="preproc">#ifndef <a href="dictionary_C.html#9299">CPOSE2D_H</a></span>
+<a name="10"><font size=-1>10     </font></a><span class="preproc">#define <a href="dictionary_C.html#9299">CPOSE2D_H</a></span>
+<a name="11"><font size=-1>11     </font></a><span class="preproc"></span>
+<a name="12"><font size=-1>12     </font></a><span class="preproc">#include </span><span class="string">&lt;mrpt/poses/CPose.h&gt;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/aligned_containers.h&gt;</span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span>
+<a name="15"><font size=-1>15     </font></a><span class="string"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="16"><font size=-1>16     </font></a><span class="default">{</span>
+<a name="17"><font size=-1>17     </font></a><span class="default"></span><span class="keyword">namespace </span><span class="default">poses</span>
+<a name="18"><font size=-1>18     </font></a><span class="default">{</span>
+<a name="19"><font size=-1>19     </font></a><span class="default">	<a href="dictionary_D.html#518">DEFINE_SERIALIZABLE_PRE</a>( <a href="dictionary_M.html#180">CPose2D</a> )</span>
+<a name="20"><font size=-1>20     </font></a><span class="default"></span>
+<a name="21"><font size=-1>21     </font></a><span class="default">	</span><span class="comment">/** A class used to store a 2D pose.</span>
+<a name="22"><font size=-1>22     </font></a><span class="comment">	 *    A class used to store a 2D pose, including the 2D coordinate</span>
+<a name="23"><font size=-1>23     </font></a><span class="comment">	 *      point and a heading (phi) angle.</span>
+<a name="24"><font size=-1>24     </font></a><span class="comment">	 *</span>
+<a name="25"><font size=-1>25     </font></a><span class="comment">	 *  For a complete description of Points/Poses, see mrpt::poses::CPoseOrPoint, or refer</span>
+<a name="26"><font size=-1>26     </font></a><span class="comment">	 *    to the &lt;a href=&quot;http://www.mrpt.org/2D_3D_Geometry&quot; &gt;2D/3D Geometry tutorial&lt;/a&gt; in the wiki.</span>
+<a name="27"><font size=-1>27     </font></a><span class="comment">	 *</span>
+<a name="28"><font size=-1>28     </font></a><span class="comment">	 *  &lt;div align=center&gt;</span>
+<a name="29"><font size=-1>29     </font></a><span class="comment">	 *   &lt;img src=&quot;CPose2D.gif&quot;&gt;</span>
+<a name="30"><font size=-1>30     </font></a><span class="comment">	 *  &lt;/div&gt;</span>
+<a name="31"><font size=-1>31     </font></a><span class="comment">	 *</span>
+<a name="32"><font size=-1>32     </font></a><span class="comment">	 * \note Read also: &quot;A tutorial on SE(3) transformation parameterizations and on-manifold optimization&quot;, Jose-Luis Blanco. http://ingmec.ual.es/~jlblanco/papers/jlblanco2010geometry3D_techrep.pdf</span>
+<a name="33"><font size=-1>33     </font></a><span class="comment">	 * \sa CPoseOrPoint,CPoint2D</span>
+<a name="34"><font size=-1>34     </font></a><span class="comment">	 * \ingroup poses_grp</span>
+<a name="35"><font size=-1>35     </font></a><span class="comment">	 */</span>
+<a name="36"><font size=-1>36     </font></a><span class="comment">	</span><span class="keyword">class <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#180">CPose2D</a> </span><span class="default">: </span><span class="keyword">public <a href="dictionary_M.html#519">CPose</a></span><span class="default">&lt;CPose2D&gt;, </span><span class="keyword">public </span><span class="default">mrpt::utils::<a href="dictionary_M.html#520">CSerializable</a></span>
+<a name="37"><font size=-1>37     </font></a><span class="default">	{</span>
+<a name="38"><font size=-1>38     </font></a><span class="default">	</span><span class="keyword">public</span><span class="default">:</span>
+<a name="39"><font size=-1>39     </font></a><span class="default">		</span><span class="comment">// This must be added to any CSerializable derived class:</span>
+<a name="40"><font size=-1>40     </font></a><span class="comment">		<a href="dictionary_D.html#561">DEFINE_SERIALIZABLE</a></span><span class="default">( <a href="dictionary_M.html#180">CPose2D</a> )</span>
+<a name="41"><font size=-1>41     </font></a><span class="default"></span>
+<a name="42"><font size=-1>42     </font></a><span class="default">	</span><span class="keyword">public</span><span class="default">:</span>
+<a name="43"><font size=-1>43     </font></a><span class="default">		mrpt::math::<a href="dictionary_M.html#563">CArrayDouble</a>&lt;</span><span class="number">2</span><span class="default">&gt;   <a href="dictionary_M.html#9333">m_coords</a>; </span><span class="comment">//!&lt; [x,y]</span>
+<a name="44"><font size=-1>44     </font></a><span class="comment"></span>
+<a name="45"><font size=-1>45     </font></a><span class="comment">	</span><span class="keyword">protected</span><span class="default">:</span>
+<a name="46"><font size=-1>46     </font></a><span class="default">		</span><span class="keyword">double <a href="dictionary_M.html#9334">m_phi</a></span><span class="default">;  </span><span class="comment">//!&lt; The orientation of the pose, in radians.</span>
+<a name="47"><font size=-1>47     </font></a><span class="comment">		</span><span class="keyword">mutable double <a href="dictionary_M.html#9335">m_cosphi</a></span><span class="default">, <a href="dictionary_M.html#9336">m_sinphi</a>; </span><span class="comment">//!&lt; Precomputed cos() &amp; sin() of phi.</span>
+<a name="48"><font size=-1>48     </font></a><span class="comment">		</span><span class="keyword">mutable bool   <a href="dictionary_M.html#9337">m_cossin_uptodate</a></span><span class="default">;</span>
+<a name="49"><font size=-1>49     </font></a><span class="default"></span>
+<a name="50"><font size=-1>50     </font></a><span class="default">		</span><span class="keyword">inline void <a href="dictionary_M.html#9338">update_cached_cos_sin</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{</span>
+<a name="51"><font size=-1>51     </font></a><span class="default">			</span><span class="keyword">if </span><span class="default">(<a href="dictionary_M.html#9337">m_cossin_uptodate</a>) </span><span class="keyword">return</span><span class="default">;</span>
+<a name="52"><font size=-1>52     </font></a><span class="default"></span><span class="preproc">#ifdef <a href="dictionary_H.html#9339">HAVE_SINCOS</a></span>
+<a name="53"><font size=-1>53     </font></a><span class="preproc">			</span><span class="default">::sincos(<a href="dictionary_M.html#9334">m_phi</a>,&amp;<a href="dictionary_M.html#9336">m_sinphi</a>,&amp;<a href="dictionary_M.html#9335">m_cosphi</a>);</span>
+<a name="54"><font size=-1>54     </font></a><span class="default"></span><span class="preproc">#else</span>
+<a name="55"><font size=-1>55     </font></a><span class="preproc">			<a href="dictionary_M.html#9335">m_cosphi</a></span><span class="default">=::<a href="dictionary_C.html#1906">cos</a>(<a href="dictionary_M.html#9334">m_phi</a>);</span>
+<a name="56"><font size=-1>56     </font></a><span class="default">			<a href="dictionary_M.html#9336">m_sinphi</a>=::<a href="dictionary_S.html#1908">sin</a>(<a href="dictionary_M.html#9334">m_phi</a>);</span>
+<a name="57"><font size=-1>57     </font></a><span class="default"></span><span class="preproc">#endif</span>
+<a name="58"><font size=-1>58     </font></a><span class="preproc">			<a href="dictionary_M.html#9337">m_cossin_uptodate</a></span><span class="default">=</span><span class="keyword">true</span><span class="default">;</span>
+<a name="59"><font size=-1>59     </font></a><span class="default">		}</span>
+<a name="60"><font size=-1>60     </font></a><span class="default"></span>
+<a name="61"><font size=-1>61     </font></a><span class="default">	</span><span class="keyword">public</span><span class="default">:</span>
+<a name="62"><font size=-1>62     </font></a><span class="default">		 </span><span class="comment">/** Default constructor (all coordinates to 0) */</span>
+<a name="63"><font size=-1>63     </font></a><span class="comment">		 <a href="dictionary_M.html#4734">CPose2D</a></span><span class="default">();</span>
+<a name="64"><font size=-1>64     </font></a><span class="default"></span>
+<a name="65"><font size=-1>65     </font></a><span class="default">		 </span><span class="comment">/** Constructor from an initial value of the pose.*/</span>
+<a name="66"><font size=-1>66     </font></a><span class="comment">		 <a href="dictionary_M.html#9340">CPose2D</a></span><span class="default">(</span><span class="keyword">const double </span><span class="default">x,</span><span class="keyword">const double </span><span class="default">y,</span><span class="keyword">const double </span><span class="default">phi);</span>
+<a name="67"><font size=-1>67     </font></a><span class="default"></span>
+<a name="68"><font size=-1>68     </font></a><span class="default">		 </span><span class="comment">/** Constructor from a CPoint2D object. */</span>
+<a name="69"><font size=-1>69     </font></a><span class="comment">		 <a href="dictionary_M.html#9341">CPose2D</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#598">CPoint2D</a> </span><span class="default">&amp;);</span>
+<a name="70"><font size=-1>70     </font></a><span class="default"></span>
+<a name="71"><font size=-1>71     </font></a><span class="default">		 </span><span class="comment">/** Aproximation!! Avoid its use, since information is lost. */</span>
+<a name="72"><font size=-1>72     </font></a><span class="comment">		 </span><span class="keyword">explicit <a href="dictionary_M.html#9342">CPose2D</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#182">CPose3D</a> </span><span class="default">&amp;);</span>
+<a name="73"><font size=-1>73     </font></a><span class="default"></span>
+<a name="74"><font size=-1>74     </font></a><span class="default">		 </span><span class="comment">/** Constructor from lightweight object. */</span>
+<a name="75"><font size=-1>75     </font></a><span class="comment">		 <a href="dictionary_M.html#9343">CPose2D</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">mrpt::math::<a href="dictionary_M.html#1290">TPose2D</a> &amp;);</span>
+<a name="76"><font size=-1>76     </font></a><span class="default"></span>
+<a name="77"><font size=-1>77     </font></a><span class="default">		 </span><span class="comment">/** Constructor from CPoint3D with information loss. */</span>
+<a name="78"><font size=-1>78     </font></a><span class="comment">		 </span><span class="keyword">explicit <a href="dictionary_M.html#9344">CPose2D</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#596">CPoint3D</a> </span><span class="default">&amp;);</span>
+<a name="79"><font size=-1>79     </font></a><span class="default"></span>
+<a name="80"><font size=-1>80     </font></a><span class="default">		 </span><span class="comment">/** Fast constructor that leaves all the data uninitialized - call with UNINITIALIZED_POSE as argument */</span>
+<a name="81"><font size=-1>81     </font></a><span class="comment">		 </span><span class="keyword">inline <a href="dictionary_M.html#9345">CPose2D</a></span><span class="default">(<a href="dictionary_M.html#568">TConstructorFlags_Poses</a> ) : <a href="dictionary_M.html#9337">m_cossin_uptodate</a>(</span><span class="keyword">false</span><span class="default">) { }</span>
+<a name="82"><font size=-1>82     </font></a><span class="default"></span>
+<a name="83"><font size=-1>83     </font></a><span class="default">		 </span><span class="comment">/** Get the phi angle of the 2D pose (in radians) */</span>
+<a name="84"><font size=-1>84     </font></a><span class="comment">		 </span><span class="keyword">inline const double </span><span class="default">&amp;<a href="dictionary_M.html#9347">phi</a>() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#9334">m_phi</a></span><span class="default">; }</span>
+<a name="85"><font size=-1>85     </font></a><span class="default">		 </span><span class="comment">//! \overload</span>
+<a name="86"><font size=-1>86     </font></a><span class="comment">		 </span><span class="keyword">inline       double </span><span class="default">&amp;<a href="dictionary_M.html#9348">phi</a>()       { <a href="dictionary_M.html#9337">m_cossin_uptodate</a>=</span><span class="keyword">false</span><span class="default">; </span><span class="keyword">return <a href="dictionary_M.html#9334">m_phi</a></span><span class="default">; } </span><span class="comment">//-V659</span>
+<a name="87"><font size=-1>87     </font></a><span class="comment"></span>
+<a name="88"><font size=-1>88     </font></a><span class="comment">		 /** Get a (cached) value of cos(phi), recomputing it only once when phi changes. */</span>
+<a name="89"><font size=-1>89     </font></a><span class="comment">		 </span><span class="keyword">inline double <a href="dictionary_M.html#9349">phi_cos</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ <a href="dictionary_M.html#9338">update_cached_cos_sin</a>(); </span><span class="keyword">return <a href="dictionary_M.html#9335">m_cosphi</a></span><span class="default">; }</span>
+<a name="90"><font size=-1>90     </font></a><span class="default">		 </span><span class="comment">/** Get a (cached) value of sin(phi), recomputing it only once when phi changes. */</span>
+<a name="91"><font size=-1>91     </font></a><span class="comment">		 </span><span class="keyword">inline double <a href="dictionary_M.html#9350">phi_sin</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ <a href="dictionary_M.html#9338">update_cached_cos_sin</a>(); </span><span class="keyword">return <a href="dictionary_M.html#9336">m_sinphi</a></span><span class="default">; }</span>
+<a name="92"><font size=-1>92     </font></a><span class="default"></span>
+<a name="93"><font size=-1>93     </font></a><span class="default">		 </span><span class="comment">/** Set the phi angle of the 2D pose (in radians) */</span>
+<a name="94"><font size=-1>94     </font></a><span class="comment">		 </span><span class="keyword">inline void <a href="dictionary_M.html#9351">phi</a></span><span class="default">(</span><span class="keyword">double <a href="dictionary_A.html#9352">angle</a></span><span class="default">) { <a href="dictionary_M.html#9334">m_phi</a>=<a href="dictionary_A.html#9352">angle</a>; <a href="dictionary_M.html#9337">m_cossin_uptodate</a>=</span><span class="keyword">false</span><span class="default">; }</span>
+<a name="95"><font size=-1>95     </font></a><span class="default"></span>
+<a name="96"><font size=-1>96     </font></a><span class="default">		 </span><span class="keyword">inline void <a href="dictionary_M.html#9353">phi_incr</a></span><span class="default">(</span><span class="keyword">const double <a href="dictionary_A.html#9354">Aphi</a></span><span class="default">) { <a href="dictionary_M.html#9334">m_phi</a>+=<a href="dictionary_A.html#9354">Aphi</a>; <a href="dictionary_M.html#9337">m_cossin_uptodate</a>=</span><span class="keyword">false</span><span class="default">; }  </span><span class="comment">//!&lt; Increment the PHI angle (without checking the 2 PI range, call normalizePhi is needed)</span>
+<a name="97"><font size=-1>97     </font></a><span class="comment"></span>
+<a name="98"><font size=-1>98     </font></a><span class="comment">		/** Returns a 1x3 vector with [x y phi] */</span>
+<a name="99"><font size=-1>99     </font></a><span class="comment">		</span><span class="keyword">void <a href="dictionary_M.html#9355">getAsVector</a></span><span class="default">(mrpt::math::<a href="dictionary_M.html#1397">CVectorDouble</a> &amp;v) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="100"><font size=-1>100     </font></a><span class="default">		</span><span class="comment">/// \overload</span>
+<a name="101"><font size=-1>101     </font></a><span class="comment">		</span><span class="keyword">void <a href="dictionary_M.html#9356">getAsVector</a></span><span class="default">(mrpt::math::<a href="dictionary_M.html#563">CArrayDouble</a>&lt;</span><span class="number">3</span><span class="default">&gt; &amp;v) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="102"><font size=-1>102     </font></a><span class="default"></span>
+<a name="103"><font size=-1>103     </font></a><span class="default">		 </span><span class="comment">/** Returns the corresponding 4x4 homogeneous transformation matrix for the point(translation) or pose (translation+orientation).</span>
+<a name="104"><font size=-1>104     </font></a><span class="comment">		   * \sa getInverseHomogeneousMatrix</span>
+<a name="105"><font size=-1>105     </font></a><span class="comment">		   */</span>
+<a name="106"><font size=-1>106     </font></a><span class="comment">		 </span><span class="keyword">void  <a href="dictionary_M.html#9357">getHomogeneousMatrix</a></span><span class="default">(mrpt::math::<a href="dictionary_M.html#582">CMatrixDouble44</a> &amp; out_HM ) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="107"><font size=-1>107     </font></a><span class="default"></span>
+<a name="108"><font size=-1>108     </font></a><span class="default">		 </span><span class="keyword">void <a href="dictionary_M.html#9358">getRotationMatrix</a></span><span class="default">(mrpt::math::<a href="dictionary_M.html#3523">CMatrixDouble22</a> &amp;R) </span><span class="keyword">const</span><span class="default">; </span><span class="comment">//!&lt; Returns the SE(2) 2x2 rotation matrix</span>
+<a name="109"><font size=-1>109     </font></a><span class="comment">		 </span><span class="keyword">void <a href="dictionary_M.html#9358">getRotationMatrix</a></span><span class="default">(mrpt::math::<a href="dictionary_M.html#176">CMatrixDouble33</a> &amp;R) </span><span class="keyword">const</span><span class="default">; </span><span class="comment">//!&lt; Returns the equivalent SE(3) 3x3 rotation matrix, with (2,2)=1.</span>
+<a name="110"><font size=-1>110     </font></a><span class="comment"></span>
+<a name="111"><font size=-1>111     </font></a><span class="comment">		 </span><span class="keyword">inline </span><span class="default">mrpt::math::<a href="dictionary_M.html#3523">CMatrixDouble22</a> <a href="dictionary_M.html#9359">getRotationMatrix</a>() </span><span class="keyword">const </span><span class="default">{</span>
+<a name="112"><font size=-1>112     </font></a><span class="default">			 mrpt::math::<a href="dictionary_M.html#3523">CMatrixDouble22</a> <a href="dictionary_R.html#9416">R</a>(mrpt::math::UNINITIALIZED_MATRIX);</span>
+<a name="113"><font size=-1>113     </font></a><span class="default">			 <a href="dictionary_M.html#9358">getRotationMatrix</a>(<a href="dictionary_R.html#9416">R</a>);</span>
+<a name="114"><font size=-1>114     </font></a><span class="default">			 </span><span class="keyword">return <a href="dictionary_R.html#9416">R</a></span><span class="default">;</span>
+<a name="115"><font size=-1>115     </font></a><span class="default">		 }</span>
+<a name="116"><font size=-1>116     </font></a><span class="default"></span>
+<a name="117"><font size=-1>117     </font></a><span class="default">		 </span><span class="comment">/** The operator \f$ a = this \oplus D \f$ is the pose compounding operator. */</span>
+<a name="118"><font size=-1>118     </font></a><span class="comment">		 <a href="dictionary_M.html#180">CPose2D</a>  </span><span class="keyword">operator </span><span class="default">+ (</span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a></span><span class="default">&amp; D) </span><span class="keyword">const </span><span class="default">;</span>
+<a name="119"><font size=-1>119     </font></a><span class="default"></span>
+<a name="120"><font size=-1>120     </font></a><span class="default">		 </span><span class="comment">/** Makes \f$ this = A \oplus B \f$</span>
+<a name="121"><font size=-1>121     </font></a><span class="comment">		  *  \note A or B can be &quot;this&quot; without problems.  */</span>
+<a name="122"><font size=-1>122     </font></a><span class="comment">		 </span><span class="keyword">void <a href="dictionary_M.html#9361">composeFrom</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a> </span><span class="default">&amp;A, </span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a> </span><span class="default">&amp;B);</span>
+<a name="123"><font size=-1>123     </font></a><span class="default"></span>
+<a name="124"><font size=-1>124     </font></a><span class="default">		 </span><span class="comment">/** The operator \f$ a = this \oplus D \f$ is the pose compounding operator. */</span>
+<a name="125"><font size=-1>125     </font></a><span class="comment">		 <a href="dictionary_M.html#182">CPose3D</a>  </span><span class="keyword">operator </span><span class="default">+ (</span><span class="keyword">const <a href="dictionary_M.html#182">CPose3D</a></span><span class="default">&amp; D) </span><span class="keyword">const </span><span class="default">;</span>
+<a name="126"><font size=-1>126     </font></a><span class="default"></span>
+<a name="127"><font size=-1>127     </font></a><span class="default">		 </span><span class="comment">/** The operator \f$ u' = this \oplus u \f$ is the pose/point compounding operator.  */</span>
+<a name="128"><font size=-1>128     </font></a><span class="comment">		 <a href="dictionary_M.html#598">CPoint2D</a> </span><span class="keyword">operator </span><span class="default">+ (</span><span class="keyword">const <a href="dictionary_M.html#598">CPoint2D</a></span><span class="default">&amp; u) </span><span class="keyword">const </span><span class="default">;</span>
+<a name="129"><font size=-1>129     </font></a><span class="default"></span>
+<a name="130"><font size=-1>130     </font></a><span class="default">		 </span><span class="comment">/** An alternative, slightly more efficient way of doing \f$ G = P \oplus L \f$ with G and L being 2D points and P this 2D pose.  */</span>
+<a name="131"><font size=-1>131     </font></a><span class="comment">		 </span><span class="keyword">void <a href="dictionary_M.html#9364">composePoint</a></span><span class="default">(</span><span class="keyword">double </span><span class="default">lx,</span><span class="keyword">double </span><span class="default">ly,</span><span class="keyword">double </span><span class="default">&amp;gx, </span><span class="keyword">double </span><span class="default">&amp;gy) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="132"><font size=-1>132     </font></a><span class="default"></span>
+<a name="133"><font size=-1>133     </font></a><span class="default">		 </span><span class="comment">/** overload \f$ G = P \oplus L \f$ with G and L being 2D points and P this 2D pose */</span>
+<a name="134"><font size=-1>134     </font></a><span class="comment">		 </span><span class="keyword">void <a href="dictionary_M.html#9365">composePoint</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">mrpt::math::<a href="dictionary_M.html#1294">TPoint2D</a> &amp;l, mrpt::math::<a href="dictionary_M.html#1294">TPoint2D</a> &amp;g) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="135"><font size=-1>135     </font></a><span class="default"></span>
+<a name="136"><font size=-1>136     </font></a><span class="default">		 </span><span class="comment">/** overload \f$ G = P \oplus L \f$ with G and L being 3D points and P this 2D pose (the &quot;z&quot; coordinate remains unmodified) */</span>
+<a name="137"><font size=-1>137     </font></a><span class="comment">		 </span><span class="keyword">void <a href="dictionary_M.html#9366">composePoint</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">mrpt::math::<a href="dictionary_M.html#603">TPoint3D</a> &amp;l, mrpt::math::<a href="dictionary_M.html#603">TPoint3D</a> &amp;g) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="138"><font size=-1>138     </font></a><span class="default">		 </span><span class="comment">/** overload (the &quot;z&quot; coordinate remains unmodified) */</span>
+<a name="139"><font size=-1>139     </font></a><span class="comment">		 </span><span class="keyword">void <a href="dictionary_M.html#9367">composePoint</a></span><span class="default">(</span><span class="keyword">double </span><span class="default">lx,</span><span class="keyword">double </span><span class="default">ly,</span><span class="keyword">double </span><span class="default">lz, </span><span class="keyword">double </span><span class="default">&amp;gx, </span><span class="keyword">double </span><span class="default">&amp;gy, </span><span class="keyword">double </span><span class="default">&amp;gz) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="140"><font size=-1>140     </font></a><span class="default"></span>
+<a name="141"><font size=-1>141     </font></a><span class="default">		</span><span class="comment">/**  Computes the 2D point L such as \f$ L = G \ominus this \f$. \sa composePoint, composeFrom */</span>
+<a name="142"><font size=-1>142     </font></a><span class="comment">		</span><span class="keyword">void <a href="dictionary_M.html#9368">inverseComposePoint</a></span><span class="default">(</span><span class="keyword">const double </span><span class="default">gx,</span><span class="keyword">const double </span><span class="default">gy, </span><span class="keyword">double </span><span class="default">&amp;lx,</span><span class="keyword">double </span><span class="default">&amp;ly) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="143"><font size=-1>143     </font></a><span class="default">		</span><span class="comment">/** \overload */</span>
+<a name="144"><font size=-1>144     </font></a><span class="comment">		</span><span class="keyword">inline void <a href="dictionary_M.html#9369">inverseComposePoint</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">mrpt::math::<a href="dictionary_M.html#1294">TPoint2D</a> &amp;<a href="dictionary_G.html#9370">g</a>, mrpt::math::<a href="dictionary_M.html#1294">TPoint2D</a> &amp;<a href="dictionary_L.html#9371">l</a>) </span><span class="keyword">const </span><span class="default">{</span>
+<a name="145"><font size=-1>145     </font></a><span class="default">			<a href="dictionary_M.html#9368">inverseComposePoint</a>(<a href="dictionary_G.html#9370">g</a>.<a href="dictionary_M.html#7136">x</a>,<a href="dictionary_G.html#9370">g</a>.<a href="dictionary_M.html#7137">y</a>, <a href="dictionary_L.html#9371">l</a>.<a href="dictionary_M.html#7136">x</a>,<a href="dictionary_L.html#9371">l</a>.<a href="dictionary_M.html#7137">y</a>);</span>
+<a name="146"><font size=-1>146     </font></a><span class="default">		}</span>
+<a name="147"><font size=-1>147     </font></a><span class="default"></span>
+<a name="148"><font size=-1>148     </font></a><span class="default">		 </span><span class="comment">/** The operator \f$ u' = this \oplus u \f$ is the pose/point compounding operator. */</span>
+<a name="149"><font size=-1>149     </font></a><span class="comment">		 <a href="dictionary_M.html#596">CPoint3D</a> </span><span class="keyword">operator </span><span class="default">+ (</span><span class="keyword">const <a href="dictionary_M.html#596">CPoint3D</a></span><span class="default">&amp; u) </span><span class="keyword">const </span><span class="default">;</span>
+<a name="150"><font size=-1>150     </font></a><span class="default"></span>
+<a name="151"><font size=-1>151     </font></a><span class="default">		</span><span class="comment">/**  Makes \f$ this = A \ominus B \f$ this method is slightly more efficient than &quot;this= A - B;&quot; since it avoids the temporary object.</span>
+<a name="152"><font size=-1>152     </font></a><span class="comment">		  *  \note A or B can be &quot;this&quot; without problems.</span>
+<a name="153"><font size=-1>153     </font></a><span class="comment">		  * \sa composeFrom, composePoint</span>
+<a name="154"><font size=-1>154     </font></a><span class="comment">		  */</span>
+<a name="155"><font size=-1>155     </font></a><span class="comment">		</span><span class="keyword">void <a href="dictionary_M.html#9373">inverseComposeFrom</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a></span><span class="default">&amp; A, </span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a></span><span class="default">&amp; B );</span>
+<a name="156"><font size=-1>156     </font></a><span class="default"></span>
+<a name="157"><font size=-1>157     </font></a><span class="default">		</span><span class="comment">/** Convert this pose into its inverse, saving the result in itself. \sa operator- */</span>
+<a name="158"><font size=-1>158     </font></a><span class="comment">		</span><span class="keyword">void <a href="dictionary_M.html#9374">inverse</a></span><span class="default">();</span>
+<a name="159"><font size=-1>159     </font></a><span class="default"></span>
+<a name="160"><font size=-1>160     </font></a><span class="default">		</span><span class="comment">/** Compute \f$ RET = this \oplus b \f$  */</span>
+<a name="161"><font size=-1>161     </font></a><span class="comment">		</span><span class="keyword">inline <a href="dictionary_M.html#180">CPose2D</a>  operator </span><span class="default">- (</span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a></span><span class="default">&amp; <a href="dictionary_B.html#9376">b</a>) </span><span class="keyword">const</span>
+<a name="162"><font size=-1>162     </font></a><span class="keyword">		</span><span class="default">{</span>
+<a name="163"><font size=-1>163     </font></a><span class="default">			<a href="dictionary_M.html#4734">CPose2D</a> <a href="dictionary_R.html#9417">ret</a>(UNINITIALIZED_POSE);</span>
+<a name="164"><font size=-1>164     </font></a><span class="default">			<a href="dictionary_R.html#9417">ret</a>.<a href="dictionary_M.html#9373">inverseComposeFrom</a>(*</span><span class="keyword">this</span><span class="default">,<a href="dictionary_B.html#9376">b</a>);</span>
+<a name="165"><font size=-1>165     </font></a><span class="default">			</span><span class="keyword">return <a href="dictionary_R.html#9417">ret</a></span><span class="default">;</span>
+<a name="166"><font size=-1>166     </font></a><span class="default">		}</span>
+<a name="167"><font size=-1>167     </font></a><span class="default"></span>
+<a name="168"><font size=-1>168     </font></a><span class="default">		</span><span class="comment">/** The operator \f$ a \ominus b \f$ is the pose inverse compounding operator. */</span>
+<a name="169"><font size=-1>169     </font></a><span class="comment">		<a href="dictionary_M.html#182">CPose3D</a> </span><span class="keyword">operator </span><span class="default">-(</span><span class="keyword">const <a href="dictionary_M.html#182">CPose3D</a></span><span class="default">&amp; b) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="170"><font size=-1>170     </font></a><span class="default"></span>
+<a name="171"><font size=-1>171     </font></a><span class="default"></span>
+<a name="172"><font size=-1>172     </font></a><span class="default">		 </span><span class="comment">/** Scalar sum of components: This is diferent from poses</span>
+<a name="173"><font size=-1>173     </font></a><span class="comment">		  *    composition, which is implemented as &quot;+&quot; operators in &quot;CPose&quot; derived classes.</span>
+<a name="174"><font size=-1>174     </font></a><span class="comment">		  */</span>
+<a name="175"><font size=-1>175     </font></a><span class="comment">		 </span><span class="keyword">void <a href="dictionary_M.html#9378">AddComponents</a></span><span class="default">(<a href="dictionary_M.html#180">CPose2D</a> &amp;p);</span>
+<a name="176"><font size=-1>176     </font></a><span class="default"></span>
+<a name="177"><font size=-1>177     </font></a><span class="default">		 </span><span class="comment">/** Scalar multiplication.</span>
+<a name="178"><font size=-1>178     </font></a><span class="comment">		  */</span>
+<a name="179"><font size=-1>179     </font></a><span class="comment">		 </span><span class="keyword">void operator </span><span class="default">*=(</span><span class="keyword">const double  </span><span class="default">s);</span>
+<a name="180"><font size=-1>180     </font></a><span class="default"></span>
+<a name="181"><font size=-1>181     </font></a><span class="default">		 </span><span class="comment">/** Make \f$ this = this \oplus b \f$  */</span>
+<a name="182"><font size=-1>182     </font></a><span class="comment">		 <a href="dictionary_M.html#180">CPose2D</a></span><span class="default">&amp;  </span><span class="keyword">operator </span><span class="default">+= (</span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a></span><span class="default">&amp; b);</span>
+<a name="183"><font size=-1>183     </font></a><span class="default"></span>
+<a name="184"><font size=-1>184     </font></a><span class="default">		 </span><span class="comment">/** Forces &quot;phi&quot; to be in the range [-pi,pi];</span>
+<a name="185"><font size=-1>185     </font></a><span class="comment">		   */</span>
+<a name="186"><font size=-1>186     </font></a><span class="comment">		 </span><span class="keyword">void  <a href="dictionary_M.html#9381">normalizePhi</a></span><span class="default">();</span>
+<a name="187"><font size=-1>187     </font></a><span class="default"></span>
+<a name="188"><font size=-1>188     </font></a><span class="default">		 </span><span class="comment">/** Returns a human-readable textual representation of the object (eg: &quot;[x y yaw]&quot;, yaw in degrees)</span>
+<a name="189"><font size=-1>189     </font></a><span class="comment">		   * \sa fromString</span>
+<a name="190"><font size=-1>190     </font></a><span class="comment">		   */</span>
+<a name="191"><font size=-1>191     </font></a><span class="comment">		</span><span class="keyword">void <a href="dictionary_M.html#9382">asString</a></span><span class="default">(std::<a href="dictionary_S.html#118">string</a> &amp;s) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="192"><font size=-1>192     </font></a><span class="default">		</span><span class="keyword">inline </span><span class="default">std::<a href="dictionary_S.html#118">string</a> <a href="dictionary_M.html#9383">asString</a>() </span><span class="keyword">const </span><span class="default">{ std::<a href="dictionary_S.html#118">string</a> <a href="dictionary_S.html#714">s</a>; <a href="dictionary_M.html#9382">asString</a>(<a href="dictionary_S.html#714">s</a>); </span><span class="keyword">return <a href="dictionary_S.html#714">s</a></span><span class="default">; }</span>
+<a name="193"><font size=-1>193     </font></a><span class="default"></span>
+<a name="194"><font size=-1>194     </font></a><span class="default">		 </span><span class="comment">/** Set the current object value from a string generated by 'asString' (eg: &quot;[0.02 1.04 -0.8]&quot; )</span>
+<a name="195"><font size=-1>195     </font></a><span class="comment">		   * \sa asString</span>
+<a name="196"><font size=-1>196     </font></a><span class="comment">		   * \exception std::exception On invalid format</span>
+<a name="197"><font size=-1>197     </font></a><span class="comment">		   */</span>
+<a name="198"><font size=-1>198     </font></a><span class="comment">		 </span><span class="keyword">void <a href="dictionary_M.html#9384">fromString</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a> &amp;s);</span>
+<a name="199"><font size=-1>199     </font></a><span class="default"></span>
+<a name="200"><font size=-1>200     </font></a><span class="default">		 </span><span class="keyword">inline const double </span><span class="default">&amp;</span><span class="keyword">operator</span><span class="default">[](</span><span class="keyword">unsigned int <a href="dictionary_I.html#9386">i</a></span><span class="default">)</span><span class="keyword">const</span>
+<a name="201"><font size=-1>201     </font></a><span class="keyword">		 </span><span class="default">{</span>
+<a name="202"><font size=-1>202     </font></a><span class="default">		 	</span><span class="keyword">switch</span><span class="default">(<a href="dictionary_I.html#9386">i</a>)</span>
+<a name="203"><font size=-1>203     </font></a><span class="default">		 	{</span>
+<a name="204"><font size=-1>204     </font></a><span class="default">		 		</span><span class="keyword">case </span><span class="number">0</span><span class="default">:</span><span class="keyword">return <a href="dictionary_M.html#9333">m_coords</a></span><span class="default">[</span><span class="number">0</span><span class="default">];</span>
+<a name="205"><font size=-1>205     </font></a><span class="default">		 		</span><span class="keyword">case </span><span class="number">1</span><span class="default">:</span><span class="keyword">return <a href="dictionary_M.html#9333">m_coords</a></span><span class="default">[</span><span class="number">1</span><span class="default">];</span>
+<a name="206"><font size=-1>206     </font></a><span class="default">		 		</span><span class="keyword">case </span><span class="number">2</span><span class="default">:</span><span class="keyword">return <a href="dictionary_M.html#9334">m_phi</a></span><span class="default">;</span>
+<a name="207"><font size=-1>207     </font></a><span class="default">		 		</span><span class="keyword">default</span><span class="default">:</span>
+<a name="208"><font size=-1>208     </font></a><span class="default">		 		</span><span class="keyword">throw </span><span class="default">std::<a href="dictionary_S.html#713">runtime_error</a>(</span><span class="string">&quot;CPose2D::operator[]: Index of bounds.&quot;</span><span class="default">);</span>
+<a name="209"><font size=-1>209     </font></a><span class="default">		 	}</span>
+<a name="210"><font size=-1>210     </font></a><span class="default">		 }</span>
+<a name="211"><font size=-1>211     </font></a><span class="default">		 </span><span class="keyword">inline double </span><span class="default">&amp;</span><span class="keyword">operator</span><span class="default">[](</span><span class="keyword">unsigned int <a href="dictionary_I.html#9388">i</a></span><span class="default">)</span>
+<a name="212"><font size=-1>212     </font></a><span class="default">		 {</span>
+<a name="213"><font size=-1>213     </font></a><span class="default">		 	</span><span class="keyword">switch</span><span class="default">(<a href="dictionary_I.html#9388">i</a>)</span>
+<a name="214"><font size=-1>214     </font></a><span class="default">		 	{</span>
+<a name="215"><font size=-1>215     </font></a><span class="default">		 		</span><span class="keyword">case </span><span class="number">0</span><span class="default">:</span><span class="keyword">return <a href="dictionary_M.html#9333">m_coords</a></span><span class="default">[</span><span class="number">0</span><span class="default">];</span>
+<a name="216"><font size=-1>216     </font></a><span class="default">		 		</span><span class="keyword">case </span><span class="number">1</span><span class="default">:</span><span class="keyword">return <a href="dictionary_M.html#9333">m_coords</a></span><span class="default">[</span><span class="number">1</span><span class="default">];</span>
+<a name="217"><font size=-1>217     </font></a><span class="default">		 		</span><span class="keyword">case </span><span class="number">2</span><span class="default">:</span><span class="keyword">return <a href="dictionary_M.html#9334">m_phi</a></span><span class="default">;</span>
+<a name="218"><font size=-1>218     </font></a><span class="default">		 		</span><span class="keyword">default</span><span class="default">:</span>
+<a name="219"><font size=-1>219     </font></a><span class="default">		 		</span><span class="keyword">throw </span><span class="default">std::<a href="dictionary_S.html#713">runtime_error</a>(</span><span class="string">&quot;CPose2D::operator[]: Index of bounds.&quot;</span><span class="default">);</span>
+<a name="220"><font size=-1>220     </font></a><span class="default">		 	}</span>
+<a name="221"><font size=-1>221     </font></a><span class="default">		 }</span>
+<a name="222"><font size=-1>222     </font></a><span class="default"></span>
+<a name="223"><font size=-1>223     </font></a><span class="default">		</span><span class="comment">/** makes: this = p (+) this */</span>
+<a name="224"><font size=-1>224     </font></a><span class="comment">		</span><span class="keyword">inline void  <a href="dictionary_M.html#9389">changeCoordinatesReference</a></span><span class="default">( </span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a> </span><span class="default">&amp; <a href="dictionary_P.html#9390">p</a> ) { <a href="dictionary_M.html#9361">composeFrom</a>(<a href="dictionary_P.html#9390">p</a>,<a href="dictionary_M.html#4734">CPose2D</a>(*</span><span class="keyword">this</span><span class="default">)); }</span>
+<a name="225"><font size=-1>225     </font></a><span class="default"></span>
+<a name="226"><font size=-1>226     </font></a><span class="default">		</span><span class="comment">/** Returns the 2D distance from this pose/point to a 2D pose using the Frobenius distance. */</span>
+<a name="227"><font size=-1>227     </font></a><span class="comment">		</span><span class="keyword">double <a href="dictionary_M.html#9391">distance2DFrobeniusTo</a></span><span class="default">( </span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a> </span><span class="default">&amp; p) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="228"><font size=-1>228     </font></a><span class="default"></span>
+<a name="229"><font size=-1>229     </font></a><span class="default">		</span><span class="keyword">typedef <a href="dictionary_M.html#180">CPose2D</a>  <a href="dictionary_M.html#9392">type_value</a></span><span class="default">; </span><span class="comment">//!&lt; Used to emulate CPosePDF types, for example, in mrpt::graphs::CNetworkOfPoses</span>
+<a name="230"><font size=-1>230     </font></a><span class="comment">		</span><span class="keyword">enum </span><span class="default">{ is_3D_val = </span><span class="number">0 </span><span class="default">};</span>
+<a name="231"><font size=-1>231     </font></a><span class="default">		</span><span class="keyword">static inline bool <a href="dictionary_M.html#9395">is_3D</a></span><span class="default">() { </span><span class="keyword">return </span><span class="default">is_3D_val!=</span><span class="number">0</span><span class="default">; }</span>
+<a name="232"><font size=-1>232     </font></a><span class="default">		</span><span class="keyword">enum </span><span class="default">{ rotation_dimensions = </span><span class="number">2 </span><span class="default">};</span>
+<a name="233"><font size=-1>233     </font></a><span class="default">		</span><span class="keyword">enum </span><span class="default">{ is_PDF_val = </span><span class="number">0 </span><span class="default">};</span>
+<a name="234"><font size=-1>234     </font></a><span class="default">		</span><span class="keyword">static inline bool <a href="dictionary_M.html#9400">is_PDF</a></span><span class="default">() { </span><span class="keyword">return </span><span class="default">is_PDF_val!=</span><span class="number">0</span><span class="default">; }</span>
+<a name="235"><font size=-1>235     </font></a><span class="default"></span>
+<a name="236"><font size=-1>236     </font></a><span class="default">		</span><span class="keyword">inline const <a href="dictionary_M.html#9392">type_value</a> </span><span class="default">&amp; <a href="dictionary_M.html#9401">getPoseMean</a>() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return </span><span class="default">*</span><span class="keyword">this</span><span class="default">; }</span>
+<a name="237"><font size=-1>237     </font></a><span class="default">		</span><span class="keyword">inline       <a href="dictionary_M.html#9392">type_value</a> </span><span class="default">&amp; <a href="dictionary_M.html#9402">getPoseMean</a>()       { </span><span class="keyword">return </span><span class="default">*</span><span class="keyword">this</span><span class="default">; }</span>
+<a name="238"><font size=-1>238     </font></a><span class="default"></span>
+<a name="239"><font size=-1>239     </font></a><span class="default">		</span><span class="keyword">void <a href="dictionary_M.html#9403">setToNaN</a></span><span class="default">() <a href="dictionary_M.html#422">MRPT_OVERRIDE</a>;</span>
+<a name="240"><font size=-1>240     </font></a><span class="default"></span>
+<a name="241"><font size=-1>241     </font></a><span class="default">		</span><span class="comment">/** @name STL-like methods and typedefs</span>
+<a name="242"><font size=-1>242     </font></a><span class="comment">		   @{   */</span>
+<a name="243"><font size=-1>243     </font></a><span class="comment">		</span><span class="keyword">typedef double         <a href="dictionary_M.html#9404">value_type</a></span><span class="default">;		</span><span class="comment">//!&lt; The type of the elements</span>
+<a name="244"><font size=-1>244     </font></a><span class="comment">		</span><span class="keyword">typedef double</span><span class="default">&amp;        <a href="dictionary_M.html#9405">reference</a>;</span>
+<a name="245"><font size=-1>245     </font></a><span class="default">		</span><span class="keyword">typedef const double</span><span class="default">&amp;  <a href="dictionary_M.html#9406">const_reference</a>;</span>
+<a name="246"><font size=-1>246     </font></a><span class="default">		</span><span class="keyword">typedef </span><span class="default">std::<a href="dictionary_S.html#684">size_t</a>    <a href="dictionary_M.html#9407">size_type</a>;</span>
+<a name="247"><font size=-1>247     </font></a><span class="default">		</span><span class="keyword">typedef </span><span class="default">std::<a href="dictionary_S.html#686">ptrdiff_t</a> <a href="dictionary_M.html#9408">difference_type</a>;</span>
+<a name="248"><font size=-1>248     </font></a><span class="default"></span>
+<a name="249"><font size=-1>249     </font></a><span class="default">		 </span><span class="comment">// size is constant</span>
+<a name="250"><font size=-1>250     </font></a><span class="comment">		</span><span class="keyword">enum </span><span class="default">{ static_size = </span><span class="number">3 </span><span class="default">};</span>
+<a name="251"><font size=-1>251     </font></a><span class="default">		</span><span class="keyword">static inline <a href="dictionary_M.html#9407">size_type</a> <a href="dictionary_M.html#9411">size</a></span><span class="default">() { </span><span class="keyword">return </span><span class="default">static_size; }</span>
+<a name="252"><font size=-1>252     </font></a><span class="default">		</span><span class="keyword">static inline bool <a href="dictionary_M.html#9412">empty</a></span><span class="default">() { </span><span class="keyword">return false</span><span class="default">; }</span>
+<a name="253"><font size=-1>253     </font></a><span class="default">		</span><span class="keyword">static inline <a href="dictionary_M.html#9407">size_type</a> <a href="dictionary_M.html#9413">max_size</a></span><span class="default">() { </span><span class="keyword">return </span><span class="default">static_size; }</span>
+<a name="254"><font size=-1>254     </font></a><span class="default">		</span><span class="keyword">static inline void <a href="dictionary_M.html#9414">resize</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> <a href="dictionary_N.html#9415">n</a></span><span class="default">) { </span><span class="keyword">if </span><span class="default">(<a href="dictionary_N.html#9415">n</a>!=static_size) </span><span class="keyword">throw </span><span class="default">std::<a href="dictionary_S.html#150">logic_error</a>(<a href="dictionary_M.html#148">format</a>(</span><span class="string">&quot;Try to change the size of CPose2D to %u.&quot;</span><span class="default">,</span><span class="keyword">static_cast</span><span class="default">&lt;</span><span class="keyword">unsigned</span><span class="default">&gt;(<a href="dictionary_N.html#9415">n</a>))); }</span>
+<a name="255"><font size=-1>255     </font></a><span class="default"></span>
+<a name="256"><font size=-1>256     </font></a><span class="default">		</span><span class="comment">/** @} */</span>
+<a name="257"><font size=-1>257     </font></a><span class="comment"></span>
+<a name="258"><font size=-1>258     </font></a><span class="comment">	</span><span class="default">}; </span><span class="comment">// End of class def.</span>
+<a name="259"><font size=-1>259     </font></a><span class="comment">	<a href="dictionary_D.html#746">DEFINE_SERIALIZABLE_POST</a></span><span class="default">( <a href="dictionary_M.html#180">CPose2D</a> )</span>
+<a name="260"><font size=-1>260     </font></a><span class="default"></span>
+<a name="261"><font size=-1>261     </font></a><span class="default"></span>
+<a name="262"><font size=-1>262     </font></a><span class="default">	std::<a href="dictionary_S.html#41">ostream</a> <a href="dictionary_B.html#113">BASE_IMPEXP</a> &amp; </span><span class="keyword">operator </span><span class="default">&lt;&lt; (std::<a href="dictionary_S.html#41">ostream</a>&amp; o, </span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a></span><span class="default">&amp; p);</span>
+<a name="263"><font size=-1>263     </font></a><span class="default"></span>
+<a name="264"><font size=-1>264     </font></a><span class="default">	</span><span class="comment">/** Unary - operator: return the inverse pose &quot;-p&quot; (Note that is NOT the same than a pose with negative x y phi) \sa CPose2D::inverse() */</span>
+<a name="265"><font size=-1>265     </font></a><span class="comment">	<a href="dictionary_M.html#180">CPose2D</a> <a href="dictionary_B.html#113">BASE_IMPEXP</a> </span><span class="keyword">operator </span><span class="default">-(</span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a> </span><span class="default">&amp;p);</span>
+<a name="266"><font size=-1>266     </font></a><span class="default"></span>
+<a name="267"><font size=-1>267     </font></a><span class="default">	mrpt::math::<a href="dictionary_M.html#1294">TPoint2D</a> <a href="dictionary_B.html#113">BASE_IMPEXP</a>  </span><span class="keyword">operator </span><span class="default">+(</span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a> </span><span class="default">&amp;pose, </span><span class="keyword">const </span><span class="default">mrpt::math::<a href="dictionary_M.html#1294">TPoint2D</a> &amp;pnt);  </span><span class="comment">//!&lt; Compose a 2D point from a new coordinate base given by a 2D pose.</span>
+<a name="268"><font size=-1>268     </font></a><span class="comment"></span>
+<a name="269"><font size=-1>269     </font></a><span class="comment">	</span><span class="keyword">bool <a href="dictionary_B.html#113">BASE_IMPEXP</a> operator</span><span class="default">==(</span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a> </span><span class="default">&amp;p1,</span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a> </span><span class="default">&amp;p2);</span>
+<a name="270"><font size=-1>270     </font></a><span class="default">	</span><span class="keyword">bool <a href="dictionary_B.html#113">BASE_IMPEXP</a> operator</span><span class="default">!=(</span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a> </span><span class="default">&amp;p1,</span><span class="keyword">const <a href="dictionary_M.html#180">CPose2D</a> </span><span class="default">&amp;p2);</span>
+<a name="271"><font size=-1>271     </font></a><span class="default"></span>
+<a name="272"><font size=-1>272     </font></a><span class="default">	</span><span class="keyword">typedef </span><span class="default">mrpt::<a href="dictionary_M.html#4738">aligned_containers</a>&lt;CPose2D&gt;::<a href="dictionary_M.html#4739">vector_t</a>		<a href="dictionary_M.html#9439">StdVector_CPose2D</a>; </span><span class="comment">//!&lt; Eigen aligment-compatible container</span>
+<a name="273"><font size=-1>273     </font></a><span class="comment">	</span><span class="keyword">typedef </span><span class="default">mrpt::<a href="dictionary_M.html#4738">aligned_containers</a>&lt;CPose2D&gt;::<a href="dictionary_M.html#9441">deque_t</a> 		<a href="dictionary_M.html#9440">StdDeque_CPose2D</a>; </span><span class="comment">//!&lt; Eigen aligment-compatible container</span>
+<a name="274"><font size=-1>274     </font></a><span class="comment"></span>
+<a name="275"><font size=-1>275     </font></a><span class="comment">	</span><span class="default">} </span><span class="comment">// End of namespace</span>
+<a name="276"><font size=-1>276     </font></a><span class="comment"></span><span class="default">} </span><span class="comment">// End of namespace</span>
+<a name="277"><font size=-1>277     </font></a><span class="comment"></span>
+<a name="278"><font size=-1>278     </font></a><span class="comment"></span><span class="preproc">#endif</span>
+<a name="279"><font size=-1>279     </font></a><span class="preproc"></span>
+</pre></body></html>

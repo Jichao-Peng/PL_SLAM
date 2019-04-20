@@ -1,0 +1,1093 @@
+<html><head><title>slamScene.cpp</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body>
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/src/slamScene.cpp</h3>
+<SCRIPT>
+ defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/src/slamScene.cpp";
+top.document.title  = "slamScene.cpp";
+</SCRIPT>
+<pre><a name="1"><font size=-1>1     </font></a><span class="comment">/*****************************************************************************
+<a name="2"><font color= #000000 size=-1>2     </font></a>**      Stereo VO and SLAM by combining point and line segment features     **
+<a name="3"><font color= #000000 size=-1>3     </font></a>******************************************************************************
+<a name="4"><font color= #000000 size=-1>4     </font></a>**                                                                          **
+<a name="5"><font color= #000000 size=-1>5     </font></a>**  Copyright(c) 2016-2018, Ruben Gomez-Ojeda, University of Malaga         **
+<a name="6"><font color= #000000 size=-1>6     </font></a>**  Copyright(c) 2016-2018, David Zuñiga-Noël, University of Malaga         **
+<a name="7"><font color= #000000 size=-1>7     </font></a>**  Copyright(c) 2016-2018, MAPIR group, University of Malaga               **
+<a name="8"><font color= #000000 size=-1>8     </font></a>**                                                                          **
+<a name="9"><font color= #000000 size=-1>9     </font></a>**  This program is free software: you can redistribute it and/or modify    **
+<a name="10"><font color= #000000 size=-1>10     </font></a>**  it under the terms of the GNU General Public License (version 3) as     **
+<a name="11"><font color= #000000 size=-1>11     </font></a>**  published by the Free Software Foundation.                              **
+<a name="12"><font color= #000000 size=-1>12     </font></a>**                                                                          **
+<a name="13"><font color= #000000 size=-1>13     </font></a>**  This program is distributed in the hope that it will be useful, but     **
+<a name="14"><font color= #000000 size=-1>14     </font></a>**  WITHOUT ANY WARRANTY; without even the implied warranty of              **
+<a name="15"><font color= #000000 size=-1>15     </font></a>**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the            **
+<a name="16"><font color= #000000 size=-1>16     </font></a>**  GNU General Public License for more details.                            **
+<a name="17"><font color= #000000 size=-1>17     </font></a>**                                                                          **
+<a name="18"><font color= #000000 size=-1>18     </font></a>**  You should have received a copy of the GNU General Public License       **
+<a name="19"><font color= #000000 size=-1>19     </font></a>**  along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.   **
+<a name="20"><font color= #000000 size=-1>20     </font></a>**                                                                          **
+<a name="21"><font color= #000000 size=-1>21     </font></a>*****************************************************************************/</span>
+<a name="22"><font size=-1>22     </font></a>
+<a name="23"><font size=-1>23     </font></a><span class="preproc">#include</span> <span class="string">"slamScene.h"</span>
+<a name="24"><font size=-1>24     </font></a>
+<a name="25"><font size=-1>25     </font></a><span class="preproc">#include</span> &lt;opencv2/imgproc.hpp&gt;
+<a name="26"><font size=-1>26     </font></a>
+<a name="27"><font size=-1>27     </font></a><span class="comment">// Auxiliar functions
+</span><a name="28"><font size=-1>28     </font></a><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;
+<a name="29"><font size=-1>29     </font></a>std::string to_string_with_precision(<span class="keyword">const</span> T a_value, <span class="keyword">const</span> <span class="keyword">int</span> n = 6)
+<a name="30"><font size=-1>30     </font></a><font size=+2><b>{</b></font>
+<a name="31"><font size=-1>31     </font></a>    std::ostringstream out;
+<a name="32"><font size=-1>32     </font></a>    out &lt;&lt; std::setprecision(n) &lt;&lt; a_value;
+<a name="33"><font size=-1>33     </font></a>    <span class="keyword">return</span> out.str();
+<a name="34"><font size=-1>34     </font></a><font size=+2><b>}</b></font>
+<a name="35"><font size=-1>35     </font></a>
+<a name="36"><font size=-1>36     </font></a><span class="keyword">namespace</span> PLSLAM<font size=+2><b>{</b></font>
+<a name="37"><font size=-1>37     </font></a>
+<a name="38"><font size=-1>38     </font></a><span class="comment">// Constructors and destructor
+</span><a name="39"><font size=-1>39     </font></a>
+<a name="40"><font size=-1>40     </font></a>slamScene::slamScene()<font size=+2><b>{</b></font>
+<a name="41"><font size=-1>41     </font></a>
+<a name="42"><font size=-1>42     </font></a>    sbb     = 1.0f;
+<a name="43"><font size=-1>43     </font></a>    sref    = 0.2f;
+<a name="44"><font size=-1>44     </font></a>    srad    = 0.005f;
+<a name="45"><font size=-1>45     </font></a>    sline   = 2.0f;
+<a name="46"><font size=-1>46     </font></a>    saxis   = 0.5f;
+<a name="47"><font size=-1>47     </font></a>    sfreq   = 3.0f;
+<a name="48"><font size=-1>48     </font></a>    szoom   = 200.0f;
+<a name="49"><font size=-1>49     </font></a>    selli   = 2.0f;
+<a name="50"><font size=-1>50     </font></a>    selev   = 0.f;
+<a name="51"><font size=-1>51     </font></a>    sazim   = -90.f;
+<a name="52"><font size=-1>52     </font></a>    sfrust  = 0.2f;
+<a name="53"><font size=-1>53     </font></a>    slinef  = 0.1f;
+<a name="54"><font size=-1>54     </font></a>    <span class="comment">//初始化一个窗口，大小是1920，,1080
+</span><a name="55"><font size=-1>55     </font></a>    win     = <span class="keyword">new</span> CDisplayWindow3D(<span class="string">"3D Scene"</span>,1920,1080);
+<a name="56"><font size=-1>56     </font></a>
+<a name="57"><font size=-1>57     </font></a>    hasText         = <span class="keyword">true</span>;
+<a name="58"><font size=-1>58     </font></a>    hasAxes         = <span class="keyword">true</span>;
+<a name="59"><font size=-1>59     </font></a>    hasLegend       = <span class="keyword">false</span>;
+<a name="60"><font size=-1>60     </font></a>    hasHelp         = <span class="keyword">false</span>;
+<a name="61"><font size=-1>61     </font></a>    hasGT           = <span class="keyword">false</span>;
+<a name="62"><font size=-1>62     </font></a>    hasComparison   = <span class="keyword">false</span>;
+<a name="63"><font size=-1>63     </font></a>    hasImg          = <span class="keyword">true</span>;
+<a name="64"><font size=-1>64     </font></a>    hasLines        = <span class="keyword">false</span>;
+<a name="65"><font size=-1>65     </font></a>    hasPoints       = <span class="keyword">false</span>;
+<a name="66"><font size=-1>66     </font></a>    isKitti         = <span class="keyword">true</span>;
+<a name="67"><font size=-1>67     </font></a>
+<a name="68"><font size=-1>68     </font></a><font size=+2><b>}</b></font>
+<a name="69"><font size=-1>69     </font></a><span class="comment">/* pl-slam config_indoor.ini
+<a name="70"><font color= #000000 size=-1>70     </font></a>hasGT           = true
+<a name="71"><font color= #000000 size=-1>71     </font></a>hasComparison 	= true
+<a name="72"><font color= #000000 size=-1>72     </font></a>hasImg     	= true
+<a name="73"><font color= #000000 size=-1>73     </font></a>szoom           = 10.0
+<a name="74"><font color= #000000 size=-1>74     </font></a>sfrust          = 0.06
+<a name="75"><font color= #000000 size=-1>75     </font></a>*/</span>
+<a name="76"><font size=-1>76     </font></a>slamScene::slamScene(string configFile)<font size=+2><b>{</b></font>
+<a name="77"><font size=-1>77     </font></a>
+<a name="78"><font size=-1>78     </font></a>    CConfigFile config(configFile);
+<a name="79"><font size=-1>79     </font></a>    sbb             = config.read_double(<span class="string">"Scene"</span>,<span class="string">"sbb"</span>,1.f);<span class="comment">//xyz三个轴的尺度 并不知道有什么用
+</span><a name="80"><font size=-1>80     </font></a>    sref            = config.read_double(<span class="string">"Scene"</span>,<span class="string">"sref"</span>,0.2f);
+<a name="81"><font size=-1>81     </font></a>    srad            = config.read_double(<span class="string">"Scene"</span>,<span class="string">"srad"</span>,0.005f);
+<a name="82"><font size=-1>82     </font></a>    sline           = config.read_double(<span class="string">"Scene"</span>,<span class="string">"sline"</span>,2.f);
+<a name="83"><font size=-1>83     </font></a>    saxis           = config.read_double(<span class="string">"Scene"</span>,<span class="string">"saxis"</span>,0.5f);
+<a name="84"><font size=-1>84     </font></a>    sfreq           = config.read_double(<span class="string">"Scene"</span>,<span class="string">"sfreq"</span>,3.f);
+<a name="85"><font size=-1>85     </font></a>    szoom           = config.read_double(<span class="string">"Scene"</span>,<span class="string">"szoom"</span>,3.f);<span class="comment">//缩放，数值越大缩放却多（整个窗口的初始缩放，后来还能自己鼠标调节）
+</span><a name="86"><font size=-1>86     </font></a>    selli           = config.read_double(<span class="string">"Scene"</span>,<span class="string">"selli"</span>,1.f);
+<a name="87"><font size=-1>87     </font></a>    selev           = config.read_double(<span class="string">"Scene"</span>,<span class="string">"selev"</span>,30.f);<span class="comment">//观测高度
+</span><a name="88"><font size=-1>88     </font></a>    sazim           = config.read_double(<span class="string">"Scene"</span>,<span class="string">"sazim"</span>,-135.f);<span class="comment">//观测方位角 参考matlab view函数 这里可不多考虑
+</span><a name="89"><font size=-1>89     </font></a>    sfrust          = config.read_double(<span class="string">"Scene"</span>,<span class="string">"sfrust"</span>,0.2f);
+<a name="90"><font size=-1>90     </font></a>    slinef          = config.read_double(<span class="string">"Scene"</span>,<span class="string">"slinef"</span>,0.1f);
+<a name="91"><font size=-1>91     </font></a>    <span class="comment">//初始化一个窗口，大小是1920，,1080
+</span><a name="92"><font size=-1>92     </font></a>    win             = <span class="keyword">new</span> CDisplayWindow3D(<span class="string">"3D Scene"</span>,1920,1080);
+<a name="93"><font size=-1>93     </font></a>
+<a name="94"><font size=-1>94     </font></a>    hasText         = config.read_bool(<span class="string">"Scene"</span>,<span class="string">"hasText"</span>,true);
+<a name="95"><font size=-1>95     </font></a>    hasAxes         = config.read_bool(<span class="string">"Scene"</span>,<span class="string">"hasAxes"</span>,true);
+<a name="96"><font size=-1>96     </font></a>    hasLegend       = config.read_bool(<span class="string">"Scene"</span>,<span class="string">"hasLegend"</span>,false);
+<a name="97"><font size=-1>97     </font></a>    hasHelp         = config.read_bool(<span class="string">"Scene"</span>,<span class="string">"hasHelp"</span>,false);
+<a name="98"><font size=-1>98     </font></a>    hasGT           = config.read_bool(<span class="string">"Scene"</span>,<span class="string">"hasGT"</span>,false);
+<a name="99"><font size=-1>99     </font></a>    hasTraj         = config.read_bool(<span class="string">"Scene"</span>,<span class="string">"hasTraj"</span>,true);
+<a name="100"><font size=-1>100     </font></a>    hasComparison   = config.read_bool(<span class="string">"Scene"</span>,<span class="string">"hasComparison"</span>,false);
+<a name="101"><font size=-1>101     </font></a>    hasImg          = config.read_bool(<span class="string">"Scene"</span>,<span class="string">"hasImg"</span>,false);
+<a name="102"><font size=-1>102     </font></a>    hasLines        = config.read_bool(<span class="string">"Scene"</span>,<span class="string">"hasLines"</span>,false);
+<a name="103"><font size=-1>103     </font></a>    hasPoints       = config.read_bool(<span class="string">"Scene"</span>,<span class="string">"hasPoints"</span>,false);
+<a name="104"><font size=-1>104     </font></a>    hasFrustum      = config.read_bool(<span class="string">"Scene"</span>,<span class="string">"hasFrustum"</span>,false);
+<a name="105"><font size=-1>105     </font></a>    isKitti         = config.read_bool(<span class="string">"Scene"</span>,<span class="string">"isKitti"</span>,true);
+<a name="106"><font size=-1>106     </font></a>
+<a name="107"><font size=-1>107     </font></a>    Matrix4d x_cw;
+<a name="108"><font size=-1>108     </font></a>    x_cw &lt;&lt; 1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1;
+<a name="109"><font size=-1>109     </font></a>    <span class="comment">//Matrix4d 转换成 CMatrixDouble
+</span><a name="110"><font size=-1>110     </font></a>    CPose3D x_aux(getPoseFormat(x_cw));
+<a name="111"><font size=-1>111     </font></a>    pose_ini = x_aux;
+<a name="112"><font size=-1>112     </font></a>
+<a name="113"><font size=-1>113     </font></a><font size=+2><b>}</b></font>
+<a name="114"><font size=-1>114     </font></a>
+<a name="115"><font size=-1>115     </font></a>slamScene::~slamScene()<font size=+2><b>{</b></font>
+<a name="116"><font size=-1>116     </font></a>
+<a name="117"><font size=-1>117     </font></a><font size=+2><b>}</b></font>
+<a name="118"><font size=-1>118     </font></a>
+<a name="119"><font size=-1>119     </font></a><span class="comment">// Initialize the scene
+</span><a name="120"><font size=-1>120     </font></a>
+<a name="121"><font size=-1>121     </font></a><span class="keyword">void</span> slamScene::initializeScene(Matrix4d x_0)<font size=+2><b>{</b></font>
+<a name="122"><font size=-1>122     </font></a>
+<a name="123"><font size=-1>123     </font></a>    <span class="comment">// Initialize the scene and window
+</span><a name="124"><font size=-1>124     </font></a>    win-&gt;setCameraElevationDeg(selev);
+<a name="125"><font size=-1>125     </font></a>    <span class="comment">//观测方位角
+</span><a name="126"><font size=-1>126     </font></a>    win-&gt;setCameraAzimuthDeg(sazim);
+<a name="127"><font size=-1>127     </font></a>    <span class="comment">//缩放？
+</span><a name="128"><font size=-1>128     </font></a>    win-&gt;setCameraZoom(szoom);
+<a name="129"><font size=-1>129     </font></a>    theScene = win-&gt;get3DSceneAndLock();
+<a name="130"><font size=-1>130     </font></a>
+<a name="131"><font size=-1>131     </font></a>    <span class="comment">// Initialize poses of different objects
+</span><a name="132"><font size=-1>132     </font></a>    CPose3D x_aux(getPoseFormat(x_0));
+<a name="133"><font size=-1>133     </font></a>    pose    = x_aux;
+<a name="134"><font size=-1>134     </font></a>    pose1   = x_aux;
+<a name="135"><font size=-1>135     </font></a>    pose_0  = x_aux;
+<a name="136"><font size=-1>136     </font></a>    pose_gt = pose_ini;
+<a name="137"><font size=-1>137     </font></a>    x_ini   = x_0;
+<a name="138"><font size=-1>138     </font></a>    pose.getAsVector(v_aux);
+<a name="139"><font size=-1>139     </font></a>    pose1.getAsVector(v_aux1);
+<a name="140"><font size=-1>140     </font></a>    pose_gt.getAsVector(v_auxgt);
+<a name="141"><font size=-1>141     </font></a>
+<a name="142"><font size=-1>142     </font></a>    <span class="comment">// Initialize the camera object
+</span><a name="143"><font size=-1>143     </font></a>    frustumL_.setFromValues(0,0,0,  0, -90.f*CV_PI/180.f, -90.f*CV_PI/180.f);
+<a name="144"><font size=-1>144     </font></a>    frustumR_.setFromValues(sfrust,0,0,  0, -90.f*CV_PI/180.f, -90.f*CV_PI/180.f);
+<a name="145"><font size=-1>145     </font></a>    frustObj  = opengl::CFrustum::Create();
+<a name="146"><font size=-1>146     </font></a>    <font size=+2><b>{</b></font>
+<a name="147"><font size=-1>147     </font></a>        frustObj-&gt;setPose(pose_0+frustumL_);
+<a name="148"><font size=-1>148     </font></a>        frustObj-&gt;setLineWidth (slinef);
+<a name="149"><font size=-1>149     </font></a>        frustObj-&gt;setScale(sfrust);
+<a name="150"><font size=-1>150     </font></a>        frustObj-&gt;setColor_u8( TColor(200,0,0) );
+<a name="151"><font size=-1>151     </font></a>        theScene-&gt;insert(frustObj);
+<a name="152"><font size=-1>152     </font></a>    <font size=+2><b>}</b></font>
+<a name="153"><font size=-1>153     </font></a>    frustObj1 = opengl::CFrustum::Create();
+<a name="154"><font size=-1>154     </font></a>    <font size=+2><b>{</b></font>
+<a name="155"><font size=-1>155     </font></a>        frustObj1-&gt;setPose(pose_0+frustumR_ );
+<a name="156"><font size=-1>156     </font></a>        frustObj1-&gt;setLineWidth (slinef);
+<a name="157"><font size=-1>157     </font></a>        frustObj1-&gt;setScale(sfrust);
+<a name="158"><font size=-1>158     </font></a>        frustObj1-&gt;setColor_u8( TColor(200,0,0) );
+<a name="159"><font size=-1>159     </font></a>        theScene-&gt;insert(frustObj1);
+<a name="160"><font size=-1>160     </font></a>    <font size=+2><b>}</b></font>
+<a name="161"><font size=-1>161     </font></a>
+<a name="162"><font size=-1>162     </font></a>	<span class="comment">//坐标轴
+</span><a name="163"><font size=-1>163     </font></a>    srefObj = opengl::stock_objects::CornerXYZSimple();
+<a name="164"><font size=-1>164     </font></a>    srefObj-&gt;setPose(pose_0);
+<a name="165"><font size=-1>165     </font></a>	<span class="comment">//乘100，让坐标轴变大一点
+</span><a name="166"><font size=-1>166     </font></a>    srefObj-&gt;setScale(sref*100);
+<a name="167"><font size=-1>167     </font></a>	theScene-&gt;insert(srefObj);
+<a name="168"><font size=-1>168     </font></a>    <span class="comment">// Initialize the axes
+</span><a name="169"><font size=-1>169     </font></a>    <span class="keyword">if</span>(hasAxes)<font size=+2><b>{</b></font>
+<a name="170"><font size=-1>170     </font></a>        axesObj = opengl::CAxis::Create();
+<a name="171"><font size=-1>171     </font></a>        axesObj-&gt;setFrequency(sfreq);
+<a name="172"><font size=-1>172     </font></a>        axesObj-&gt;enableTickMarks(false);
+<a name="173"><font size=-1>173     </font></a>        axesObj-&gt;setAxisLimits(-saxis,-saxis,-saxis, saxis,saxis,saxis);
+<a name="174"><font size=-1>174     </font></a>        theScene-&gt;insert( axesObj );
+<a name="175"><font size=-1>175     </font></a>    <font size=+2><b>}</b></font>
+<a name="176"><font size=-1>176     </font></a>
+<a name="177"><font size=-1>177     </font></a>    <span class="comment">// Initialize the text [TODO]
+</span><a name="178"><font size=-1>178     </font></a>    <span class="keyword">if</span>(hasText)<font size=+2><b>{</b></font>
+<a name="179"><font size=-1>179     </font></a>        string text = <span class="string">"KeyFrame: \t0 \nFrequency: \t0 Hz \nPoints:   \t0 \nLines:    \t0"</span>;
+<a name="180"><font size=-1>180     </font></a>        win-&gt;addTextMessage(0.85,0.95, text, TColorf(.0,.0,.0), 0, mrpt::opengl::MRPT_GLUT_BITMAP_TIMES_ROMAN_10 );
+<a name="181"><font size=-1>181     </font></a>    <font size=+2><b>}</b></font>
+<a name="182"><font size=-1>182     </font></a>
+<a name="183"><font size=-1>183     </font></a>    <span class="comment">// Initialize the lines
+</span><a name="184"><font size=-1>184     </font></a>    <span class="comment">//线特征
+</span><a name="185"><font size=-1>185     </font></a>    lineObj = opengl::CSetOfLines::Create();
+<a name="186"><font size=-1>186     </font></a>    lineObj-&gt;setLineWidth(1.0);
+<a name="187"><font size=-1>187     </font></a>    lineObj-&gt;setColor(0,0,0);
+<a name="188"><font size=-1>188     </font></a>    theScene-&gt;insert( lineObj );
+<a name="189"><font size=-1>189     </font></a>
+<a name="190"><font size=-1>190     </font></a>    <span class="comment">//局部地图里的线特征
+</span><a name="191"><font size=-1>191     </font></a>    lineObj_local = opengl::CSetOfLines::Create();
+<a name="192"><font size=-1>192     </font></a>    lineObj_local-&gt;setLineWidth(1.0);
+<a name="193"><font size=-1>193     </font></a>    lineObj_local-&gt;setColor(200,0,200);
+<a name="194"><font size=-1>194     </font></a>    theScene-&gt;insert( lineObj_local );
+<a name="195"><font size=-1>195     </font></a>
+<a name="196"><font size=-1>196     </font></a>    <span class="comment">// Initialize the point cloud
+</span><a name="197"><font size=-1>197     </font></a>    pointObj = opengl::CPointCloud::Create();
+<a name="198"><font size=-1>198     </font></a>    pointObj-&gt;setPointSize(2.0);
+<a name="199"><font size=-1>199     </font></a>    pointObj-&gt;setColor(0,0,0);
+<a name="200"><font size=-1>200     </font></a>    theScene-&gt;insert( pointObj );
+<a name="201"><font size=-1>201     </font></a>
+<a name="202"><font size=-1>202     </font></a>    pointObj_local = opengl::CPointCloud::Create();
+<a name="203"><font size=-1>203     </font></a>    pointObj_local-&gt;setPointSize(2.0);
+<a name="204"><font size=-1>204     </font></a>    pointObj_local-&gt;setColor(200,0,0);
+<a name="205"><font size=-1>205     </font></a>    theScene-&gt;insert( pointObj_local );
+<a name="206"><font size=-1>206     </font></a>
+<a name="207"><font size=-1>207     </font></a>    <span class="comment">// 解锁对象win.unlockAccess3DScene();，然后绘图win.repaint();
+</span><a name="208"><font size=-1>208     </font></a>    win-&gt;unlockAccess3DScene();
+<a name="209"><font size=-1>209     </font></a>    win-&gt;repaint();
+<a name="210"><font size=-1>210     </font></a>
+<a name="211"><font size=-1>211     </font></a><font size=+2><b>}</b></font>
+<a name="212"><font size=-1>212     </font></a>
+<a name="213"><font size=-1>213     </font></a><span class="keyword">void</span> slamScene::initViewports(<span class="keyword">int</span> W, <span class="keyword">int</span> H)<font size=+2><b>{</b></font>
+<a name="214"><font size=-1>214     </font></a>
+<a name="215"><font size=-1>215     </font></a>    theScene = win-&gt;get3DSceneAndLock();
+<a name="216"><font size=-1>216     </font></a>
+<a name="217"><font size=-1>217     </font></a>    <span class="comment">// Initialize the viewports
+</span><a name="218"><font size=-1>218     </font></a>    setHelp();
+<a name="219"><font size=-1>219     </font></a>    setLegend();
+<a name="220"><font size=-1>220     </font></a>    image = theScene-&gt;createViewport(<span class="string">"image"</span>);
+<a name="221"><font size=-1>221     </font></a>    <span class="comment">//W H 设置图像窗口的宽度和高度
+</span><a name="222"><font size=-1>222     </font></a>    image-&gt;setViewportPosition(20, 20, W/2, H/2);
+<a name="223"><font size=-1>223     </font></a>
+<a name="224"><font size=-1>224     </font></a>    <span class="comment">// Re-paint the scene
+</span><a name="225"><font size=-1>225     </font></a>    win-&gt;unlockAccess3DScene();
+<a name="226"><font size=-1>226     </font></a>    win-&gt;repaint();
+<a name="227"><font size=-1>227     </font></a>
+<a name="228"><font size=-1>228     </font></a><font size=+2><b>}</b></font>
+<a name="229"><font size=-1>229     </font></a>
+<a name="230"><font size=-1>230     </font></a><span class="comment">// Update the scene
+</span><a name="231"><font size=-1>231     </font></a>
+<a name="232"><font size=-1>232     </font></a><span class="keyword">bool</span> slamScene::updateScene()<font size=+2><b>{</b></font>
+<a name="233"><font size=-1>233     </font></a>
+<a name="234"><font size=-1>234     </font></a>    theScene = win-&gt;get3DSceneAndLock();
+<a name="235"><font size=-1>235     </font></a>    <span class="keyword">bool</span> restart = <span class="keyword">false</span>;
+<a name="236"><font size=-1>236     </font></a>
+<a name="237"><font size=-1>237     </font></a>    theScene-&gt;removeObject( frustObj );
+<a name="238"><font size=-1>238     </font></a>    theScene-&gt;removeObject( frustObj1 );
+<a name="239"><font size=-1>239     </font></a>
+<a name="240"><font size=-1>240     </font></a>    <span class="comment">// Update the camera pose
+</span><a name="241"><font size=-1>241     </font></a>    <font size=+2><b>{</b></font>
+<a name="242"><font size=-1>242     </font></a>		<span class="comment">//x 是curr_frame-&gt;DT
+</span><a name="243"><font size=-1>243     </font></a>        CPose3D x_aux1(getPoseFormat(x));
+<a name="244"><font size=-1>244     </font></a>        pose = pose + x_aux1;
+<a name="245"><font size=-1>245     </font></a>        v_aux_ = v_aux;
+<a name="246"><font size=-1>246     </font></a>        pose.getAsVector(v_aux);
+<a name="247"><font size=-1>247     </font></a>		<span class="comment">//Frustum三角锥
+</span><a name="248"><font size=-1>248     </font></a>        frustObj  = opengl::CFrustum::Create();
+<a name="249"><font size=-1>249     </font></a>        <font size=+2><b>{</b></font>
+<a name="250"><font size=-1>250     </font></a>            frustObj-&gt;setPose(pose+frustumL_);
+<a name="251"><font size=-1>251     </font></a>            frustObj-&gt;setLineWidth (slinef);
+<a name="252"><font size=-1>252     </font></a>            frustObj-&gt;setScale(sfrust);
+<a name="253"><font size=-1>253     </font></a>            frustObj-&gt;setColor_u8( TColor(200,0,0) );
+<a name="254"><font size=-1>254     </font></a>            theScene-&gt;insert(frustObj);
+<a name="255"><font size=-1>255     </font></a>        <font size=+2><b>}</b></font>
+<a name="256"><font size=-1>256     </font></a>        frustObj1 = opengl::CFrustum::Create();
+<a name="257"><font size=-1>257     </font></a>        <font size=+2><b>{</b></font>
+<a name="258"><font size=-1>258     </font></a>            frustObj1-&gt;setPose(pose+frustumR_ );
+<a name="259"><font size=-1>259     </font></a>            frustObj1-&gt;setLineWidth (slinef);
+<a name="260"><font size=-1>260     </font></a>            frustObj1-&gt;setScale(sfrust);
+<a name="261"><font size=-1>261     </font></a>            frustObj1-&gt;setColor_u8( TColor(200,0,0) );
+<a name="262"><font size=-1>262     </font></a>            theScene-&gt;insert(frustObj1);
+<a name="263"><font size=-1>263     </font></a>        <font size=+2><b>}</b></font>
+<a name="264"><font size=-1>264     </font></a>    <font size=+2><b>}</b></font>
+<a name="265"><font size=-1>265     </font></a>
+<a name="266"><font size=-1>266     </font></a>    <span class="comment">// Update the image
+</span><a name="267"><font size=-1>267     </font></a>    <span class="keyword">if</span>(hasImg)
+<a name="268"><font size=-1>268     </font></a>        image-&gt;setImageView( img_mrpt_image );
+<a name="269"><font size=-1>269     </font></a>
+<a name="270"><font size=-1>270     </font></a>    <span class="comment">// Re-paint the scene
+</span><a name="271"><font size=-1>271     </font></a>    win-&gt;unlockAccess3DScene();
+<a name="272"><font size=-1>272     </font></a>    win-&gt;repaint();
+<a name="273"><font size=-1>273     </font></a>
+<a name="274"><font size=-1>274     </font></a>    <span class="keyword">return</span> restart;
+<a name="275"><font size=-1>275     </font></a>
+<a name="276"><font size=-1>276     </font></a><font size=+2><b>}</b></font>
+<a name="277"><font size=-1>277     </font></a>
+<a name="278"><font size=-1>278     </font></a><span class="keyword">bool</span> slamScene::updateSceneVO( Matrix4d T_last_kf )<font size=+2><b>{</b></font>
+<a name="279"><font size=-1>279     </font></a>
+<a name="280"><font size=-1>280     </font></a>    theScene = win-&gt;get3DSceneAndLock();
+<a name="281"><font size=-1>281     </font></a>    <span class="keyword">bool</span> restart = <span class="keyword">false</span>;
+<a name="282"><font size=-1>282     </font></a>
+<a name="283"><font size=-1>283     </font></a>    theScene-&gt;removeObject( frustObj );
+<a name="284"><font size=-1>284     </font></a>    theScene-&gt;removeObject( frustObj1 );
+<a name="285"><font size=-1>285     </font></a>
+<a name="286"><font size=-1>286     </font></a>    <span class="comment">// Update the camera pose
+</span><a name="287"><font size=-1>287     </font></a>    pose = CPose3D( getPoseFormat( T_last_kf ) );
+<a name="288"><font size=-1>288     </font></a>    <font size=+2><b>{</b></font>
+<a name="289"><font size=-1>289     </font></a>        CPose3D x_aux1(getPoseFormat(x));
+<a name="290"><font size=-1>290     </font></a>        pose = pose + x_aux1;
+<a name="291"><font size=-1>291     </font></a>        v_aux_ = v_aux;
+<a name="292"><font size=-1>292     </font></a>        pose.getAsVector(v_aux);
+<a name="293"><font size=-1>293     </font></a>        frustObj  = opengl::CFrustum::Create();
+<a name="294"><font size=-1>294     </font></a>        <font size=+2><b>{</b></font>
+<a name="295"><font size=-1>295     </font></a>            frustObj-&gt;setPose(pose+frustumL_);
+<a name="296"><font size=-1>296     </font></a>            frustObj-&gt;setLineWidth (slinef);
+<a name="297"><font size=-1>297     </font></a>            frustObj-&gt;setScale(sfrust);
+<a name="298"><font size=-1>298     </font></a>            frustObj-&gt;setColor_u8( TColor(200,0,0) );
+<a name="299"><font size=-1>299     </font></a>            theScene-&gt;insert(frustObj);
+<a name="300"><font size=-1>300     </font></a>        <font size=+2><b>}</b></font>
+<a name="301"><font size=-1>301     </font></a>        frustObj1 = opengl::CFrustum::Create();
+<a name="302"><font size=-1>302     </font></a>        <font size=+2><b>{</b></font>
+<a name="303"><font size=-1>303     </font></a>            frustObj1-&gt;setPose(pose+frustumR_ );
+<a name="304"><font size=-1>304     </font></a>            frustObj1-&gt;setLineWidth (slinef);
+<a name="305"><font size=-1>305     </font></a>            frustObj1-&gt;setScale(sfrust);
+<a name="306"><font size=-1>306     </font></a>            frustObj1-&gt;setColor_u8( TColor(200,0,0) );
+<a name="307"><font size=-1>307     </font></a>            theScene-&gt;insert(frustObj1);
+<a name="308"><font size=-1>308     </font></a>        <font size=+2><b>}</b></font>
+<a name="309"><font size=-1>309     </font></a>    <font size=+2><b>}</b></font>
+<a name="310"><font size=-1>310     </font></a>
+<a name="311"><font size=-1>311     </font></a>    <span class="comment">// Update the image
+</span><a name="312"><font size=-1>312     </font></a>    <span class="keyword">if</span>(hasImg)
+<a name="313"><font size=-1>313     </font></a>        image-&gt;setImageView( img_mrpt_image );    
+<a name="314"><font size=-1>314     </font></a>
+<a name="315"><font size=-1>315     </font></a>    <span class="comment">// Re-paint the scene
+</span><a name="316"><font size=-1>316     </font></a>    win-&gt;unlockAccess3DScene();
+<a name="317"><font size=-1>317     </font></a>    win-&gt;repaint();
+<a name="318"><font size=-1>318     </font></a>
+<a name="319"><font size=-1>319     </font></a>    <span class="keyword">return</span> restart;
+<a name="320"><font size=-1>320     </font></a>
+<a name="321"><font size=-1>321     </font></a><font size=+2><b>}</b></font>
+<a name="322"><font size=-1>322     </font></a>
+<a name="323"><font size=-1>323     </font></a><span class="keyword">bool</span> slamScene::updateScene(<span class="keyword">const</span> MapHandler* map)<font size=+2><b>{</b></font>
+<a name="324"><font size=-1>324     </font></a>
+<a name="325"><font size=-1>325     </font></a>    theScene = win-&gt;get3DSceneAndLock();
+<a name="326"><font size=-1>326     </font></a>    <span class="keyword">bool</span> restart = <span class="keyword">false</span>;
+<a name="327"><font size=-1>327     </font></a>
+<a name="328"><font size=-1>328     </font></a>    theScene-&gt;removeObject( kfsObj );
+<a name="329"><font size=-1>329     </font></a>    theScene-&gt;removeObject( kfsLinesObj );
+<a name="330"><font size=-1>330     </font></a>    theScene-&gt;removeObject( frustObj );
+<a name="331"><font size=-1>331     </font></a>    theScene-&gt;removeObject( frustObj1 );
+<a name="332"><font size=-1>332     </font></a>
+<a name="333"><font size=-1>333     </font></a>    <span class="comment">// Represent KFs
+</span><a name="334"><font size=-1>334     </font></a>    CPose3D kf_pose;
+<a name="335"><font size=-1>335     </font></a>    Vector3d Pi;
+<a name="336"><font size=-1>336     </font></a>    <span class="keyword">try</span><font size=+2><b>{</b></font>
+<a name="337"><font size=-1>337     </font></a>    Pi = map-&gt;map_keyframes[0]-&gt;T_kf_w.col(3).head(3);
+<a name="338"><font size=-1>338     </font></a>    <font size=+2><b>}</b></font><span class="keyword">catch</span>(...)<font size=+2><b>{</b></font><font size=+2><b>}</b></font>
+<a name="339"><font size=-1>339     </font></a>    Vector3d Pj;
+<a name="340"><font size=-1>340     </font></a>    kfsObj      = opengl::CSetOfObjects::Create();
+<a name="341"><font size=-1>341     </font></a>    kfsLinesObj = opengl::CSetOfLines::Create();
+<a name="342"><font size=-1>342     </font></a>    <span class="keyword">for</span>( vector&lt;KeyFrame*&gt;::const_iterator it = map-&gt;map_keyframes.begin(); it != map-&gt;map_keyframes.end(); it++ )
+<a name="343"><font size=-1>343     </font></a>    <font size=+2><b>{</b></font>
+<a name="344"><font size=-1>344     </font></a>        <span class="keyword">if</span>( (*it)!=NULL )
+<a name="345"><font size=-1>345     </font></a>        <font size=+2><b>{</b></font>
+<a name="346"><font size=-1>346     </font></a>            <span class="comment">// if last keyframe
+</span><a name="347"><font size=-1>347     </font></a>            <span class="keyword">if</span>( (*it)-&gt;kf_idx == map-&gt;map_keyframes.back()-&gt;kf_idx )
+<a name="348"><font size=-1>348     </font></a>            <font size=+2><b>{</b></font>
+<a name="349"><font size=-1>349     </font></a>                kf_pose = CPose3D( getPoseFormat( (*it)-&gt;T_kf_w ) );
+<a name="350"><font size=-1>350     </font></a>                opengl::CFrustumPtr frust_ = opengl::CFrustum::Create();
+<a name="351"><font size=-1>351     </font></a>                <font size=+2><b>{</b></font>
+<a name="352"><font size=-1>352     </font></a>                    frust_-&gt;setPose( kf_pose + frustumL_ );
+<a name="353"><font size=-1>353     </font></a>                    frust_-&gt;setLineWidth (slinef);
+<a name="354"><font size=-1>354     </font></a>                    frust_-&gt;setScale(sfrust / 2.0 );
+<a name="355"><font size=-1>355     </font></a>                    <span class="keyword">if</span>( (*it)-&gt;local )
+<a name="356"><font size=-1>356     </font></a>                        frust_-&gt;setColor_u8( TColor(200,0,0) );
+<a name="357"><font size=-1>357     </font></a>                    <span class="keyword">else</span>
+<a name="358"><font size=-1>358     </font></a>                        frust_-&gt;setColor_u8( TColor(0,0,200) );
+<a name="359"><font size=-1>359     </font></a>                    kfsObj-&gt;insert( frust_ );
+<a name="360"><font size=-1>360     </font></a>                <font size=+2><b>}</b></font>
+<a name="361"><font size=-1>361     </font></a>                <span class="comment">// represent spanning tree
+</span><a name="362"><font size=-1>362     </font></a>                Pj = (*it)-&gt;T_kf_w.col(3).head(3);
+<a name="363"><font size=-1>363     </font></a>                kfsLinesObj-&gt;appendLine( Pi(0),Pi(1),Pi(2), Pj(0),Pj(1),Pj(2) );
+<a name="364"><font size=-1>364     </font></a>                Pi = Pj;
+<a name="365"><font size=-1>365     </font></a>                <span class="comment">// represent VO frustum
+</span><a name="366"><font size=-1>366     </font></a>                frustObj  = opengl::CFrustum::Create();
+<a name="367"><font size=-1>367     </font></a>                <font size=+2><b>{</b></font>
+<a name="368"><font size=-1>368     </font></a>                    frustObj-&gt;setPose( kf_pose + frustumL_ );
+<a name="369"><font size=-1>369     </font></a>                    frustObj-&gt;setLineWidth (slinef);
+<a name="370"><font size=-1>370     </font></a>                    frustObj-&gt;setScale(sfrust);
+<a name="371"><font size=-1>371     </font></a>                    frustObj-&gt;setColor_u8( TColor(200,0,0) );
+<a name="372"><font size=-1>372     </font></a>                    theScene-&gt;insert(frustObj);
+<a name="373"><font size=-1>373     </font></a>                <font size=+2><b>}</b></font>
+<a name="374"><font size=-1>374     </font></a>                frustObj1 = opengl::CFrustum::Create();
+<a name="375"><font size=-1>375     </font></a>                <font size=+2><b>{</b></font>
+<a name="376"><font size=-1>376     </font></a>                    frustObj1-&gt;setPose( kf_pose + frustumR_ );
+<a name="377"><font size=-1>377     </font></a>                    frustObj1-&gt;setLineWidth (slinef);
+<a name="378"><font size=-1>378     </font></a>                    frustObj1-&gt;setScale(sfrust);
+<a name="379"><font size=-1>379     </font></a>                    frustObj1-&gt;setColor_u8( TColor(200,0,0) );
+<a name="380"><font size=-1>380     </font></a>                    theScene-&gt;insert(frustObj1);
+<a name="381"><font size=-1>381     </font></a>                <font size=+2><b>}</b></font>
+<a name="382"><font size=-1>382     </font></a>                pose = kf_pose;
+<a name="383"><font size=-1>383     </font></a>            <font size=+2><b>}</b></font>
+<a name="384"><font size=-1>384     </font></a>            <span class="comment">// if not
+</span><a name="385"><font size=-1>385     </font></a>            <span class="keyword">else</span>
+<a name="386"><font size=-1>386     </font></a>            <font size=+2><b>{</b></font>
+<a name="387"><font size=-1>387     </font></a>                kf_pose = CPose3D( getPoseFormat( (*it)-&gt;T_kf_w ) );
+<a name="388"><font size=-1>388     </font></a>                opengl::CFrustumPtr frust_ = opengl::CFrustum::Create();
+<a name="389"><font size=-1>389     </font></a>                <font size=+2><b>{</b></font>
+<a name="390"><font size=-1>390     </font></a>                    frust_-&gt;setPose( kf_pose + frustumL_ );
+<a name="391"><font size=-1>391     </font></a>                    frust_-&gt;setLineWidth (slinef);
+<a name="392"><font size=-1>392     </font></a>                    frust_-&gt;setScale(sfrust / 2.0);
+<a name="393"><font size=-1>393     </font></a>                    <span class="keyword">if</span>( (*it)-&gt;local )
+<a name="394"><font size=-1>394     </font></a>                        frust_-&gt;setColor_u8( TColor(200,0,0) );
+<a name="395"><font size=-1>395     </font></a>                    <span class="keyword">else</span>
+<a name="396"><font size=-1>396     </font></a>                        frust_-&gt;setColor_u8( TColor(0,0,200) );
+<a name="397"><font size=-1>397     </font></a>                    kfsObj-&gt;insert( frust_ );
+<a name="398"><font size=-1>398     </font></a>                <font size=+2><b>}</b></font>
+<a name="399"><font size=-1>399     </font></a>                <span class="comment">// represent spanning tree
+</span><a name="400"><font size=-1>400     </font></a>                Pj = (*it)-&gt;T_kf_w.col(3).head(3);
+<a name="401"><font size=-1>401     </font></a>                kfsLinesObj-&gt;appendLine( Pi(0),Pi(1),Pi(2), Pj(0),Pj(1),Pj(2) );
+<a name="402"><font size=-1>402     </font></a>                Pi = Pj;
+<a name="403"><font size=-1>403     </font></a>            <font size=+2><b>}</b></font>
+<a name="404"><font size=-1>404     </font></a>        <font size=+2><b>}</b></font>
+<a name="405"><font size=-1>405     </font></a>    <font size=+2><b>}</b></font>
+<a name="406"><font size=-1>406     </font></a>    kfsLinesObj-&gt;setLineWidth(1.5f);
+<a name="407"><font size=-1>407     </font></a>    kfsLinesObj-&gt;setColor(0,255,0);
+<a name="408"><font size=-1>408     </font></a>    theScene-&gt;insert( kfsLinesObj );
+<a name="409"><font size=-1>409     </font></a>    theScene-&gt;insert( kfsObj );
+<a name="410"><font size=-1>410     </font></a>
+<a name="411"><font size=-1>411     </font></a>    <span class="comment">// Represent point LMs
+</span><a name="412"><font size=-1>412     </font></a>    <span class="keyword">if</span>( hasPoints )
+<a name="413"><font size=-1>413     </font></a>    <font size=+2><b>{</b></font>
+<a name="414"><font size=-1>414     </font></a>        pointObj-&gt;clear();
+<a name="415"><font size=-1>415     </font></a>        pointObj_local-&gt;clear();
+<a name="416"><font size=-1>416     </font></a>        <span class="keyword">for</span>( vector&lt;MapPoint*&gt;::const_iterator it = map-&gt;map_points.begin(); it!=map-&gt;map_points.end(); it++)
+<a name="417"><font size=-1>417     </font></a>        <font size=+2><b>{</b></font>
+<a name="418"><font size=-1>418     </font></a>            <span class="keyword">try</span><font size=+2><b>{</b></font>
+<a name="419"><font size=-1>419     </font></a>            <span class="keyword">if</span>( (*it)!=NULL )
+<a name="420"><font size=-1>420     </font></a>            <font size=+2><b>{</b></font>
+<a name="421"><font size=-1>421     </font></a>                <span class="keyword">if</span>( (*it)-&gt;local )
+<a name="422"><font size=-1>422     </font></a>                    pointObj_local-&gt;insertPoint( (*it)-&gt;point3D(0),(*it)-&gt;point3D(1),(*it)-&gt;point3D(2) );
+<a name="423"><font size=-1>423     </font></a>                <span class="keyword">else</span>
+<a name="424"><font size=-1>424     </font></a>                    pointObj-&gt;insertPoint( (*it)-&gt;point3D(0),(*it)-&gt;point3D(1),(*it)-&gt;point3D(2) );
+<a name="425"><font size=-1>425     </font></a>            <font size=+2><b>}</b></font>
+<a name="426"><font size=-1>426     </font></a>            <font size=+2><b>}</b></font><span class="keyword">catch</span>(...)<font size=+2><b>{</b></font><font size=+2><b>}</b></font>
+<a name="427"><font size=-1>427     </font></a>        <font size=+2><b>}</b></font>
+<a name="428"><font size=-1>428     </font></a>    <font size=+2><b>}</b></font>
+<a name="429"><font size=-1>429     </font></a>
+<a name="430"><font size=-1>430     </font></a>    <span class="comment">// Represent line LMs
+</span><a name="431"><font size=-1>431     </font></a>    <span class="keyword">if</span>( hasLines )
+<a name="432"><font size=-1>432     </font></a>    <font size=+2><b>{</b></font>
+<a name="433"><font size=-1>433     </font></a>        lineObj-&gt;clear();
+<a name="434"><font size=-1>434     </font></a>        lineObj_local-&gt;clear();
+<a name="435"><font size=-1>435     </font></a>        <span class="keyword">for</span>( vector&lt;MapLine*&gt;::const_iterator it = map-&gt;map_lines.begin(); it!=map-&gt;map_lines.end(); it++)
+<a name="436"><font size=-1>436     </font></a>        <font size=+2><b>{</b></font>
+<a name="437"><font size=-1>437     </font></a>            <span class="keyword">try</span><font size=+2><b>{</b></font>
+<a name="438"><font size=-1>438     </font></a>            <span class="keyword">if</span>( (*it)!=NULL )
+<a name="439"><font size=-1>439     </font></a>            <font size=+2><b>{</b></font>
+<a name="440"><font size=-1>440     </font></a>                Vector6d L;
+<a name="441"><font size=-1>441     </font></a>                L = (*it)-&gt;line3D;
+<a name="442"><font size=-1>442     </font></a>                <span class="keyword">if</span>( (*it)-&gt;local )
+<a name="443"><font size=-1>443     </font></a>                    lineObj_local-&gt;appendLine( L(0),L(1),L(2),L(3),L(4),L(5) );
+<a name="444"><font size=-1>444     </font></a>                <span class="keyword">else</span>
+<a name="445"><font size=-1>445     </font></a>                    lineObj-&gt;appendLine( L(0),L(1),L(2),L(3),L(4),L(5) );
+<a name="446"><font size=-1>446     </font></a>            <font size=+2><b>}</b></font>
+<a name="447"><font size=-1>447     </font></a>            <font size=+2><b>}</b></font><span class="keyword">catch</span>(...)<font size=+2><b>{</b></font><font size=+2><b>}</b></font>
+<a name="448"><font size=-1>448     </font></a>        <font size=+2><b>}</b></font>
+<a name="449"><font size=-1>449     </font></a>    <font size=+2><b>}</b></font>
+<a name="450"><font size=-1>450     </font></a>
+<a name="451"><font size=-1>451     </font></a>    <span class="comment">// Update the text
+</span><a name="452"><font size=-1>452     </font></a>    <span class="keyword">if</span>(hasText)<font size=+2><b>{</b></font>
+<a name="453"><font size=-1>453     </font></a>        string text = <span class="string">"KeyFrame: \t"</span> + to_string(frame) + <span class="string">" \nFrequency: \t"</span> + to_string_with_precision(1000.f/time,4) + <span class="string">" Hz \nPoints:   \t"</span> + to_string(nPoints) + <span class="string">"\nLines:    \t"</span> + to_string(nLines);
+<a name="454"><font size=-1>454     </font></a>        <span class="comment">//string text = "Frame: \t \t" + to_string(frame) + " \n" + "Frequency: \t" + to_string_with_precision(1000.f/time,4) + " Hz \n" + "Lines:  \t" + to_string(nLines) + " (" + to_string(nLinesH) + ") \nPoints: \t" + to_string(nPoints) + " (" + to_string(nPointsH) + ")";
+</span><a name="455"><font size=-1>455     </font></a>        win-&gt;addTextMessage(0.85,0.95, text, TColorf(.0,.0,.0), 0, mrpt::opengl::MRPT_GLUT_BITMAP_TIMES_ROMAN_10 );
+<a name="456"><font size=-1>456     </font></a>    <font size=+2><b>}</b></font>
+<a name="457"><font size=-1>457     </font></a>
+<a name="458"><font size=-1>458     </font></a>    <span class="comment">// Update the image
+</span><a name="459"><font size=-1>459     </font></a>    <span class="keyword">if</span>(hasImg)
+<a name="460"><font size=-1>460     </font></a>        image-&gt;setImageView( img_mrpt_image );
+<a name="461"><font size=-1>461     </font></a>
+<a name="462"><font size=-1>462     </font></a>    <span class="comment">// Re-paint the scene
+</span><a name="463"><font size=-1>463     </font></a>    win-&gt;unlockAccess3DScene();
+<a name="464"><font size=-1>464     </font></a>    win-&gt;repaint();
+<a name="465"><font size=-1>465     </font></a>
+<a name="466"><font size=-1>466     </font></a>    <span class="comment">// Key events
+</span><a name="467"><font size=-1>467     </font></a>    <span class="keyword">if</span>(win-&gt;keyHit())<font size=+2><b>{</b></font>
+<a name="468"><font size=-1>468     </font></a>        key = win-&gt;getPushedKey(&kmods);
+<a name="469"><font size=-1>469     </font></a>        <span class="keyword">if</span>(key == MRPTK_SPACE)<font size=+2><b>{</b></font>                     <span class="comment">// Space    Reset VO
+</span><a name="470"><font size=-1>470     </font></a>            theScene-&gt;clear();
+<a name="471"><font size=-1>471     </font></a>            initializeScene(x_ini);
+<a name="472"><font size=-1>472     </font></a>        <font size=+2><b>}</b></font>
+<a name="473"><font size=-1>473     </font></a>        <span class="keyword">else</span> <span class="keyword">if</span> (key == MRPTK_ESCAPE)<font size=+2><b>{</b></font>              <span class="comment">// Esc      Restart VO
+</span><a name="474"><font size=-1>474     </font></a>            theScene-&gt;clear();
+<a name="475"><font size=-1>475     </font></a>            initializeScene(x_ini);
+<a name="476"><font size=-1>476     </font></a>            restart = <span class="keyword">true</span>;
+<a name="477"><font size=-1>477     </font></a>        <font size=+2><b>}</b></font>
+<a name="478"><font size=-1>478     </font></a>        <span class="keyword">else</span> <span class="keyword">if</span> ( (key == 104) || (key == 72) )<font size=+2><b>{</b></font>    <span class="comment">// H        help
+</span><a name="479"><font size=-1>479     </font></a>            hasHelp   = !hasHelp;
+<a name="480"><font size=-1>480     </font></a>            <span class="keyword">if</span>(!hasHelp)
+<a name="481"><font size=-1>481     </font></a>                help-&gt;setViewportPosition(2000, 2000, 300, 376);
+<a name="482"><font size=-1>482     </font></a>            <span class="keyword">else</span>
+<a name="483"><font size=-1>483     </font></a>                help-&gt;setViewportPosition(1600, 20, 300, 376);
+<a name="484"><font size=-1>484     </font></a>        <font size=+2><b>}</b></font>
+<a name="485"><font size=-1>485     </font></a>        <span class="keyword">else</span> <span class="keyword">if</span> ( (key == 103) || (key == 71) )<font size=+2><b>{</b></font>    <span class="comment">// G        legend
+</span><a name="486"><font size=-1>486     </font></a>            hasLegend   = !hasLegend;
+<a name="487"><font size=-1>487     </font></a>            <span class="keyword">if</span>(!hasLegend)
+<a name="488"><font size=-1>488     </font></a>                legend-&gt;setViewportPosition(2000, 2000, 250, 97);
+<a name="489"><font size=-1>489     </font></a>            <span class="keyword">else</span>
+<a name="490"><font size=-1>490     </font></a>                legend-&gt;setViewportPosition(20, 900, 250, 97);
+<a name="491"><font size=-1>491     </font></a>        <font size=+2><b>}</b></font>
+<a name="492"><font size=-1>492     </font></a>        <span class="keyword">else</span> <span class="keyword">if</span> ( (key ==  97) || (key == 65) )<font size=+2><b>{</b></font>    <span class="comment">// A        axes
+</span><a name="493"><font size=-1>493     </font></a>            hasAxes   = !hasAxes;
+<a name="494"><font size=-1>494     </font></a>            <span class="keyword">if</span>(!hasAxes)<font size=+2><b>{</b></font>
+<a name="495"><font size=-1>495     </font></a>                axesObj.clear();
+<a name="496"><font size=-1>496     </font></a>            <font size=+2><b>}</b></font>
+<a name="497"><font size=-1>497     </font></a>            <span class="keyword">else</span><font size=+2><b>{</b></font>
+<a name="498"><font size=-1>498     </font></a>                axesObj = opengl::CAxis::Create();
+<a name="499"><font size=-1>499     </font></a>                axesObj-&gt;setFrequency(sfreq);
+<a name="500"><font size=-1>500     </font></a>                axesObj-&gt;enableTickMarks(false);
+<a name="501"><font size=-1>501     </font></a>                axesObj-&gt;setAxisLimits(-saxis,-saxis,-saxis, saxis,saxis,saxis);
+<a name="502"><font size=-1>502     </font></a>                theScene-&gt;insert( axesObj );
+<a name="503"><font size=-1>503     </font></a>            <font size=+2><b>}</b></font>
+<a name="504"><font size=-1>504     </font></a>        <font size=+2><b>}</b></font>
+<a name="505"><font size=-1>505     </font></a>        <span class="keyword">else</span> <span class="keyword">if</span> ( (key == 112) || (key == 80) )<font size=+2><b>{</b></font>    <span class="comment">// P        points
+</span><a name="506"><font size=-1>506     </font></a>            hasPoints = !hasPoints;
+<a name="507"><font size=-1>507     </font></a>            <span class="keyword">if</span>(!hasPoints)<font size=+2><b>{</b></font>
+<a name="508"><font size=-1>508     </font></a>                elliObjP.clear();
+<a name="509"><font size=-1>509     </font></a>            <font size=+2><b>}</b></font>
+<a name="510"><font size=-1>510     </font></a>            <span class="keyword">else</span><font size=+2><b>{</b></font>
+<a name="511"><font size=-1>511     </font></a>                elliObjP = opengl::CSetOfObjects::Create();
+<a name="512"><font size=-1>512     </font></a>                elliObjP-&gt;setScale(selli);
+<a name="513"><font size=-1>513     </font></a>                elliObjP-&gt;setPose(pose);
+<a name="514"><font size=-1>514     </font></a>                theScene-&gt;insert(elliObjP);
+<a name="515"><font size=-1>515     </font></a>            <font size=+2><b>}</b></font>
+<a name="516"><font size=-1>516     </font></a>        <font size=+2><b>}</b></font>
+<a name="517"><font size=-1>517     </font></a>        <span class="keyword">else</span> <span class="keyword">if</span> ( (key == 108) || (key == 76) )<font size=+2><b>{</b></font>    <span class="comment">// L        lines
+</span><a name="518"><font size=-1>518     </font></a>            hasLines  = !hasLines;
+<a name="519"><font size=-1>519     </font></a>            <span class="keyword">if</span>(!hasLines)<font size=+2><b>{</b></font>
+<a name="520"><font size=-1>520     </font></a>                elliObjL.clear();
+<a name="521"><font size=-1>521     </font></a>            <font size=+2><b>}</b></font>
+<a name="522"><font size=-1>522     </font></a>            <span class="keyword">else</span><font size=+2><b>{</b></font>
+<a name="523"><font size=-1>523     </font></a>                elliObjL = opengl::CSetOfObjects::Create();
+<a name="524"><font size=-1>524     </font></a>                elliObjL-&gt;setScale(selli);
+<a name="525"><font size=-1>525     </font></a>                elliObjL-&gt;setPose(pose);
+<a name="526"><font size=-1>526     </font></a>                theScene-&gt;insert(elliObjL);
+<a name="527"><font size=-1>527     </font></a>            <font size=+2><b>}</b></font>
+<a name="528"><font size=-1>528     </font></a>        <font size=+2><b>}</b></font>
+<a name="529"><font size=-1>529     </font></a>        <span class="keyword">else</span> <span class="keyword">if</span> ( (key == 116) || (key == 84) )<font size=+2><b>{</b></font>    <span class="comment">// T        text
+</span><a name="530"><font size=-1>530     </font></a>            hasText  = !hasText;
+<a name="531"><font size=-1>531     </font></a>            <span class="keyword">if</span>(!hasText)<font size=+2><b>{</b></font>
+<a name="532"><font size=-1>532     </font></a>                string text = <span class="string">""</span>;
+<a name="533"><font size=-1>533     </font></a>                win-&gt;addTextMessage(0.85,0.95, text, TColorf(1.0,1.0,1.0), 0, mrpt::opengl::MRPT_GLUT_BITMAP_HELVETICA_10 );
+<a name="534"><font size=-1>534     </font></a>            <font size=+2><b>}</b></font>
+<a name="535"><font size=-1>535     </font></a>        <font size=+2><b>}</b></font>
+<a name="536"><font size=-1>536     </font></a>        <span class="keyword">else</span> <span class="keyword">if</span> ( (key == 105) || (key == 73) )<font size=+2><b>{</b></font>    <span class="comment">// I        image
+</span><a name="537"><font size=-1>537     </font></a>            hasImg   = !hasImg;
+<a name="538"><font size=-1>538     </font></a>            <span class="keyword">if</span>(isKitti)<font size=+2><b>{</b></font>
+<a name="539"><font size=-1>539     </font></a>                <span class="keyword">if</span>(hasImg)
+<a name="540"><font size=-1>540     </font></a>                    image-&gt;setViewportPosition(20, 20, 621, 188);
+<a name="541"><font size=-1>541     </font></a>                <span class="keyword">else</span>
+<a name="542"><font size=-1>542     </font></a>                    image-&gt;setViewportPosition(2000, 2000, 621, 188);
+<a name="543"><font size=-1>543     </font></a>            <font size=+2><b>}</b></font>
+<a name="544"><font size=-1>544     </font></a>            <span class="keyword">else</span><font size=+2><b>{</b></font>
+<a name="545"><font size=-1>545     </font></a>                <span class="keyword">if</span>(hasImg)
+<a name="546"><font size=-1>546     </font></a>                    image-&gt;setViewportPosition(20, 20, 400, 300);
+<a name="547"><font size=-1>547     </font></a>                <span class="keyword">else</span>
+<a name="548"><font size=-1>548     </font></a>                    image-&gt;setViewportPosition(2000, 2000, 400, 300);
+<a name="549"><font size=-1>549     </font></a>            <font size=+2><b>}</b></font>
+<a name="550"><font size=-1>550     </font></a>
+<a name="551"><font size=-1>551     </font></a>        <font size=+2><b>}</b></font>
+<a name="552"><font size=-1>552     </font></a>    <font size=+2><b>}</b></font>
+<a name="553"><font size=-1>553     </font></a>
+<a name="554"><font size=-1>554     </font></a>    <span class="keyword">return</span> restart;
+<a name="555"><font size=-1>555     </font></a>
+<a name="556"><font size=-1>556     </font></a><font size=+2><b>}</b></font>
+<a name="557"><font size=-1>557     </font></a>
+<a name="558"><font size=-1>558     </font></a><span class="keyword">bool</span> slamScene::updateSceneSafe(<span class="keyword">const</span> MapHandler* map)<font size=+2><b>{</b></font>
+<a name="559"><font size=-1>559     </font></a>
+<a name="560"><font size=-1>560     </font></a>    theScene = win-&gt;get3DSceneAndLock();
+<a name="561"><font size=-1>561     </font></a>    <span class="keyword">bool</span> restart = <span class="keyword">false</span>;
+<a name="562"><font size=-1>562     </font></a>
+<a name="563"><font size=-1>563     </font></a>    theScene-&gt;removeObject( kfsObj );
+<a name="564"><font size=-1>564     </font></a>    theScene-&gt;removeObject( kfsLinesObj );
+<a name="565"><font size=-1>565     </font></a>    theScene-&gt;removeObject( frustObj );
+<a name="566"><font size=-1>566     </font></a>    theScene-&gt;removeObject( frustObj1 );
+<a name="567"><font size=-1>567     </font></a>
+<a name="568"><font size=-1>568     </font></a>    <span class="comment">// grab indices (so we don't have memory access problems)
+</span><a name="569"><font size=-1>569     </font></a>    <span class="keyword">int</span> pt_idx = map-&gt;map_points.size();
+<a name="570"><font size=-1>570     </font></a>    <span class="keyword">int</span> ls_idx = map-&gt;map_lines.size();
+<a name="571"><font size=-1>571     </font></a>
+<a name="572"><font size=-1>572     </font></a>    <span class="comment">// Represent KFs
+</span><a name="573"><font size=-1>573     </font></a>    CPose3D kf_pose;
+<a name="574"><font size=-1>574     </font></a>    Vector3d Pi;
+<a name="575"><font size=-1>575     </font></a>    <span class="keyword">try</span><font size=+2><b>{</b></font>
+<a name="576"><font size=-1>576     </font></a>    Pi = map-&gt;map_keyframes[0]-&gt;T_kf_w.col(3).head(3);
+<a name="577"><font size=-1>577     </font></a>    <font size=+2><b>}</b></font><span class="keyword">catch</span>(...)<font size=+2><b>{</b></font><font size=+2><b>}</b></font>
+<a name="578"><font size=-1>578     </font></a>    Vector3d Pj;
+<a name="579"><font size=-1>579     </font></a>    kfsObj      = opengl::CSetOfObjects::Create();
+<a name="580"><font size=-1>580     </font></a>    kfsLinesObj = opengl::CSetOfLines::Create();
+<a name="581"><font size=-1>581     </font></a>    <span class="keyword">for</span>( vector&lt;KeyFrame*&gt;::const_iterator it = map-&gt;map_keyframes.begin(); it != map-&gt;map_keyframes.end(); it++ )
+<a name="582"><font size=-1>582     </font></a>    <font size=+2><b>{</b></font>
+<a name="583"><font size=-1>583     </font></a>        <span class="keyword">if</span>( (*it)!=NULL )
+<a name="584"><font size=-1>584     </font></a>        <font size=+2><b>{</b></font>
+<a name="585"><font size=-1>585     </font></a>            <span class="comment">// if last keyframe
+</span><a name="586"><font size=-1>586     </font></a>            <span class="keyword">if</span>( (*it)-&gt;kf_idx == map-&gt;map_keyframes.back()-&gt;kf_idx )
+<a name="587"><font size=-1>587     </font></a>            <font size=+2><b>{</b></font>
+<a name="588"><font size=-1>588     </font></a>                kf_pose = CPose3D( getPoseFormat( (*it)-&gt;T_kf_w ) );
+<a name="589"><font size=-1>589     </font></a>                opengl::CFrustumPtr frust_ = opengl::CFrustum::Create();
+<a name="590"><font size=-1>590     </font></a>                <font size=+2><b>{</b></font>
+<a name="591"><font size=-1>591     </font></a>                    frust_-&gt;setPose( kf_pose + frustumL_ );
+<a name="592"><font size=-1>592     </font></a>                    frust_-&gt;setLineWidth (slinef);
+<a name="593"><font size=-1>593     </font></a>                    frust_-&gt;setScale(sfrust / 2.0 );
+<a name="594"><font size=-1>594     </font></a>                    <span class="keyword">if</span>( (*it)-&gt;local )
+<a name="595"><font size=-1>595     </font></a>                        frust_-&gt;setColor_u8( TColor(200,0,0) );
+<a name="596"><font size=-1>596     </font></a>                    <span class="keyword">else</span>
+<a name="597"><font size=-1>597     </font></a>                        frust_-&gt;setColor_u8( TColor(0,0,200) );
+<a name="598"><font size=-1>598     </font></a>                    kfsObj-&gt;insert( frust_ );
+<a name="599"><font size=-1>599     </font></a>                <font size=+2><b>}</b></font>
+<a name="600"><font size=-1>600     </font></a>                <span class="comment">// represent spanning tree
+</span><a name="601"><font size=-1>601     </font></a>                Pj = (*it)-&gt;T_kf_w.col(3).head(3);
+<a name="602"><font size=-1>602     </font></a>                kfsLinesObj-&gt;appendLine( Pi(0),Pi(1),Pi(2), Pj(0),Pj(1),Pj(2) );
+<a name="603"><font size=-1>603     </font></a>                Pi = Pj;
+<a name="604"><font size=-1>604     </font></a>                <span class="comment">// represent VO frustum
+</span><a name="605"><font size=-1>605     </font></a>                frustObj  = opengl::CFrustum::Create();
+<a name="606"><font size=-1>606     </font></a>                <font size=+2><b>{</b></font>
+<a name="607"><font size=-1>607     </font></a>                    frustObj-&gt;setPose( kf_pose + frustumL_ );
+<a name="608"><font size=-1>608     </font></a>                    frustObj-&gt;setLineWidth (slinef);
+<a name="609"><font size=-1>609     </font></a>                    frustObj-&gt;setScale(sfrust);
+<a name="610"><font size=-1>610     </font></a>                    frustObj-&gt;setColor_u8( TColor(200,0,0) );
+<a name="611"><font size=-1>611     </font></a>                    theScene-&gt;insert(frustObj);
+<a name="612"><font size=-1>612     </font></a>                <font size=+2><b>}</b></font>
+<a name="613"><font size=-1>613     </font></a>                frustObj1 = opengl::CFrustum::Create();
+<a name="614"><font size=-1>614     </font></a>                <font size=+2><b>{</b></font>
+<a name="615"><font size=-1>615     </font></a>                    frustObj1-&gt;setPose( kf_pose + frustumR_ );
+<a name="616"><font size=-1>616     </font></a>                    frustObj1-&gt;setLineWidth (slinef);
+<a name="617"><font size=-1>617     </font></a>                    frustObj1-&gt;setScale(sfrust);
+<a name="618"><font size=-1>618     </font></a>                    frustObj1-&gt;setColor_u8( TColor(200,0,0) );
+<a name="619"><font size=-1>619     </font></a>                    theScene-&gt;insert(frustObj1);
+<a name="620"><font size=-1>620     </font></a>                <font size=+2><b>}</b></font>
+<a name="621"><font size=-1>621     </font></a>                pose = kf_pose;
+<a name="622"><font size=-1>622     </font></a>            <font size=+2><b>}</b></font>
+<a name="623"><font size=-1>623     </font></a>            <span class="comment">// if not
+</span><a name="624"><font size=-1>624     </font></a>            <span class="keyword">else</span>
+<a name="625"><font size=-1>625     </font></a>            <font size=+2><b>{</b></font>
+<a name="626"><font size=-1>626     </font></a>                kf_pose = CPose3D( getPoseFormat( (*it)-&gt;T_kf_w ) );
+<a name="627"><font size=-1>627     </font></a>                opengl::CFrustumPtr frust_ = opengl::CFrustum::Create();
+<a name="628"><font size=-1>628     </font></a>                <font size=+2><b>{</b></font>
+<a name="629"><font size=-1>629     </font></a>                    frust_-&gt;setPose( kf_pose + frustumL_ );
+<a name="630"><font size=-1>630     </font></a>                    frust_-&gt;setLineWidth (slinef);
+<a name="631"><font size=-1>631     </font></a>                    frust_-&gt;setScale(sfrust / 2.0);
+<a name="632"><font size=-1>632     </font></a>                    <span class="keyword">if</span>( (*it)-&gt;local )
+<a name="633"><font size=-1>633     </font></a>                        frust_-&gt;setColor_u8( TColor(200,0,0) );
+<a name="634"><font size=-1>634     </font></a>                    <span class="keyword">else</span>
+<a name="635"><font size=-1>635     </font></a>                        frust_-&gt;setColor_u8( TColor(0,0,200) );
+<a name="636"><font size=-1>636     </font></a>                    kfsObj-&gt;insert( frust_ );
+<a name="637"><font size=-1>637     </font></a>                <font size=+2><b>}</b></font>
+<a name="638"><font size=-1>638     </font></a>                <span class="comment">// represent spanning tree
+</span><a name="639"><font size=-1>639     </font></a>                Pj = (*it)-&gt;T_kf_w.col(3).head(3);
+<a name="640"><font size=-1>640     </font></a>                kfsLinesObj-&gt;appendLine( Pi(0),Pi(1),Pi(2), Pj(0),Pj(1),Pj(2) );
+<a name="641"><font size=-1>641     </font></a>                Pi = Pj;
+<a name="642"><font size=-1>642     </font></a>            <font size=+2><b>}</b></font>
+<a name="643"><font size=-1>643     </font></a>        <font size=+2><b>}</b></font>
+<a name="644"><font size=-1>644     </font></a>    <font size=+2><b>}</b></font>
+<a name="645"><font size=-1>645     </font></a>    kfsLinesObj-&gt;setLineWidth(1.5f);
+<a name="646"><font size=-1>646     </font></a>    kfsLinesObj-&gt;setColor(0,255,0);
+<a name="647"><font size=-1>647     </font></a>    theScene-&gt;insert( kfsLinesObj );
+<a name="648"><font size=-1>648     </font></a>    theScene-&gt;insert( kfsObj );
+<a name="649"><font size=-1>649     </font></a>
+<a name="650"><font size=-1>650     </font></a>    <span class="comment">// Represent point LMs
+</span><a name="651"><font size=-1>651     </font></a>    <span class="keyword">if</span>( hasPoints )
+<a name="652"><font size=-1>652     </font></a>    <font size=+2><b>{</b></font>
+<a name="653"><font size=-1>653     </font></a>        pointObj-&gt;clear();
+<a name="654"><font size=-1>654     </font></a>        pointObj_local-&gt;clear();
+<a name="655"><font size=-1>655     </font></a>        <span class="keyword">for</span>( <span class="keyword">int</span> i = 0; i &lt; pt_idx; i++ )
+<a name="656"><font size=-1>656     </font></a>        <font size=+2><b>{</b></font>
+<a name="657"><font size=-1>657     </font></a>            MapPoint* it = map-&gt;map_points[i];
+<a name="658"><font size=-1>658     </font></a>            <span class="keyword">if</span>( it!=NULL )
+<a name="659"><font size=-1>659     </font></a>            <font size=+2><b>{</b></font>
+<a name="660"><font size=-1>660     </font></a>                <span class="keyword">if</span>( it-&gt;local && it-&gt;inlier )
+<a name="661"><font size=-1>661     </font></a>                    pointObj_local-&gt;insertPoint( it-&gt;point3D(0),it-&gt;point3D(1),it-&gt;point3D(2) );
+<a name="662"><font size=-1>662     </font></a>                <span class="keyword">else</span>
+<a name="663"><font size=-1>663     </font></a>                    pointObj-&gt;insertPoint( it-&gt;point3D(0),it-&gt;point3D(1),it-&gt;point3D(2) );
+<a name="664"><font size=-1>664     </font></a>            <font size=+2><b>}</b></font>
+<a name="665"><font size=-1>665     </font></a>        <font size=+2><b>}</b></font>
+<a name="666"><font size=-1>666     </font></a>    <font size=+2><b>}</b></font>
+<a name="667"><font size=-1>667     </font></a>
+<a name="668"><font size=-1>668     </font></a>    <span class="comment">// Represent line LMs
+</span><a name="669"><font size=-1>669     </font></a>    <span class="keyword">if</span>( hasLines )
+<a name="670"><font size=-1>670     </font></a>    <font size=+2><b>{</b></font>
+<a name="671"><font size=-1>671     </font></a>        lineObj-&gt;clear();
+<a name="672"><font size=-1>672     </font></a>        lineObj_local-&gt;clear();
+<a name="673"><font size=-1>673     </font></a>        <span class="keyword">for</span>( <span class="keyword">int</span> i = 0; i &lt; ls_idx; i++ )
+<a name="674"><font size=-1>674     </font></a>        <font size=+2><b>{</b></font>
+<a name="675"><font size=-1>675     </font></a>            MapLine* it = map-&gt;map_lines[i];
+<a name="676"><font size=-1>676     </font></a>            <span class="keyword">if</span>( it!=NULL && it-&gt;inlier )
+<a name="677"><font size=-1>677     </font></a>            <font size=+2><b>{</b></font>
+<a name="678"><font size=-1>678     </font></a>                Vector6d L;
+<a name="679"><font size=-1>679     </font></a>                L = it-&gt;line3D;
+<a name="680"><font size=-1>680     </font></a>                <span class="keyword">if</span>( it-&gt;local )
+<a name="681"><font size=-1>681     </font></a>                    lineObj_local-&gt;appendLine( L(0),L(1),L(2),L(3),L(4),L(5) );
+<a name="682"><font size=-1>682     </font></a>                <span class="keyword">else</span>
+<a name="683"><font size=-1>683     </font></a>                    lineObj-&gt;appendLine( L(0),L(1),L(2),L(3),L(4),L(5) );
+<a name="684"><font size=-1>684     </font></a>            <font size=+2><b>}</b></font>
+<a name="685"><font size=-1>685     </font></a>        <font size=+2><b>}</b></font>
+<a name="686"><font size=-1>686     </font></a>    <font size=+2><b>}</b></font>
+<a name="687"><font size=-1>687     </font></a>
+<a name="688"><font size=-1>688     </font></a>    <span class="comment">// Update the text
+</span><a name="689"><font size=-1>689     </font></a>    <span class="keyword">if</span>(hasText)<font size=+2><b>{</b></font>
+<a name="690"><font size=-1>690     </font></a>        string text = <span class="string">"KeyFrame: \t"</span> + to_string(frame) + <span class="string">" \nFrequency: \t"</span> + to_string_with_precision(1000.f/time,4) + <span class="string">" Hz \nPoints:   \t"</span> + to_string(nPoints) + <span class="string">"\nLines:    \t"</span> + to_string(nLines);
+<a name="691"><font size=-1>691     </font></a>        <span class="comment">//string text = "Frame: \t \t" + to_string(frame) + " \n" + "Frequency: \t" + to_string_with_precision(1000.f/time,4) + " Hz \n" + "Lines:  \t" + to_string(nLines) + " (" + to_string(nLinesH) + ") \nPoints: \t" + to_string(nPoints) + " (" + to_string(nPointsH) + ")";
+</span><a name="692"><font size=-1>692     </font></a>        win-&gt;addTextMessage(0.85,0.95, text, TColorf(.0,.0,.0), 0, mrpt::opengl::MRPT_GLUT_BITMAP_TIMES_ROMAN_10 );
+<a name="693"><font size=-1>693     </font></a>    <font size=+2><b>}</b></font>
+<a name="694"><font size=-1>694     </font></a>
+<a name="695"><font size=-1>695     </font></a>    <span class="comment">// Update the image
+</span><a name="696"><font size=-1>696     </font></a>    <span class="keyword">if</span>(hasImg)
+<a name="697"><font size=-1>697     </font></a>        image-&gt;setImageView( img_mrpt_image );
+<a name="698"><font size=-1>698     </font></a>
+<a name="699"><font size=-1>699     </font></a>    <span class="comment">// Re-paint the scene
+</span><a name="700"><font size=-1>700     </font></a>    win-&gt;unlockAccess3DScene();
+<a name="701"><font size=-1>701     </font></a>    win-&gt;repaint();
+<a name="702"><font size=-1>702     </font></a>
+<a name="703"><font size=-1>703     </font></a>    <span class="comment">// Key events
+</span><a name="704"><font size=-1>704     </font></a>    <span class="keyword">if</span>(win-&gt;keyHit())<font size=+2><b>{</b></font>
+<a name="705"><font size=-1>705     </font></a>        key = win-&gt;getPushedKey(&kmods);
+<a name="706"><font size=-1>706     </font></a>        <span class="keyword">if</span>(key == MRPTK_SPACE)<font size=+2><b>{</b></font>                     <span class="comment">// Space    Reset VO
+</span><a name="707"><font size=-1>707     </font></a>            theScene-&gt;clear();
+<a name="708"><font size=-1>708     </font></a>            initializeScene(x_ini);
+<a name="709"><font size=-1>709     </font></a>        <font size=+2><b>}</b></font>
+<a name="710"><font size=-1>710     </font></a>        <span class="keyword">else</span> <span class="keyword">if</span> (key == MRPTK_ESCAPE)<font size=+2><b>{</b></font>              <span class="comment">// Esc      Restart VO
+</span><a name="711"><font size=-1>711     </font></a>            theScene-&gt;clear();
+<a name="712"><font size=-1>712     </font></a>            initializeScene(x_ini);
+<a name="713"><font size=-1>713     </font></a>            restart = <span class="keyword">true</span>;
+<a name="714"><font size=-1>714     </font></a>        <font size=+2><b>}</b></font>
+<a name="715"><font size=-1>715     </font></a>        <span class="keyword">else</span> <span class="keyword">if</span> ( (key == 104) || (key == 72) )<font size=+2><b>{</b></font>    <span class="comment">// H        help
+</span><a name="716"><font size=-1>716     </font></a>            hasHelp   = !hasHelp;
+<a name="717"><font size=-1>717     </font></a>            <span class="keyword">if</span>(!hasHelp)
+<a name="718"><font size=-1>718     </font></a>                help-&gt;setViewportPosition(2000, 2000, 300, 376);
+<a name="719"><font size=-1>719     </font></a>            <span class="keyword">else</span>
+<a name="720"><font size=-1>720     </font></a>                help-&gt;setViewportPosition(1600, 20, 300, 376);
+<a name="721"><font size=-1>721     </font></a>        <font size=+2><b>}</b></font>
+<a name="722"><font size=-1>722     </font></a>        <span class="keyword">else</span> <span class="keyword">if</span> ( (key == 103) || (key == 71) )<font size=+2><b>{</b></font>    <span class="comment">// G        legend
+</span><a name="723"><font size=-1>723     </font></a>            hasLegend   = !hasLegend;
+<a name="724"><font size=-1>724     </font></a>            <span class="keyword">if</span>(!hasLegend)
+<a name="725"><font size=-1>725     </font></a>                legend-&gt;setViewportPosition(2000, 2000, 250, 97);
+<a name="726"><font size=-1>726     </font></a>            <span class="keyword">else</span>
+<a name="727"><font size=-1>727     </font></a>                legend-&gt;setViewportPosition(20, 900, 250, 97);
+<a name="728"><font size=-1>728     </font></a>        <font size=+2><b>}</b></font>
+<a name="729"><font size=-1>729     </font></a>        <span class="keyword">else</span> <span class="keyword">if</span> ( (key ==  97) || (key == 65) )<font size=+2><b>{</b></font>    <span class="comment">// A        axes
+</span><a name="730"><font size=-1>730     </font></a>            hasAxes   = !hasAxes;
+<a name="731"><font size=-1>731     </font></a>            <span class="keyword">if</span>(!hasAxes)<font size=+2><b>{</b></font>
+<a name="732"><font size=-1>732     </font></a>                axesObj.clear();
+<a name="733"><font size=-1>733     </font></a>            <font size=+2><b>}</b></font>
+<a name="734"><font size=-1>734     </font></a>            <span class="keyword">else</span><font size=+2><b>{</b></font>
+<a name="735"><font size=-1>735     </font></a>                axesObj = opengl::CAxis::Create();
+<a name="736"><font size=-1>736     </font></a>                axesObj-&gt;setFrequency(sfreq);
+<a name="737"><font size=-1>737     </font></a>                axesObj-&gt;enableTickMarks(false);
+<a name="738"><font size=-1>738     </font></a>                axesObj-&gt;setAxisLimits(-saxis,-saxis,-saxis, saxis,saxis,saxis);
+<a name="739"><font size=-1>739     </font></a>                theScene-&gt;insert( axesObj );
+<a name="740"><font size=-1>740     </font></a>            <font size=+2><b>}</b></font>
+<a name="741"><font size=-1>741     </font></a>        <font size=+2><b>}</b></font>
+<a name="742"><font size=-1>742     </font></a>        <span class="keyword">else</span> <span class="keyword">if</span> ( (key == 112) || (key == 80) )<font size=+2><b>{</b></font>    <span class="comment">// P        points
+</span><a name="743"><font size=-1>743     </font></a>            hasPoints = !hasPoints;
+<a name="744"><font size=-1>744     </font></a>            <span class="keyword">if</span>(!hasPoints)<font size=+2><b>{</b></font>
+<a name="745"><font size=-1>745     </font></a>                elliObjP.clear();
+<a name="746"><font size=-1>746     </font></a>            <font size=+2><b>}</b></font>
+<a name="747"><font size=-1>747     </font></a>            <span class="keyword">else</span><font size=+2><b>{</b></font>
+<a name="748"><font size=-1>748     </font></a>                elliObjP = opengl::CSetOfObjects::Create();
+<a name="749"><font size=-1>749     </font></a>                elliObjP-&gt;setScale(selli);
+<a name="750"><font size=-1>750     </font></a>                elliObjP-&gt;setPose(pose);
+<a name="751"><font size=-1>751     </font></a>                theScene-&gt;insert(elliObjP);
+<a name="752"><font size=-1>752     </font></a>            <font size=+2><b>}</b></font>
+<a name="753"><font size=-1>753     </font></a>        <font size=+2><b>}</b></font>
+<a name="754"><font size=-1>754     </font></a>        <span class="keyword">else</span> <span class="keyword">if</span> ( (key == 108) || (key == 76) )<font size=+2><b>{</b></font>    <span class="comment">// L        lines
+</span><a name="755"><font size=-1>755     </font></a>            hasLines  = !hasLines;
+<a name="756"><font size=-1>756     </font></a>            <span class="keyword">if</span>(!hasLines)<font size=+2><b>{</b></font>
+<a name="757"><font size=-1>757     </font></a>                elliObjL.clear();
+<a name="758"><font size=-1>758     </font></a>            <font size=+2><b>}</b></font>
+<a name="759"><font size=-1>759     </font></a>            <span class="keyword">else</span><font size=+2><b>{</b></font>
+<a name="760"><font size=-1>760     </font></a>                elliObjL = opengl::CSetOfObjects::Create();
+<a name="761"><font size=-1>761     </font></a>                elliObjL-&gt;setScale(selli);
+<a name="762"><font size=-1>762     </font></a>                elliObjL-&gt;setPose(pose);
+<a name="763"><font size=-1>763     </font></a>                theScene-&gt;insert(elliObjL);
+<a name="764"><font size=-1>764     </font></a>            <font size=+2><b>}</b></font>
+<a name="765"><font size=-1>765     </font></a>        <font size=+2><b>}</b></font>
+<a name="766"><font size=-1>766     </font></a>        <span class="keyword">else</span> <span class="keyword">if</span> ( (key == 116) || (key == 84) )<font size=+2><b>{</b></font>    <span class="comment">// T        text
+</span><a name="767"><font size=-1>767     </font></a>            hasText  = !hasText;
+<a name="768"><font size=-1>768     </font></a>            <span class="keyword">if</span>(!hasText)<font size=+2><b>{</b></font>
+<a name="769"><font size=-1>769     </font></a>                string text = <span class="string">""</span>;
+<a name="770"><font size=-1>770     </font></a>                win-&gt;addTextMessage(0.85,0.95, text, TColorf(1.0,1.0,1.0), 0, mrpt::opengl::MRPT_GLUT_BITMAP_HELVETICA_10 );
+<a name="771"><font size=-1>771     </font></a>            <font size=+2><b>}</b></font>
+<a name="772"><font size=-1>772     </font></a>        <font size=+2><b>}</b></font>
+<a name="773"><font size=-1>773     </font></a>        <span class="keyword">else</span> <span class="keyword">if</span> ( (key == 105) || (key == 73) )<font size=+2><b>{</b></font>    <span class="comment">// I        image
+</span><a name="774"><font size=-1>774     </font></a>            hasImg   = !hasImg;
+<a name="775"><font size=-1>775     </font></a>            <span class="keyword">if</span>(isKitti)<font size=+2><b>{</b></font>
+<a name="776"><font size=-1>776     </font></a>                <span class="keyword">if</span>(hasImg)
+<a name="777"><font size=-1>777     </font></a>                    image-&gt;setViewportPosition(20, 20, 621, 188);
+<a name="778"><font size=-1>778     </font></a>                <span class="keyword">else</span>
+<a name="779"><font size=-1>779     </font></a>                    image-&gt;setViewportPosition(2000, 2000, 621, 188);
+<a name="780"><font size=-1>780     </font></a>            <font size=+2><b>}</b></font>
+<a name="781"><font size=-1>781     </font></a>            <span class="keyword">else</span><font size=+2><b>{</b></font>
+<a name="782"><font size=-1>782     </font></a>                <span class="keyword">if</span>(hasImg)
+<a name="783"><font size=-1>783     </font></a>                    image-&gt;setViewportPosition(20, 20, 400, 300);
+<a name="784"><font size=-1>784     </font></a>                <span class="keyword">else</span>
+<a name="785"><font size=-1>785     </font></a>                    image-&gt;setViewportPosition(2000, 2000, 400, 300);
+<a name="786"><font size=-1>786     </font></a>            <font size=+2><b>}</b></font>
+<a name="787"><font size=-1>787     </font></a>
+<a name="788"><font size=-1>788     </font></a>        <font size=+2><b>}</b></font>
+<a name="789"><font size=-1>789     </font></a>    <font size=+2><b>}</b></font>
+<a name="790"><font size=-1>790     </font></a>
+<a name="791"><font size=-1>791     </font></a>    <span class="keyword">return</span> restart;
+<a name="792"><font size=-1>792     </font></a>
+<a name="793"><font size=-1>793     </font></a><font size=+2><b>}</b></font>
+<a name="794"><font size=-1>794     </font></a>
+<a name="795"><font size=-1>795     </font></a><span class="keyword">void</span> slamScene::updateSceneGraphs( <span class="keyword">const</span> MapHandler* map )
+<a name="796"><font size=-1>796     </font></a><font size=+2><b>{</b></font>
+<a name="797"><font size=-1>797     </font></a>
+<a name="798"><font size=-1>798     </font></a>    <span class="comment">// Reset scene
+</span><a name="799"><font size=-1>799     </font></a>    theScene = win-&gt;get3DSceneAndLock();
+<a name="800"><font size=-1>800     </font></a>    theScene-&gt;removeObject( kfsObj );
+<a name="801"><font size=-1>801     </font></a>    pointObj-&gt;clear();
+<a name="802"><font size=-1>802     </font></a>    pointObj_local-&gt;clear();
+<a name="803"><font size=-1>803     </font></a>    lineObj-&gt;clear();
+<a name="804"><font size=-1>804     </font></a>    lineObj_local-&gt;clear();
+<a name="805"><font size=-1>805     </font></a>
+<a name="806"><font size=-1>806     </font></a>    <span class="comment">// Represent KFs
+</span><a name="807"><font size=-1>807     </font></a>    CPose3D kf_pose;
+<a name="808"><font size=-1>808     </font></a>    kfsObj = opengl::CSetOfObjects::Create();
+<a name="809"><font size=-1>809     </font></a>    <span class="keyword">for</span>( vector&lt;KeyFrame*&gt;::const_iterator it = map-&gt;map_keyframes.begin(); it!=map-&gt;map_keyframes.end(); it++)
+<a name="810"><font size=-1>810     </font></a>    <font size=+2><b>{</b></font>
+<a name="811"><font size=-1>811     </font></a>        <span class="keyword">if</span>( (*it)!=NULL )
+<a name="812"><font size=-1>812     </font></a>        <font size=+2><b>{</b></font>
+<a name="813"><font size=-1>813     </font></a>            kf_pose = CPose3D( getPoseFormat( (*it)-&gt;T_kf_w ) );
+<a name="814"><font size=-1>814     </font></a>            opengl::CFrustumPtr frust_ = opengl::CFrustum::Create();
+<a name="815"><font size=-1>815     </font></a>            <font size=+2><b>{</b></font>
+<a name="816"><font size=-1>816     </font></a>                frust_-&gt;setPose( kf_pose + frustumL_ );
+<a name="817"><font size=-1>817     </font></a>                frust_-&gt;setLineWidth (slinef);
+<a name="818"><font size=-1>818     </font></a>                frust_-&gt;setScale(sfrust/2.f);
+<a name="819"><font size=-1>819     </font></a>                <span class="keyword">if</span>( (*it)-&gt;local )
+<a name="820"><font size=-1>820     </font></a>                    frust_-&gt;setColor_u8( TColor(0,0,200) );
+<a name="821"><font size=-1>821     </font></a>                <span class="keyword">else</span>
+<a name="822"><font size=-1>822     </font></a>                    frust_-&gt;setColor_u8( TColor(0,0,200) );
+<a name="823"><font size=-1>823     </font></a>                kfsObj-&gt;insert( frust_ );
+<a name="824"><font size=-1>824     </font></a>            <font size=+2><b>}</b></font>
+<a name="825"><font size=-1>825     </font></a>        <font size=+2><b>}</b></font>
+<a name="826"><font size=-1>826     </font></a>    <font size=+2><b>}</b></font>
+<a name="827"><font size=-1>827     </font></a>    theScene-&gt;insert( kfsObj );
+<a name="828"><font size=-1>828     </font></a>
+<a name="829"><font size=-1>829     </font></a>    <span class="comment">// Represent graph
+</span><a name="830"><font size=-1>830     </font></a>    <span class="keyword">int</span> Nkf = map-&gt;full_graph.size();
+<a name="831"><font size=-1>831     </font></a>    <span class="keyword">for</span>( <span class="keyword">int</span> i = 0; i &lt; Nkf; i++ )
+<a name="832"><font size=-1>832     </font></a>    <font size=+2><b>{</b></font>
+<a name="833"><font size=-1>833     </font></a>        <span class="keyword">for</span>( <span class="keyword">int</span> j = 0; j &lt; Nkf; j++ )
+<a name="834"><font size=-1>834     </font></a>        <font size=+2><b>{</b></font>
+<a name="835"><font size=-1>835     </font></a>            <span class="keyword">if</span>( map-&gt;map_keyframes[i] != NULL && map-&gt;map_keyframes[j] != NULL )
+<a name="836"><font size=-1>836     </font></a>            <font size=+2><b>{</b></font>
+<a name="837"><font size=-1>837     </font></a>                <span class="keyword">if</span>( map-&gt;full_graph[i][j] &gt;= SlamConfig::minLMCovGraph() )
+<a name="838"><font size=-1>838     </font></a>                <font size=+2><b>{</b></font>
+<a name="839"><font size=-1>839     </font></a>                    Vector3d Pi = map-&gt;map_keyframes[i]-&gt;T_kf_w.col(3).head(3);
+<a name="840"><font size=-1>840     </font></a>                    Vector3d Pj = map-&gt;map_keyframes[j]-&gt;T_kf_w.col(3).head(3);
+<a name="841"><font size=-1>841     </font></a>                    opengl::CSimpleLinePtr obj = opengl::CSimpleLine::Create();
+<a name="842"><font size=-1>842     </font></a>                    obj-&gt;setLineCoords(Pi(0),Pi(1),Pi(2), Pj(0),Pj(1),Pj(2));
+<a name="843"><font size=-1>843     </font></a>                    obj-&gt;setLineWidth(0.5f);
+<a name="844"><font size=-1>844     </font></a>                    obj-&gt;setColor(0,0.5,0);
+<a name="845"><font size=-1>845     </font></a>                    theScene-&gt;insert( obj );
+<a name="846"><font size=-1>846     </font></a>                <font size=+2><b>}</b></font>
+<a name="847"><font size=-1>847     </font></a>            <font size=+2><b>}</b></font>
+<a name="848"><font size=-1>848     </font></a>        <font size=+2><b>}</b></font>
+<a name="849"><font size=-1>849     </font></a>    <font size=+2><b>}</b></font>
+<a name="850"><font size=-1>850     </font></a>
+<a name="851"><font size=-1>851     </font></a>    <span class="comment">// Represent point LMs
+</span><a name="852"><font size=-1>852     </font></a>    <span class="keyword">if</span>( hasPoints )
+<a name="853"><font size=-1>853     </font></a>    <font size=+2><b>{</b></font>
+<a name="854"><font size=-1>854     </font></a>        pointObj-&gt;clear();
+<a name="855"><font size=-1>855     </font></a>        pointObj_local-&gt;clear();
+<a name="856"><font size=-1>856     </font></a>        <span class="keyword">for</span>( vector&lt;MapPoint*&gt;::const_iterator it = map-&gt;map_points.begin(); it!=map-&gt;map_points.end(); it++)
+<a name="857"><font size=-1>857     </font></a>        <font size=+2><b>{</b></font>
+<a name="858"><font size=-1>858     </font></a>            <span class="keyword">if</span>( (*it)!=NULL )
+<a name="859"><font size=-1>859     </font></a>            <font size=+2><b>{</b></font>
+<a name="860"><font size=-1>860     </font></a>                <span class="keyword">if</span>( (*it)-&gt;local )
+<a name="861"><font size=-1>861     </font></a>                    pointObj_local-&gt;insertPoint( (*it)-&gt;point3D(0),(*it)-&gt;point3D(1),(*it)-&gt;point3D(2) );
+<a name="862"><font size=-1>862     </font></a>                <span class="keyword">else</span>
+<a name="863"><font size=-1>863     </font></a>                    pointObj-&gt;insertPoint( (*it)-&gt;point3D(0),(*it)-&gt;point3D(1),(*it)-&gt;point3D(2) );
+<a name="864"><font size=-1>864     </font></a>            <font size=+2><b>}</b></font>
+<a name="865"><font size=-1>865     </font></a>        <font size=+2><b>}</b></font>
+<a name="866"><font size=-1>866     </font></a>    <font size=+2><b>}</b></font>
+<a name="867"><font size=-1>867     </font></a>
+<a name="868"><font size=-1>868     </font></a>    <span class="comment">// Represent line LMs
+</span><a name="869"><font size=-1>869     </font></a>    <span class="keyword">if</span>( hasLines )
+<a name="870"><font size=-1>870     </font></a>    <font size=+2><b>{</b></font>
+<a name="871"><font size=-1>871     </font></a>        lineObj-&gt;clear();
+<a name="872"><font size=-1>872     </font></a>        lineObj_local-&gt;clear();
+<a name="873"><font size=-1>873     </font></a>        <span class="keyword">for</span>( vector&lt;MapLine*&gt;::const_iterator it = map-&gt;map_lines.begin(); it!=map-&gt;map_lines.end(); it++)
+<a name="874"><font size=-1>874     </font></a>        <font size=+2><b>{</b></font>
+<a name="875"><font size=-1>875     </font></a>            <span class="keyword">if</span>( (*it)!=NULL )
+<a name="876"><font size=-1>876     </font></a>            <font size=+2><b>{</b></font>
+<a name="877"><font size=-1>877     </font></a>                Vector6d L;
+<a name="878"><font size=-1>878     </font></a>                L = (*it)-&gt;line3D;
+<a name="879"><font size=-1>879     </font></a>                <span class="keyword">if</span>( (*it)-&gt;local )
+<a name="880"><font size=-1>880     </font></a>                    lineObj_local-&gt;appendLine( L(0),L(1),L(2),L(3),L(4),L(5) );
+<a name="881"><font size=-1>881     </font></a>                <span class="keyword">else</span>
+<a name="882"><font size=-1>882     </font></a>                    lineObj-&gt;appendLine( L(0),L(1),L(2),L(3),L(4),L(5) );
+<a name="883"><font size=-1>883     </font></a>            <font size=+2><b>}</b></font>
+<a name="884"><font size=-1>884     </font></a>        <font size=+2><b>}</b></font>
+<a name="885"><font size=-1>885     </font></a>    <font size=+2><b>}</b></font>
+<a name="886"><font size=-1>886     </font></a>
+<a name="887"><font size=-1>887     </font></a>    <span class="comment">// Update the image
+</span><a name="888"><font size=-1>888     </font></a>    <span class="keyword">if</span>(hasImg)
+<a name="889"><font size=-1>889     </font></a>        image-&gt;setImageView_fast( img_mrpt_image );
+<a name="890"><font size=-1>890     </font></a>
+<a name="891"><font size=-1>891     </font></a>    <span class="comment">// Re-paint the scene
+</span><a name="892"><font size=-1>892     </font></a>    win-&gt;unlockAccess3DScene();
+<a name="893"><font size=-1>893     </font></a>    win-&gt;repaint();
+<a name="894"><font size=-1>894     </font></a>
+<a name="895"><font size=-1>895     </font></a><font size=+2><b>}</b></font>
+<a name="896"><font size=-1>896     </font></a>
+<a name="897"><font size=-1>897     </font></a><span class="comment">// Setters
+</span><a name="898"><font size=-1>898     </font></a>
+<a name="899"><font size=-1>899     </font></a><span class="keyword">void</span> slamScene::setText(<span class="keyword">int</span> frame_, <span class="keyword">float</span> time_, <span class="keyword">int</span> nPoints_, <span class="keyword">int</span> nPointsH_, <span class="keyword">int</span> nLines_, <span class="keyword">int</span> nLinesH_)<font size=+2><b>{</b></font>
+<a name="900"><font size=-1>900     </font></a>    frame    = frame_;
+<a name="901"><font size=-1>901     </font></a>    time     = time_;
+<a name="902"><font size=-1>902     </font></a>    nPoints  = nPoints_;
+<a name="903"><font size=-1>903     </font></a>    nPointsH = nPointsH_;
+<a name="904"><font size=-1>904     </font></a>    nLines   = nLines_;
+<a name="905"><font size=-1>905     </font></a>    nLinesH  = nLinesH_;
+<a name="906"><font size=-1>906     </font></a>
+<a name="907"><font size=-1>907     </font></a><font size=+2><b>}</b></font>
+<a name="908"><font size=-1>908     </font></a>
+<a name="909"><font size=-1>909     </font></a><span class="keyword">void</span> slamScene::setText(<span class="keyword">int</span> frame_, <span class="keyword">float</span> time_, <span class="keyword">int</span> nPoints_, <span class="keyword">int</span> nLines_ )<font size=+2><b>{</b></font>
+<a name="910"><font size=-1>910     </font></a>    frame    = frame_;
+<a name="911"><font size=-1>911     </font></a>    time     = time_;
+<a name="912"><font size=-1>912     </font></a>    nPoints  = nPoints_;
+<a name="913"><font size=-1>913     </font></a>    nLines   = nLines_;
+<a name="914"><font size=-1>914     </font></a><font size=+2><b>}</b></font>
+<a name="915"><font size=-1>915     </font></a>
+<a name="916"><font size=-1>916     </font></a><span class="keyword">void</span> slamScene::setGT(Matrix4d xgt_)<font size=+2><b>{</b></font>
+<a name="917"><font size=-1>917     </font></a>    xgt = xgt_;
+<a name="918"><font size=-1>918     </font></a><font size=+2><b>}</b></font>
+<a name="919"><font size=-1>919     </font></a>
+<a name="920"><font size=-1>920     </font></a><span class="keyword">void</span> slamScene::setComparison(Matrix4d xcomp_)<font size=+2><b>{</b></font>
+<a name="921"><font size=-1>921     </font></a>    xcomp = xcomp_;
+<a name="922"><font size=-1>922     </font></a><font size=+2><b>}</b></font>
+<a name="923"><font size=-1>923     </font></a>
+<a name="924"><font size=-1>924     </font></a><span class="keyword">void</span> slamScene::setImage(<span class="keyword">const</span> Mat &image_)<font size=+2><b>{</b></font>
+<a name="925"><font size=-1>925     </font></a>
+<a name="926"><font size=-1>926     </font></a>    Mat aux;
+<a name="927"><font size=-1>927     </font></a>    Size img_sz(0.5*image_.cols, 0.5*image_.rows);
+<a name="928"><font size=-1>928     </font></a>    cv::resize( image_, aux, img_sz );
+<a name="929"><font size=-1>929     </font></a>
+<a name="930"><font size=-1>930     </font></a>    <span class="keyword">bool</span> color;
+<a name="931"><font size=-1>931     </font></a>    <span class="keyword">if</span> (aux.channels() == 3) <font size=+2><b>{</b></font>
+<a name="932"><font size=-1>932     </font></a>        aux.convertTo(aux, CV_8UC3);
+<a name="933"><font size=-1>933     </font></a>        color = <span class="keyword">true</span>;
+<a name="934"><font size=-1>934     </font></a>    <font size=+2><b>}</b></font>
+<a name="935"><font size=-1>935     </font></a>    <span class="keyword">else</span> <span class="keyword">if</span> (aux.channels() == 1) <font size=+2><b>{</b></font>
+<a name="936"><font size=-1>936     </font></a>        aux.convertTo(aux, CV_8UC1);
+<a name="937"><font size=-1>937     </font></a>        color = <span class="keyword">false</span>;
+<a name="938"><font size=-1>938     </font></a>    <font size=+2><b>}</b></font>
+<a name="939"><font size=-1>939     </font></a>    <span class="keyword">else</span>
+<a name="940"><font size=-1>940     </font></a>        <span class="keyword">throw</span> std::runtime_error(std::string(<span class="string">"[SlamScene-&gt;setImage] unsupported image format: "</span>) +
+<a name="941"><font size=-1>941     </font></a>                                 std::to_string(aux.channels()));
+<a name="942"><font size=-1>942     </font></a>
+<a name="943"><font size=-1>943     </font></a>    img_mrpt_image.loadFromMemoryBuffer(img_sz.width, img_sz.height, color, aux.data, false);
+<a name="944"><font size=-1>944     </font></a><font size=+2><b>}</b></font>
+<a name="945"><font size=-1>945     </font></a>
+<a name="946"><font size=-1>946     </font></a><span class="keyword">void</span> slamScene::setImage(<span class="keyword">const</span> string &image_)<font size=+2><b>{</b></font>
+<a name="947"><font size=-1>947     </font></a>    img_mrpt_image.loadFromFile(image_,1);
+<a name="948"><font size=-1>948     </font></a><font size=+2><b>}</b></font>
+<a name="949"><font size=-1>949     </font></a>
+<a name="950"><font size=-1>950     </font></a><span class="keyword">void</span> slamScene::setLegend()<font size=+2><b>{</b></font>
+<a name="951"><font size=-1>951     </font></a>    <span class="comment">// Initialize the legend
+</span><a name="952"><font size=-1>952     </font></a>    legend = theScene-&gt;createViewport(<span class="string">"legend"</span>);
+<a name="953"><font size=-1>953     </font></a>    <span class="keyword">if</span>(hasLegend)
+<a name="954"><font size=-1>954     </font></a>        legend-&gt;setViewportPosition(20, 900, 250, 97);
+<a name="955"><font size=-1>955     </font></a>    <span class="keyword">else</span>
+<a name="956"><font size=-1>956     </font></a>        legend-&gt;setViewportPosition(2000, 2000, 250, 97);
+<a name="957"><font size=-1>957     </font></a>
+<a name="958"><font size=-1>958     </font></a>    <span class="keyword">if</span>(!hasGT) <font size=+2><b>{</b></font>
+<a name="959"><font size=-1>959     </font></a>        <span class="keyword">if</span>(hasComparison)<font size=+2><b>{</b></font>
+<a name="960"><font size=-1>960     </font></a>            img_legend = <span class="string">"../config/aux/legend_comp.png"</span>;
+<a name="961"><font size=-1>961     </font></a>            img_mrpt_legend.loadFromFile(img_legend,1);
+<a name="962"><font size=-1>962     </font></a>            legend-&gt;setImageView_fast( img_mrpt_legend );
+<a name="963"><font size=-1>963     </font></a>        <font size=+2><b>}</b></font>
+<a name="964"><font size=-1>964     </font></a>        <span class="keyword">else</span>
+<a name="965"><font size=-1>965     </font></a>            img_mrpt_legend.loadFromFile(<span class="string">""</span>,1);
+<a name="966"><font size=-1>966     </font></a>    <font size=+2><b>}</b></font>
+<a name="967"><font size=-1>967     </font></a>    <span class="keyword">else</span> <span class="keyword">if</span>(hasComparison)<font size=+2><b>{</b></font>
+<a name="968"><font size=-1>968     </font></a>        img_legend = <span class="string">"../config/aux/legend_full.png"</span>;
+<a name="969"><font size=-1>969     </font></a>        img_mrpt_legend.loadFromFile(img_legend,1);
+<a name="970"><font size=-1>970     </font></a>        legend-&gt;setImageView_fast( img_mrpt_legend );
+<a name="971"><font size=-1>971     </font></a>    <font size=+2><b>}</b></font>
+<a name="972"><font size=-1>972     </font></a>    <span class="keyword">else</span><font size=+2><b>{</b></font>
+<a name="973"><font size=-1>973     </font></a>        img_legend = <span class="string">"../config/aux/legend.png"</span>;
+<a name="974"><font size=-1>974     </font></a>        img_mrpt_legend.loadFromFile(img_legend,1);
+<a name="975"><font size=-1>975     </font></a>        legend-&gt;setImageView_fast( img_mrpt_legend );
+<a name="976"><font size=-1>976     </font></a>    <font size=+2><b>}</b></font>
+<a name="977"><font size=-1>977     </font></a><font size=+2><b>}</b></font>
+<a name="978"><font size=-1>978     </font></a>
+<a name="979"><font size=-1>979     </font></a><span class="keyword">void</span> slamScene::setHelp()<font size=+2><b>{</b></font>
+<a name="980"><font size=-1>980     </font></a>    <span class="comment">// Initialize the legend
+</span><a name="981"><font size=-1>981     </font></a>    help = theScene-&gt;createViewport(<span class="string">"help"</span>);
+<a name="982"><font size=-1>982     </font></a>    img_help = <span class="string">"../config/aux/help.png"</span>;
+<a name="983"><font size=-1>983     </font></a>    img_mrpt_help.loadFromFile(img_help,1);
+<a name="984"><font size=-1>984     </font></a>    help-&gt;setImageView_fast( img_mrpt_help );
+<a name="985"><font size=-1>985     </font></a>    <span class="keyword">if</span>(hasHelp)
+<a name="986"><font size=-1>986     </font></a>        help-&gt;setViewportPosition(1600, 20, 300, 376);
+<a name="987"><font size=-1>987     </font></a>    <span class="keyword">else</span>
+<a name="988"><font size=-1>988     </font></a>        help-&gt;setViewportPosition(2000, 2000, 300, 376);
+<a name="989"><font size=-1>989     </font></a><font size=+2><b>}</b></font>
+<a name="990"><font size=-1>990     </font></a>
+<a name="991"><font size=-1>991     </font></a><span class="keyword">void</span> slamScene::setStereoCalibration(Matrix3d K_, <span class="keyword">float</span> b_)<font size=+2><b>{</b></font>
+<a name="992"><font size=-1>992     </font></a>    f  = K_(0,0);
+<a name="993"><font size=-1>993     </font></a>    cx = K_(0,2);
+<a name="994"><font size=-1>994     </font></a>    cy = K_(1,2);
+<a name="995"><font size=-1>995     </font></a>    b  = b_;
+<a name="996"><font size=-1>996     </font></a><font size=+2><b>}</b></font>
+<a name="997"><font size=-1>997     </font></a>
+<a name="998"><font size=-1>998     </font></a><span class="keyword">void</span> slamScene::setPose(Matrix4d x_)<font size=+2><b>{</b></font>
+<a name="999"><font size=-1>999     </font></a>    x = x_;
+<a name="1000"><font size=-1>1000     </font></a><font size=+2><b>}</b></font>
+<a name="1001"><font size=-1>1001     </font></a>
+<a name="1002"><font size=-1>1002     </font></a><span class="keyword">void</span> slamScene::setPoints(CMatrixFloat pData_)<font size=+2><b>{</b></font>
+<a name="1003"><font size=-1>1003     </font></a>    pData = pData_;<span class="comment">//
+</span><a name="1004"><font size=-1>1004     </font></a><font size=+2><b>}</b></font>
+<a name="1005"><font size=-1>1005     </font></a>
+<a name="1006"><font size=-1>1006     </font></a><span class="keyword">void</span> slamScene::setLines(CMatrixFloat lData_)<font size=+2><b>{</b></font>
+<a name="1007"><font size=-1>1007     </font></a>    lData = lData_;
+<a name="1008"><font size=-1>1008     </font></a><font size=+2><b>}</b></font>
+<a name="1009"><font size=-1>1009     </font></a>
+<a name="1010"><font size=-1>1010     </font></a><span class="keyword">void</span> slamScene::setKF(Matrix4d Tfw)<font size=+2><b>{</b></font>
+<a name="1011"><font size=-1>1011     </font></a>    <span class="comment">// Initialize the camera object
+</span><a name="1012"><font size=-1>1012     </font></a>    <span class="comment">//新建一个相机object
+</span><a name="1013"><font size=-1>1013     </font></a>    opengl::CSetOfObjectsPtr kfbb = opengl::stock_objects::BumblebeeCamera();
+<a name="1014"><font size=-1>1014     </font></a>    <font size=+2><b>{</b></font>
+<a name="1015"><font size=-1>1015     </font></a>        <span class="comment">//思维变量
+</span><a name="1016"><font size=-1>1016     </font></a>        CPose3D pose( getPoseFormat(Tfw) );
+<a name="1017"><font size=-1>1017     </font></a>        kfbb-&gt;setPose( pose );
+<a name="1018"><font size=-1>1018     </font></a>        <span class="comment">//设置尺度因子
+</span><a name="1019"><font size=-1>1019     </font></a>        kfbb-&gt;setScale(sbb*10);
+<a name="1020"><font size=-1>1020     </font></a>        <span class="comment">//插入场景里
+</span><a name="1021"><font size=-1>1021     </font></a>        theScene-&gt;insert(kfbb);
+<a name="1022"><font size=-1>1022     </font></a>    <font size=+2><b>}</b></font>
+<a name="1023"><font size=-1>1023     </font></a><font size=+2><b>}</b></font>
+<a name="1024"><font size=-1>1024     </font></a>
+<a name="1025"><font size=-1>1025     </font></a><span class="comment">// Public methods
+</span><a name="1026"><font size=-1>1026     </font></a>
+<a name="1027"><font size=-1>1027     </font></a><span class="keyword">bool</span> slamScene::waitUntilClose()<font size=+2><b>{</b></font>
+<a name="1028"><font size=-1>1028     </font></a>    <span class="keyword">while</span>(win-&gt;isOpen());
+<a name="1029"><font size=-1>1029     </font></a>    <span class="keyword">return</span> <span class="keyword">true</span>;
+<a name="1030"><font size=-1>1030     </font></a><font size=+2><b>}</b></font>
+<a name="1031"><font size=-1>1031     </font></a>
+<a name="1032"><font size=-1>1032     </font></a><span class="keyword">bool</span> slamScene::isOpen()<font size=+2><b>{</b></font>
+<a name="1033"><font size=-1>1033     </font></a>    <span class="keyword">return</span> win-&gt;isOpen();
+<a name="1034"><font size=-1>1034     </font></a><font size=+2><b>}</b></font>
+<a name="1035"><font size=-1>1035     </font></a>
+<a name="1036"><font size=-1>1036     </font></a><span class="comment">// Auxiliar methods
+</span><a name="1037"><font size=-1>1037     </font></a>
+<a name="1038"><font size=-1>1038     </font></a>CPose3D slamScene::getPoseXYZ(VectorXd x)<font size=+2><b>{</b></font>
+<a name="1039"><font size=-1>1039     </font></a>    CPose3D pose(x(0),x(1),x(2),x(3),x(4),x(5));
+<a name="1040"><font size=-1>1040     </font></a>    <span class="keyword">return</span> pose;
+<a name="1041"><font size=-1>1041     </font></a><font size=+2><b>}</b></font>
+<a name="1042"><font size=-1>1042     </font></a>
+<a name="1043"><font size=-1>1043     </font></a>CMatrixDouble slamScene::getPoseFormat(Matrix4d T)<font size=+2><b>{</b></font>
+<a name="1044"><font size=-1>1044     </font></a>    CMatrixDouble T_(4,4);
+<a name="1045"><font size=-1>1045     </font></a>    <span class="keyword">for</span>(<span class="keyword">unsigned</span> <span class="keyword">int</span> i = 0; i &lt; 4; i++)<font size=+2><b>{</b></font>
+<a name="1046"><font size=-1>1046     </font></a>        <span class="keyword">for</span>(<span class="keyword">unsigned</span> <span class="keyword">int</span> j = 0; j &lt; 4; j++)<font size=+2><b>{</b></font>
+<a name="1047"><font size=-1>1047     </font></a>            T_(i,j) = T(i,j);
+<a name="1048"><font size=-1>1048     </font></a>        <font size=+2><b>}</b></font>
+<a name="1049"><font size=-1>1049     </font></a>    <font size=+2><b>}</b></font>
+<a name="1050"><font size=-1>1050     </font></a>    <span class="keyword">return</span> T_;
+<a name="1051"><font size=-1>1051     </font></a><font size=+2><b>}</b></font>
+<a name="1052"><font size=-1>1052     </font></a>
+<a name="1053"><font size=-1>1053     </font></a>CMatrixDouble33 slamScene::getCovFormat(MatrixXd cov_)<font size=+2><b>{</b></font>
+<a name="1054"><font size=-1>1054     </font></a>    CMatrixDouble33 cov3;
+<a name="1055"><font size=-1>1055     </font></a>    Matrix3d        cov3_eigen = cov_.block(0,0,3,3);
+<a name="1056"><font size=-1>1056     </font></a>
+<a name="1057"><font size=-1>1057     </font></a>    <span class="keyword">for</span>(<span class="keyword">unsigned</span> <span class="keyword">int</span> i = 0; i &lt; 3; i++)<font size=+2><b>{</b></font>
+<a name="1058"><font size=-1>1058     </font></a>        <span class="keyword">for</span>(<span class="keyword">unsigned</span> <span class="keyword">int</span> j = 0; j &lt; 3; j++)<font size=+2><b>{</b></font>
+<a name="1059"><font size=-1>1059     </font></a>            cov3(i,j) = cov3_eigen(i,j);
+<a name="1060"><font size=-1>1060     </font></a>        <font size=+2><b>}</b></font>
+<a name="1061"><font size=-1>1061     </font></a>    <font size=+2><b>}</b></font>
+<a name="1062"><font size=-1>1062     </font></a>    <span class="keyword">return</span> cov3;
+<a name="1063"><font size=-1>1063     </font></a><font size=+2><b>}</b></font>
+<a name="1064"><font size=-1>1064     </font></a>
+<a name="1065"><font size=-1>1065     </font></a><span class="keyword">bool</span> slamScene::getYPR(<span class="keyword">float</span> &yaw, <span class="keyword">float</span> &pitch, <span class="keyword">float</span> &roll)<font size=+2><b>{</b></font>
+<a name="1066"><font size=-1>1066     </font></a>    <span class="keyword">double</span> y, p, r;
+<a name="1067"><font size=-1>1067     </font></a>    pose.getYawPitchRoll(y,p,r);
+<a name="1068"><font size=-1>1068     </font></a>    yaw   = y;
+<a name="1069"><font size=-1>1069     </font></a>    pitch = p;
+<a name="1070"><font size=-1>1070     </font></a>    roll  = r;
+<a name="1071"><font size=-1>1071     </font></a><font size=+2><b>}</b></font>
+<a name="1072"><font size=-1>1072     </font></a>
+<a name="1073"><font size=-1>1073     </font></a><span class="keyword">bool</span> slamScene::getPose(Matrix4d &T)<font size=+2><b>{</b></font>
+<a name="1074"><font size=-1>1074     </font></a>    CMatrixDouble44 T_;
+<a name="1075"><font size=-1>1075     </font></a>    pose.getHomogeneousMatrix(T_);
+<a name="1076"><font size=-1>1076     </font></a>    <span class="keyword">for</span>(<span class="keyword">unsigned</span> <span class="keyword">int</span> i = 0; i &lt; 4; i++)<font size=+2><b>{</b></font>
+<a name="1077"><font size=-1>1077     </font></a>        <span class="keyword">for</span>(<span class="keyword">unsigned</span> <span class="keyword">int</span> j = 0; j &lt; 4; j++)<font size=+2><b>{</b></font>
+<a name="1078"><font size=-1>1078     </font></a>            T(i,j) = T_(i,j);
+<a name="1079"><font size=-1>1079     </font></a>        <font size=+2><b>}</b></font>
+<a name="1080"><font size=-1>1080     </font></a>    <font size=+2><b>}</b></font>
+<a name="1081"><font size=-1>1081     </font></a><font size=+2><b>}</b></font>
+<a name="1082"><font size=-1>1082     </font></a>
+<a name="1083"><font size=-1>1083     </font></a><font size=+2><b>}</b></font>
+</pre></body></html>

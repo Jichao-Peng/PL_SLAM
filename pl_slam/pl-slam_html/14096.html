@@ -1,0 +1,419 @@
+<html><head><title>CSparseMatrix.h</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" type="text/css" href="sourcestyles.css" />
+</head><body link="blue" vlink="blue">
+<h3>File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/math/CSparseMatrix.h</h3>
+<SCRIPT>
+defaultStatus = "File: /media/zhijian/Document/grow/slam/PL_SLAM/pl_slam/include/mrpt/math/CSparseMatrix.h";
+top.document.title  = "CSparseMatrix.h";
+</SCRIPT>
+<pre><span class="default"></span><a name="1"><font size=-1>1     </font></a><span class="default"></span><span class="comment">/* +---------------------------------------------------------------------------+</span>
+<a name="2"><font size=-1>2     </font></a><span class="comment">   |                     Mobile Robot Programming Toolkit (MRPT)               |</span>
+<a name="3"><font size=-1>3     </font></a><span class="comment">   |                          http://www.mrpt.org/                             |</span>
+<a name="4"><font size=-1>4     </font></a><span class="comment">   |                                                                           |</span>
+<a name="5"><font size=-1>5     </font></a><span class="comment">   | Copyright (c) 2005-2016, Individual contributors, see AUTHORS file        |</span>
+<a name="6"><font size=-1>6     </font></a><span class="comment">   | See: http://www.mrpt.org/Authors - All rights reserved.                   |</span>
+<a name="7"><font size=-1>7     </font></a><span class="comment">   | Released under BSD License. See details in http://www.mrpt.org/License    |</span>
+<a name="8"><font size=-1>8     </font></a><span class="comment">   +---------------------------------------------------------------------------+ */</span>
+<a name="9"><font size=-1>9     </font></a><span class="comment"></span><span class="preproc">#ifndef <a href="dictionary_C.html#14097">CSparseMatrix_H</a></span>
+<a name="10"><font size=-1>10     </font></a><span class="preproc">#define <a href="dictionary_C.html#14097">CSparseMatrix_H</a></span>
+<a name="11"><font size=-1>11     </font></a><span class="preproc"></span>
+<a name="12"><font size=-1>12     </font></a><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/utils_defs.h&gt;</span>
+<a name="13"><font size=-1>13     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/exceptions.h&gt;</span>
+<a name="14"><font size=-1>14     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/CUncopiable.h&gt;</span>
+<a name="15"><font size=-1>15     </font></a><span class="string"></span>
+<a name="16"><font size=-1>16     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/math/math_frwds.h&gt;</span>
+<a name="17"><font size=-1>17     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/utils/types_math.h&gt;</span>
+<a name="18"><font size=-1>18     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/math/CSparseMatrixTemplate.h&gt;</span>
+<a name="19"><font size=-1>19     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/math/CMatrixTemplateNumeric.h&gt;</span>
+<a name="20"><font size=-1>20     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;mrpt/math/CMatrixFixedNumeric.h&gt;</span>
+<a name="21"><font size=-1>21     </font></a><span class="string"></span><span class="preproc">#include </span><span class="string">&lt;cstring&gt; </span><span class="comment">// memcpy</span>
+<a name="22"><font size=-1>22     </font></a><span class="comment"></span>
+<a name="23"><font size=-1>23     </font></a><span class="comment">// Include CSparse lib headers, either from the system or embedded:</span>
+<a name="24"><font size=-1>24     </font></a><span class="comment"></span><span class="keyword">extern </span><span class="string">&quot;C&quot;</span><span class="default">{</span>
+<a name="25"><font size=-1>25     </font></a><span class="default"></span><span class="preproc">#if <a href="dictionary_M.html#14099">MRPT_HAS_SUITESPARSE</a></span>
+<a name="26"><font size=-1>26     </font></a><span class="preproc">#	define <a href="dictionary_N.html#14098">NCOMPLEX</a>    </span><span class="comment">// In MRPT we don't need complex numbers, so avoid the annoying warning: 'cs_ci_house' has C-linkage specified, but returns UDT 'std::complex&lt;double&gt;' which is incompatible with C</span>
+<a name="27"><font size=-1>27     </font></a><span class="comment"></span><span class="preproc">#	include </span><span class="string">&quot;cs.h&quot;</span>
+<a name="28"><font size=-1>28     </font></a><span class="string"></span><span class="preproc">#else</span>
+<a name="29"><font size=-1>29     </font></a><span class="preproc">#	include </span><span class="string">&lt;mrpt/otherlibs/CSparse/cs.h&gt;</span>
+<a name="30"><font size=-1>30     </font></a><span class="string"></span><span class="preproc">#endif</span>
+<a name="31"><font size=-1>31     </font></a><span class="preproc"></span><span class="default">}</span>
+<a name="32"><font size=-1>32     </font></a><span class="default"></span>
+<a name="33"><font size=-1>33     </font></a><span class="default"></span><span class="keyword">namespace </span><span class="default">mrpt</span>
+<a name="34"><font size=-1>34     </font></a><span class="default">{</span>
+<a name="35"><font size=-1>35     </font></a><span class="default">	</span><span class="keyword">namespace </span><span class="default">math</span>
+<a name="36"><font size=-1>36     </font></a><span class="default">	{</span>
+<a name="37"><font size=-1>37     </font></a><span class="default">		</span><span class="comment">/** Used in mrpt::math::CSparseMatrix */</span>
+<a name="38"><font size=-1>38     </font></a><span class="comment">		</span><span class="keyword">class <a href="dictionary_M.html#14100">CExceptionNotDefPos</a> </span><span class="default">: </span><span class="keyword">public </span><span class="default">mrpt::utils::<a href="dictionary_M.html#6683">CMRPTException</a></span>
+<a name="39"><font size=-1>39     </font></a><span class="default">		{</span>
+<a name="40"><font size=-1>40     </font></a><span class="default">		</span><span class="keyword">public</span><span class="default">:</span>
+<a name="41"><font size=-1>41     </font></a><span class="default">			<a href="dictionary_M.html#14101">CExceptionNotDefPos</a>(</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a> &amp;<a href="dictionary_S.html#14102">s</a>) : <a href="dictionary_M.html#6684">CMRPTException</a>(<a href="dictionary_S.html#14102">s</a>) {  }</span>
+<a name="42"><font size=-1>42     </font></a><span class="default">		};</span>
+<a name="43"><font size=-1>43     </font></a><span class="default"></span>
+<a name="44"><font size=-1>44     </font></a><span class="default"></span>
+<a name="45"><font size=-1>45     </font></a><span class="default">		</span><span class="comment">/** A sparse matrix structure, wrapping T. Davis' CSparse library (part of suitesparse)</span>
+<a name="46"><font size=-1>46     </font></a><span class="comment">		  *  The type of the matrix entries is fixed to &quot;double&quot;.</span>
+<a name="47"><font size=-1>47     </font></a><span class="comment">		  *</span>
+<a name="48"><font size=-1>48     </font></a><span class="comment">		  *  There are two formats for the non-zero entries in this matrix:</span>
+<a name="49"><font size=-1>49     </font></a><span class="comment">		  *		- A &quot;triplet&quot; matrix: a set of (r,c)=val triplet entries.</span>
+<a name="50"><font size=-1>50     </font></a><span class="comment">		  *		- A column-compressed sparse (CCS) matrix.</span>
+<a name="51"><font size=-1>51     </font></a><span class="comment">		  *</span>
+<a name="52"><font size=-1>52     </font></a><span class="comment">		  *  The latter is the &quot;normal&quot; format, which is expected by all mathematical operations defined</span>
+<a name="53"><font size=-1>53     </font></a><span class="comment">		  *   in this class. There're three ways of initializing and populating a sparse matrix:</span>
+<a name="54"><font size=-1>54     </font></a><span class="comment">		  *</span>
+<a name="55"><font size=-1>55     </font></a><span class="comment">		  *   &lt;ol&gt;</span>
+<a name="56"><font size=-1>56     </font></a><span class="comment">		  *    &lt;li&gt; &lt;b&gt;As a triplet (empty), then add entries, then compress:&lt;/b&gt;</span>
+<a name="57"><font size=-1>57     </font></a><span class="comment">		  *         \code</span>
+<a name="58"><font size=-1>58     </font></a><span class="comment">		  *             CSparseMatrix  SM(100,100);</span>
+<a name="59"><font size=-1>59     </font></a><span class="comment">		  *             SM.insert_entry(i,j, val);  // or</span>
+<a name="60"><font size=-1>60     </font></a><span class="comment">		  *             SM.insert_submatrix(i,j, MAT); //  ...</span>
+<a name="61"><font size=-1>61     </font></a><span class="comment">		  *             SM.compressFromTriplet();</span>
+<a name="62"><font size=-1>62     </font></a><span class="comment">		  *         \endcode</span>
+<a name="63"><font size=-1>63     </font></a><span class="comment">		  *    &lt;/li&gt;</span>
+<a name="64"><font size=-1>64     </font></a><span class="comment">		  *    &lt;li&gt; &lt;b&gt;As a triplet from a CSparseMatrixTemplate&lt;double&gt;:&lt;/b&gt;</span>
+<a name="65"><font size=-1>65     </font></a><span class="comment">		  *         \code</span>
+<a name="66"><font size=-1>66     </font></a><span class="comment">		  *             CSparseMatrixTemplate&lt;double&gt;  data;</span>
+<a name="67"><font size=-1>67     </font></a><span class="comment">		  *             data(row,col) = val;</span>
+<a name="68"><font size=-1>68     </font></a><span class="comment">		  *             ...</span>
+<a name="69"><font size=-1>69     </font></a><span class="comment">		  *             CSparseMatrix  SM(data);</span>
+<a name="70"><font size=-1>70     </font></a><span class="comment">		  *         \endcode</span>
+<a name="71"><font size=-1>71     </font></a><span class="comment">		  *    &lt;/li&gt;</span>
+<a name="72"><font size=-1>72     </font></a><span class="comment">		  *    &lt;li&gt; &lt;b&gt;From an existing dense matrix:&lt;/b&gt;</span>
+<a name="73"><font size=-1>73     </font></a><span class="comment">		  *         \code</span>
+<a name="74"><font size=-1>74     </font></a><span class="comment">		  *             CMatrixDouble data(100,100); // or</span>
+<a name="75"><font size=-1>75     </font></a><span class="comment">		  *             CMatrixFloat  data(100,100); // or</span>
+<a name="76"><font size=-1>76     </font></a><span class="comment">		  *             CMatrixFixedNumeric&lt;double,4,6&gt;  data; // etc...</span>
+<a name="77"><font size=-1>77     </font></a><span class="comment">		  *             CSparseMatrix  SM(data);</span>
+<a name="78"><font size=-1>78     </font></a><span class="comment">		  *         \endcode</span>
+<a name="79"><font size=-1>79     </font></a><span class="comment">		  *    &lt;/li&gt;</span>
+<a name="80"><font size=-1>80     </font></a><span class="comment">		  *</span>
+<a name="81"><font size=-1>81     </font></a><span class="comment">		  *   &lt;/ol&gt;</span>
+<a name="82"><font size=-1>82     </font></a><span class="comment">		  *</span>
+<a name="83"><font size=-1>83     </font></a><span class="comment">		  *  Due to its practical utility, there is a special inner class CSparseMatrix::CholeskyDecomp to handle Cholesky-related methods and data.</span>
+<a name="84"><font size=-1>84     </font></a><span class="comment">		  *</span>
+<a name="85"><font size=-1>85     </font></a><span class="comment">		  * \note This class was initially adapted from &quot;robotvision&quot;, by Hauke Strasdat, Steven Lovegrove and Andrew J. Davison. See http://www.openslam.org/robotvision.html</span>
+<a name="86"><font size=-1>86     </font></a><span class="comment">		  * \note CSparse is maintained by Timothy Davis: http://people.sc.fsu.edu/~jburkardt/c_src/csparse/csparse.html .</span>
+<a name="87"><font size=-1>87     </font></a><span class="comment">		  * \note See also his book &quot;Direct methods for sparse linear systems&quot;. http://books.google.es/books?id=TvwiyF8vy3EC&amp;pg=PA12&amp;lpg=PA12&amp;dq=cs_compress&amp;source=bl&amp;ots=od9uGJ793j&amp;sig=Wa-fBk4sZkZv3Y0Op8FNH8PvCUs&amp;hl=es&amp;ei=UjA0TJf-EoSmsQay3aXPAw&amp;sa=X&amp;oi=book_result&amp;ct=result&amp;resnum=8&amp;ved=0CEQQ6AEwBw#v=onepage&amp;q&amp;f=false</span>
+<a name="88"><font size=-1>88     </font></a><span class="comment">		  *</span>
+<a name="89"><font size=-1>89     </font></a><span class="comment">		  * \sa mrpt::math::MatrixBlockSparseCols, mrpt::math::CMatrixFixedNumeric, mrpt::math::CMatrixTemplateNumeric, etc.</span>
+<a name="90"><font size=-1>90     </font></a><span class="comment">		  * \ingroup mrpt_base_grp</span>
+<a name="91"><font size=-1>91     </font></a><span class="comment">		  */</span>
+<a name="92"><font size=-1>92     </font></a><span class="comment">		</span><span class="keyword">class <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#14103">CSparseMatrix</a></span>
+<a name="93"><font size=-1>93     </font></a><span class="keyword">		</span><span class="default">{</span>
+<a name="94"><font size=-1>94     </font></a><span class="default">		</span><span class="keyword">private</span><span class="default">:</span>
+<a name="95"><font size=-1>95     </font></a><span class="default">			<a href="dictionary_C.html#2269">cs</a> <a href="dictionary_M.html#14104">sparse_matrix</a>;</span>
+<a name="96"><font size=-1>96     </font></a><span class="default"></span>
+<a name="97"><font size=-1>97     </font></a><span class="default">			</span><span class="comment">/** Initialization from a dense matrix of any kind existing in MRPT. */</span>
+<a name="98"><font size=-1>98     </font></a><span class="comment">			</span><span class="keyword">template </span><span class="default">&lt;</span><span class="keyword">class <a href="dictionary_M.html#14106">MATRIX</a></span><span class="default">&gt;</span>
+<a name="99"><font size=-1>99     </font></a><span class="default">			</span><span class="keyword">void <a href="dictionary_M.html#14105">construct_from_mrpt_mat</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#14106">MATRIX</a> </span><span class="default">&amp; <a href="dictionary_C.html#14107">C</a>)</span>
+<a name="100"><font size=-1>100     </font></a><span class="default">			{</span>
+<a name="101"><font size=-1>101     </font></a><span class="default">				std::<a href="dictionary_S.html#74">vector</a>&lt;</span><span class="keyword">int</span><span class="default">&gt; <a href="dictionary_R.html#14185">row_list</a>, <a href="dictionary_C.html#14186">col_list</a>;  </span><span class="comment">// Use &quot;int&quot; for convenience so we can do a memcpy below...</span>
+<a name="102"><font size=-1>102     </font></a><span class="comment">				</span><span class="default">std::<a href="dictionary_S.html#74">vector</a>&lt;</span><span class="keyword">double</span><span class="default">&gt; <a href="dictionary_C.html#14187">content_list</a>;</span>
+<a name="103"><font size=-1>103     </font></a><span class="default">				</span><span class="keyword">const int <a href="dictionary_N.html#14188">nCol</a> </span><span class="default">= <a href="dictionary_C.html#14107">C</a>.<a href="dictionary_G.html#1787">getColCount</a>();</span>
+<a name="104"><font size=-1>104     </font></a><span class="default">				</span><span class="keyword">const int <a href="dictionary_N.html#14189">nRow</a> </span><span class="default">= <a href="dictionary_C.html#14107">C</a>.<a href="dictionary_G.html#1788">getRowCount</a>();</span>
+<a name="105"><font size=-1>105     </font></a><span class="default">				</span><span class="keyword">for </span><span class="default">(</span><span class="keyword">int <a href="dictionary_C.html#14190">c</a></span><span class="default">=</span><span class="number">0</span><span class="default">; <a href="dictionary_C.html#14190">c</a>&lt;<a href="dictionary_N.html#14188">nCol</a>; ++<a href="dictionary_C.html#14190">c</a>)</span>
+<a name="106"><font size=-1>106     </font></a><span class="default">				{</span>
+<a name="107"><font size=-1>107     </font></a><span class="default">					<a href="dictionary_C.html#14186">col_list</a>.<a href="dictionary_P.html#1599">push_back</a>(<a href="dictionary_R.html#14185">row_list</a>.<a href="dictionary_S.html#442">size</a>());</span>
+<a name="108"><font size=-1>108     </font></a><span class="default">					</span><span class="keyword">for </span><span class="default">(</span><span class="keyword">int <a href="dictionary_R.html#14191">r</a></span><span class="default">=</span><span class="number">0</span><span class="default">; <a href="dictionary_R.html#14191">r</a>&lt;<a href="dictionary_N.html#14189">nRow</a>; ++<a href="dictionary_R.html#14191">r</a>)</span>
+<a name="109"><font size=-1>109     </font></a><span class="default">						</span><span class="keyword">if </span><span class="default">(<a href="dictionary_C.html#14107">C</a>.<a href="dictionary_G.html#7129">get_unsafe</a>(<a href="dictionary_R.html#14191">r</a>,<a href="dictionary_C.html#14190">c</a>)!=</span><span class="number">0</span><span class="default">)</span>
+<a name="110"><font size=-1>110     </font></a><span class="default">						{</span>
+<a name="111"><font size=-1>111     </font></a><span class="default">							<a href="dictionary_R.html#14185">row_list</a>.<a href="dictionary_P.html#1599">push_back</a>(<a href="dictionary_R.html#14191">r</a>);</span>
+<a name="112"><font size=-1>112     </font></a><span class="default">							<a href="dictionary_C.html#14187">content_list</a>.<a href="dictionary_P.html#1599">push_back</a>(<a href="dictionary_C.html#14107">C</a>(<a href="dictionary_R.html#14191">r</a>,<a href="dictionary_C.html#14190">c</a>));</span>
+<a name="113"><font size=-1>113     </font></a><span class="default">						}</span>
+<a name="114"><font size=-1>114     </font></a><span class="default">				}</span>
+<a name="115"><font size=-1>115     </font></a><span class="default">				<a href="dictionary_C.html#14186">col_list</a>.<a href="dictionary_P.html#1599">push_back</a>(<a href="dictionary_R.html#14185">row_list</a>.<a href="dictionary_S.html#442">size</a>());</span>
+<a name="116"><font size=-1>116     </font></a><span class="default"></span>
+<a name="117"><font size=-1>117     </font></a><span class="default">				<a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_M.html#14192">m</a> = <a href="dictionary_N.html#14189">nRow</a>;</span>
+<a name="118"><font size=-1>118     </font></a><span class="default">				<a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_N.html#14193">n</a> = <a href="dictionary_N.html#14188">nCol</a>;</span>
+<a name="119"><font size=-1>119     </font></a><span class="default">				<a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_N.html#14194">nzmax</a> = <a href="dictionary_C.html#14187">content_list</a>.<a href="dictionary_S.html#442">size</a>();</span>
+<a name="120"><font size=-1>120     </font></a><span class="default">				<a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_I.html#14196">i</a> = (</span><span class="keyword">int</span><span class="default">*)<a href="dictionary_M.html#14195">malloc</a>(</span><span class="keyword">sizeof</span><span class="default">(</span><span class="keyword">int</span><span class="default">)*<a href="dictionary_R.html#14185">row_list</a>.<a href="dictionary_S.html#442">size</a>());</span>
+<a name="121"><font size=-1>121     </font></a><span class="default">				<a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_P.html#14197">p</a> = (</span><span class="keyword">int</span><span class="default">*)<a href="dictionary_M.html#14195">malloc</a>(</span><span class="keyword">sizeof</span><span class="default">(</span><span class="keyword">int</span><span class="default">)*<a href="dictionary_C.html#14186">col_list</a>.<a href="dictionary_S.html#442">size</a>());</span>
+<a name="122"><font size=-1>122     </font></a><span class="default">				<a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_X.html#6774">x</a> = (</span><span class="keyword">double</span><span class="default">*)<a href="dictionary_M.html#14195">malloc</a>(</span><span class="keyword">sizeof</span><span class="default">(</span><span class="keyword">double</span><span class="default">)*<a href="dictionary_C.html#14187">content_list</a>.<a href="dictionary_S.html#442">size</a>());</span>
+<a name="123"><font size=-1>123     </font></a><span class="default"></span>
+<a name="124"><font size=-1>124     </font></a><span class="default">				::<a href="dictionary_M.html#12719">memcpy</a>(<a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_I.html#14196">i</a>, &amp;<a href="dictionary_R.html#14185">row_list</a>[</span><span class="number">0</span><span class="default">], </span><span class="keyword">sizeof</span><span class="default">(<a href="dictionary_R.html#14185">row_list</a>[</span><span class="number">0</span><span class="default">])*<a href="dictionary_R.html#14185">row_list</a>.<a href="dictionary_S.html#442">size</a>() );</span>
+<a name="125"><font size=-1>125     </font></a><span class="default">				::<a href="dictionary_M.html#12719">memcpy</a>(<a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_P.html#14197">p</a>, &amp;<a href="dictionary_C.html#14186">col_list</a>[</span><span class="number">0</span><span class="default">], </span><span class="keyword">sizeof</span><span class="default">(<a href="dictionary_C.html#14186">col_list</a>[</span><span class="number">0</span><span class="default">])*<a href="dictionary_C.html#14186">col_list</a>.<a href="dictionary_S.html#442">size</a>() );</span>
+<a name="126"><font size=-1>126     </font></a><span class="default">				::<a href="dictionary_M.html#12719">memcpy</a>(<a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_X.html#6774">x</a>, &amp;<a href="dictionary_C.html#14187">content_list</a>[</span><span class="number">0</span><span class="default">], </span><span class="keyword">sizeof</span><span class="default">(<a href="dictionary_C.html#14187">content_list</a>[</span><span class="number">0</span><span class="default">])*<a href="dictionary_C.html#14187">content_list</a>.<a href="dictionary_S.html#442">size</a>() );</span>
+<a name="127"><font size=-1>127     </font></a><span class="default"></span>
+<a name="128"><font size=-1>128     </font></a><span class="default">				<a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_N.html#14198">nz</a> = -</span><span class="number">1</span><span class="default">;  </span><span class="comment">// &lt;0 means &quot;column compressed&quot;, &quot;&gt;=0&quot; means triplet.</span>
+<a name="129"><font size=-1>129     </font></a><span class="comment">			</span><span class="default">}</span>
+<a name="130"><font size=-1>130     </font></a><span class="default"></span>
+<a name="131"><font size=-1>131     </font></a><span class="default">			</span><span class="comment">/** Initialization from a triplet &quot;cs&quot;, which is first compressed */</span>
+<a name="132"><font size=-1>132     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#14108">construct_from_triplet</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_C.html#2269">cs</a> </span><span class="default">&amp; triplet);</span>
+<a name="133"><font size=-1>133     </font></a><span class="default"></span>
+<a name="134"><font size=-1>134     </font></a><span class="default">			</span><span class="comment">/** To be called by constructors only, assume previous pointers are trash and overwrite them */</span>
+<a name="135"><font size=-1>135     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#14109">construct_from_existing_cs</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_C.html#2269">cs</a> </span><span class="default">&amp;sm);</span>
+<a name="136"><font size=-1>136     </font></a><span class="default"></span>
+<a name="137"><font size=-1>137     </font></a><span class="default">			</span><span class="comment">/** free buffers (deallocate the memory of the i,p,x buffers) */</span>
+<a name="138"><font size=-1>138     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#14110">internal_free_mem</a></span><span class="default">();</span>
+<a name="139"><font size=-1>139     </font></a><span class="default"></span>
+<a name="140"><font size=-1>140     </font></a><span class="default">			</span><span class="comment">/** Copy the data from an existing &quot;cs&quot; CSparse data structure */</span>
+<a name="141"><font size=-1>141     </font></a><span class="comment">			</span><span class="keyword">void  <a href="dictionary_M.html#14111">copy</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_C.html#2269">cs</a>  </span><span class="default">* </span><span class="keyword">const </span><span class="default">sm);</span>
+<a name="142"><font size=-1>142     </font></a><span class="default"></span>
+<a name="143"><font size=-1>143     </font></a><span class="default">			</span><span class="comment">/** Fast copy the data from an existing &quot;cs&quot; CSparse data structure, copying the pointers and leaving NULLs in the source structure. */</span>
+<a name="144"><font size=-1>144     </font></a><span class="comment">			</span><span class="keyword">void  <a href="dictionary_M.html#14112">copy_fast</a></span><span class="default">(<a href="dictionary_C.html#2269">cs</a>  * </span><span class="keyword">const </span><span class="default">sm);</span>
+<a name="145"><font size=-1>145     </font></a><span class="default"></span>
+<a name="146"><font size=-1>146     </font></a><span class="default">		</span><span class="keyword">public</span><span class="default">:</span>
+<a name="147"><font size=-1>147     </font></a><span class="default"></span>
+<a name="148"><font size=-1>148     </font></a><span class="default">			</span><span class="comment">/** @name Constructors, destructor &amp; copy operations</span>
+<a name="149"><font size=-1>149     </font></a><span class="comment">			    @{  */</span>
+<a name="150"><font size=-1>150     </font></a><span class="comment"></span>
+<a name="151"><font size=-1>151     </font></a><span class="comment">			/** Create an initially empty sparse matrix, in the &quot;triplet&quot; form.</span>
+<a name="152"><font size=-1>152     </font></a><span class="comment">			  *  Notice that you must call &quot;compressFromTriplet&quot; after populating the matrix and before using the math operatons on this matrix.</span>
+<a name="153"><font size=-1>153     </font></a><span class="comment">			  *  The initial size can be later on extended with insert_entry() or setRowCount() &amp; setColCount().</span>
+<a name="154"><font size=-1>154     </font></a><span class="comment">			  * \sa insert_entry, setRowCount, setColCount</span>
+<a name="155"><font size=-1>155     </font></a><span class="comment">			  */</span>
+<a name="156"><font size=-1>156     </font></a><span class="comment">			<a href="dictionary_M.html#14113">CSparseMatrix</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> </span><span class="default">nRows=</span><span class="number">0</span><span class="default">, </span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> </span><span class="default">nCols=</span><span class="number">0</span><span class="default">);</span>
+<a name="157"><font size=-1>157     </font></a><span class="default"></span>
+<a name="158"><font size=-1>158     </font></a><span class="default">			</span><span class="comment">/** A good way to initialize a sparse matrix from a list of non NULL elements.</span>
+<a name="159"><font size=-1>159     </font></a><span class="comment">			  *  This constructor takes all the non-zero entries in &quot;data&quot; and builds a column-compressed sparse representation.</span>
+<a name="160"><font size=-1>160     </font></a><span class="comment">			  */</span>
+<a name="161"><font size=-1>161     </font></a><span class="comment">			</span><span class="keyword">template </span><span class="default">&lt;</span><span class="keyword">typename <a href="dictionary_T.html#14115">T</a></span><span class="default">&gt;</span>
+<a name="162"><font size=-1>162     </font></a><span class="default">			</span><span class="keyword">inline <a href="dictionary_M.html#14114">CSparseMatrix</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#1570">CSparseMatrixTemplate</a></span><span class="default">&lt;T&gt; &amp; <a href="dictionary_D.html#14116">data</a>)</span>
+<a name="163"><font size=-1>163     </font></a><span class="default">			{</span>
+<a name="164"><font size=-1>164     </font></a><span class="default">				<a href="dictionary_A.html#662">ASSERTMSG_</a>(!<a href="dictionary_D.html#14116">data</a>.empty(), </span><span class="string">&quot;Input data must contain at least one non-zero element.&quot;</span><span class="default">)</span>
+<a name="165"><font size=-1>165     </font></a><span class="default">				<a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_I.html#14196">i</a> = <a href="dictionary_N.html#439">NULL</a>; </span><span class="comment">// This is to know they shouldn't be tried to free()</span>
+<a name="166"><font size=-1>166     </font></a><span class="comment">				<a href="dictionary_M.html#14104">sparse_matrix</a></span><span class="default">.<a href="dictionary_P.html#14197">p</a> = <a href="dictionary_N.html#439">NULL</a>;</span>
+<a name="167"><font size=-1>167     </font></a><span class="default">				<a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_X.html#6774">x</a> = <a href="dictionary_N.html#439">NULL</a>;</span>
+<a name="168"><font size=-1>168     </font></a><span class="default"></span>
+<a name="169"><font size=-1>169     </font></a><span class="default">				</span><span class="comment">// 1) Create triplet matrix</span>
+<a name="170"><font size=-1>170     </font></a><span class="comment">				<a href="dictionary_M.html#14113">CSparseMatrix</a>  <a href="dictionary_T.html#14201">triplet</a></span><span class="default">(<a href="dictionary_D.html#14116">data</a>.<a href="dictionary_M.html#14199">getRowCount</a>(),<a href="dictionary_D.html#14116">data</a>.<a href="dictionary_M.html#14200">getColCount</a>());</span>
+<a name="171"><font size=-1>171     </font></a><span class="default">				</span><span class="comment">// 2) Put data in:</span>
+<a name="172"><font size=-1>172     </font></a><span class="comment">				</span><span class="keyword">for </span><span class="default">(</span><span class="keyword">typename <a href="dictionary_M.html#1570">CSparseMatrixTemplate</a></span><span class="default">&lt;T&gt;::<a href="dictionary_M.html#14203">const_iterator</a> <a href="dictionary_I.html#14202">it</a>=<a href="dictionary_D.html#14116">data</a>.<a href="dictionary_M.html#14204">begin</a>();<a href="dictionary_I.html#14202">it</a>!=<a href="dictionary_D.html#14116">data</a>.<a href="dictionary_M.html#14205">end</a>();++<a href="dictionary_I.html#14202">it</a>)</span>
+<a name="173"><font size=-1>173     </font></a><span class="default">					<a href="dictionary_T.html#14201">triplet</a>.<a href="dictionary_M.html#14146">insert_entry_fast</a>(<a href="dictionary_I.html#14202">it</a>-&gt;<a href="dictionary_F.html#22">first</a>.<a href="dictionary_F.html#22">first</a>,<a href="dictionary_I.html#14202">it</a>-&gt;<a href="dictionary_F.html#22">first</a>.<a href="dictionary_S.html#23">second</a>, <a href="dictionary_I.html#14202">it</a>-&gt;<a href="dictionary_S.html#23">second</a>);</span>
+<a name="174"><font size=-1>174     </font></a><span class="default"></span>
+<a name="175"><font size=-1>175     </font></a><span class="default">				</span><span class="comment">// 3) Compress:</span>
+<a name="176"><font size=-1>176     </font></a><span class="comment">				<a href="dictionary_M.html#14108">construct_from_triplet</a></span><span class="default">(<a href="dictionary_T.html#14201">triplet</a>.<a href="dictionary_M.html#14104">sparse_matrix</a>);</span>
+<a name="177"><font size=-1>177     </font></a><span class="default">			}</span>
+<a name="178"><font size=-1>178     </font></a><span class="default"></span>
+<a name="179"><font size=-1>179     </font></a><span class="default"></span>
+<a name="180"><font size=-1>180     </font></a><span class="default">			</span><span class="comment">// We can't do a simple &quot;template &lt;class ANYMATRIX&gt;&quot; since it would be tried to match against &quot;cs*&quot;...</span>
+<a name="181"><font size=-1>181     </font></a><span class="comment"></span>
+<a name="182"><font size=-1>182     </font></a><span class="comment">			/** Constructor from a dense matrix of any kind existing in MRPT, creating a &quot;column-compressed&quot; sparse matrix. */</span>
+<a name="183"><font size=-1>183     </font></a><span class="comment">			</span><span class="keyword">template </span><span class="default">&lt;</span><span class="keyword">typename <a href="dictionary_T.html#14118">T</a></span><span class="default">,<a href="dictionary_S.html#56">size_t</a> <a href="dictionary_N.html#14119">N</a>,<a href="dictionary_S.html#56">size_t</a> <a href="dictionary_M.html#14120">M</a>&gt; </span><span class="keyword">inline explicit <a href="dictionary_M.html#14117">CSparseMatrix</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#605">CMatrixFixedNumeric</a></span><span class="default">&lt;T,N,M&gt; &amp;<a href="dictionary_M.html#14121">MAT</a>) { <a href="dictionary_M.html#14105">construct_from_mrpt_mat</a>(<a href="dictionary_M.html#14121">MAT</a>); }</span>
+<a name="184"><font size=-1>184     </font></a><span class="default"></span>
+<a name="185"><font size=-1>185     </font></a><span class="default">			</span><span class="comment">/** Constructor from a dense matrix of any kind existing in MRPT, creating a &quot;column-compressed&quot; sparse matrix. */</span>
+<a name="186"><font size=-1>186     </font></a><span class="comment">			</span><span class="keyword">template </span><span class="default">&lt;</span><span class="keyword">typename <a href="dictionary_T.html#14123">T</a></span><span class="default">&gt;  </span><span class="keyword">inline explicit <a href="dictionary_M.html#14122">CSparseMatrix</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#211">CMatrixTemplateNumeric</a></span><span class="default">&lt;T&gt; &amp;<a href="dictionary_M.html#14124">MAT</a>) { <a href="dictionary_M.html#14105">construct_from_mrpt_mat</a>(<a href="dictionary_M.html#14124">MAT</a>); }</span>
+<a name="187"><font size=-1>187     </font></a><span class="default"></span>
+<a name="188"><font size=-1>188     </font></a><span class="default">			</span><span class="comment">/** Copy constructor */</span>
+<a name="189"><font size=-1>189     </font></a><span class="comment">			<a href="dictionary_M.html#14125">CSparseMatrix</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#14103">CSparseMatrix</a> </span><span class="default">&amp; other);</span>
+<a name="190"><font size=-1>190     </font></a><span class="default"></span>
+<a name="191"><font size=-1>191     </font></a><span class="default">			</span><span class="comment">/** Copy constructor from an existing &quot;cs&quot; CSparse data structure */</span>
+<a name="192"><font size=-1>192     </font></a><span class="comment">			</span><span class="keyword">explicit <a href="dictionary_M.html#14126">CSparseMatrix</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_C.html#2269">cs</a>  </span><span class="default">* </span><span class="keyword">const </span><span class="default">sm);</span>
+<a name="193"><font size=-1>193     </font></a><span class="default"></span>
+<a name="194"><font size=-1>194     </font></a><span class="default">			</span><span class="comment">/** Destructor */</span>
+<a name="195"><font size=-1>195     </font></a><span class="comment">			</span><span class="keyword">virtual </span><span class="default">~<a href="dictionary_M.html#14127">CSparseMatrix</a>();</span>
+<a name="196"><font size=-1>196     </font></a><span class="default"></span>
+<a name="197"><font size=-1>197     </font></a><span class="default">			</span><span class="comment">/** Copy operator from another existing object */</span>
+<a name="198"><font size=-1>198     </font></a><span class="comment">			</span><span class="keyword">void operator </span><span class="default">= (</span><span class="keyword">const <a href="dictionary_M.html#14103">CSparseMatrix</a> </span><span class="default">&amp; other);</span>
+<a name="199"><font size=-1>199     </font></a><span class="default"></span>
+<a name="200"><font size=-1>200     </font></a><span class="default">			</span><span class="comment">/** Fast swap contents with another sparse matrix */</span>
+<a name="201"><font size=-1>201     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#14129">swap</a></span><span class="default">(<a href="dictionary_M.html#14103">CSparseMatrix</a> &amp; other);</span>
+<a name="202"><font size=-1>202     </font></a><span class="default"></span>
+<a name="203"><font size=-1>203     </font></a><span class="default">			</span><span class="comment">/** Erase all previous contents and leave the matrix as a &quot;triplet&quot; ROWS x COLS matrix without any nonzero entry. */</span>
+<a name="204"><font size=-1>204     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#14130">clear</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> </span><span class="default">nRows=</span><span class="number">1</span><span class="default">, </span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> </span><span class="default">nCols=</span><span class="number">1</span><span class="default">);</span>
+<a name="205"><font size=-1>205     </font></a><span class="default"></span>
+<a name="206"><font size=-1>206     </font></a><span class="default">			</span><span class="comment">/** @}  */</span>
+<a name="207"><font size=-1>207     </font></a><span class="comment"></span>
+<a name="208"><font size=-1>208     </font></a><span class="comment">			/** @name Math operations (the interesting stuff...)</span>
+<a name="209"><font size=-1>209     </font></a><span class="comment">				@{ */</span>
+<a name="210"><font size=-1>210     </font></a><span class="comment"></span>
+<a name="211"><font size=-1>211     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#14131">add_AB</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#14103">CSparseMatrix</a> </span><span class="default">&amp; A,</span><span class="keyword">const <a href="dictionary_M.html#14103">CSparseMatrix</a> </span><span class="default">&amp; B); </span><span class="comment">//!&lt; this = A+B</span>
+<a name="212"><font size=-1>212     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#14132">multiply_AB</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#14103">CSparseMatrix</a> </span><span class="default">&amp; A,</span><span class="keyword">const <a href="dictionary_M.html#14103">CSparseMatrix</a> </span><span class="default">&amp; B); </span><span class="comment">//!&lt; this = A*B</span>
+<a name="213"><font size=-1>213     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#14133">multiply_Ab</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">mrpt::math::<a href="dictionary_M.html#1397">CVectorDouble</a> &amp;b, mrpt::math::<a href="dictionary_M.html#1397">CVectorDouble</a> &amp;out_res) </span><span class="keyword">const</span><span class="default">; </span><span class="comment">//!&lt; out_res = this * b</span>
+<a name="214"><font size=-1>214     </font></a><span class="comment"></span>
+<a name="215"><font size=-1>215     </font></a><span class="comment">			</span><span class="keyword">inline <a href="dictionary_M.html#14103">CSparseMatrix</a> operator </span><span class="default">+ (</span><span class="keyword">const <a href="dictionary_M.html#14103">CSparseMatrix</a> </span><span class="default">&amp; <a href="dictionary_O.html#14135">other</a>) </span><span class="keyword">const</span>
+<a name="216"><font size=-1>216     </font></a><span class="keyword">			</span><span class="default">{</span>
+<a name="217"><font size=-1>217     </font></a><span class="default">				<a href="dictionary_M.html#14113">CSparseMatrix</a> <a href="dictionary_R.html#14206">RES</a>;</span>
+<a name="218"><font size=-1>218     </font></a><span class="default">				<a href="dictionary_R.html#14206">RES</a>.<a href="dictionary_M.html#14131">add_AB</a>(*</span><span class="keyword">this</span><span class="default">,<a href="dictionary_O.html#14135">other</a>);</span>
+<a name="219"><font size=-1>219     </font></a><span class="default">				</span><span class="keyword">return <a href="dictionary_R.html#14206">RES</a></span><span class="default">;</span>
+<a name="220"><font size=-1>220     </font></a><span class="default">			}</span>
+<a name="221"><font size=-1>221     </font></a><span class="default">			</span><span class="keyword">inline <a href="dictionary_M.html#14103">CSparseMatrix</a> operator </span><span class="default">* (</span><span class="keyword">const <a href="dictionary_M.html#14103">CSparseMatrix</a> </span><span class="default">&amp; <a href="dictionary_O.html#14137">other</a>) </span><span class="keyword">const</span>
+<a name="222"><font size=-1>222     </font></a><span class="keyword">			</span><span class="default">{</span>
+<a name="223"><font size=-1>223     </font></a><span class="default">				<a href="dictionary_M.html#14113">CSparseMatrix</a> <a href="dictionary_R.html#14207">RES</a>;</span>
+<a name="224"><font size=-1>224     </font></a><span class="default">				<a href="dictionary_R.html#14207">RES</a>.<a href="dictionary_M.html#14132">multiply_AB</a>(*</span><span class="keyword">this</span><span class="default">,<a href="dictionary_O.html#14137">other</a>);</span>
+<a name="225"><font size=-1>225     </font></a><span class="default">				</span><span class="keyword">return <a href="dictionary_R.html#14207">RES</a></span><span class="default">;</span>
+<a name="226"><font size=-1>226     </font></a><span class="default">			}</span>
+<a name="227"><font size=-1>227     </font></a><span class="default">			</span><span class="keyword">inline </span><span class="default">mrpt::math::<a href="dictionary_M.html#1397">CVectorDouble</a> </span><span class="keyword">operator </span><span class="default">* (</span><span class="keyword">const </span><span class="default">mrpt::math::<a href="dictionary_M.html#1397">CVectorDouble</a> &amp; <a href="dictionary_O.html#14139">other</a>) </span><span class="keyword">const </span><span class="default">{</span>
+<a name="228"><font size=-1>228     </font></a><span class="default">				mrpt::math::<a href="dictionary_M.html#1397">CVectorDouble</a> <a href="dictionary_R.html#14208">res</a>;</span>
+<a name="229"><font size=-1>229     </font></a><span class="default">				<a href="dictionary_M.html#14133">multiply_Ab</a>(<a href="dictionary_O.html#14139">other</a>,<a href="dictionary_R.html#14208">res</a>);</span>
+<a name="230"><font size=-1>230     </font></a><span class="default">				</span><span class="keyword">return <a href="dictionary_R.html#14208">res</a></span><span class="default">;</span>
+<a name="231"><font size=-1>231     </font></a><span class="default">			}</span>
+<a name="232"><font size=-1>232     </font></a><span class="default">			</span><span class="keyword">inline void operator </span><span class="default">+= (</span><span class="keyword">const <a href="dictionary_M.html#14103">CSparseMatrix</a> </span><span class="default">&amp; <a href="dictionary_O.html#14141">other</a>) {</span>
+<a name="233"><font size=-1>233     </font></a><span class="default">				</span><span class="keyword">this</span><span class="default">-&gt;<a href="dictionary_M.html#14131">add_AB</a>(*</span><span class="keyword">this</span><span class="default">,<a href="dictionary_O.html#14141">other</a>);</span>
+<a name="234"><font size=-1>234     </font></a><span class="default">			}</span>
+<a name="235"><font size=-1>235     </font></a><span class="default">			</span><span class="keyword">inline void operator </span><span class="default">*= (</span><span class="keyword">const <a href="dictionary_M.html#14103">CSparseMatrix</a> </span><span class="default">&amp; <a href="dictionary_O.html#14143">other</a>) {</span>
+<a name="236"><font size=-1>236     </font></a><span class="default">				</span><span class="keyword">this</span><span class="default">-&gt;<a href="dictionary_M.html#14132">multiply_AB</a>(*</span><span class="keyword">this</span><span class="default">,<a href="dictionary_O.html#14143">other</a>);</span>
+<a name="237"><font size=-1>237     </font></a><span class="default">			}</span>
+<a name="238"><font size=-1>238     </font></a><span class="default">			<a href="dictionary_M.html#14103">CSparseMatrix</a> <a href="dictionary_M.html#14144">transpose</a>() </span><span class="keyword">const</span><span class="default">;</span>
+<a name="239"><font size=-1>239     </font></a><span class="default"></span>
+<a name="240"><font size=-1>240     </font></a><span class="default">			</span><span class="comment">/** @}  */</span>
+<a name="241"><font size=-1>241     </font></a><span class="comment"></span>
+<a name="242"><font size=-1>242     </font></a><span class="comment"></span>
+<a name="243"><font size=-1>243     </font></a><span class="comment">			/** @ Access the matrix, get, set elements, etc.</span>
+<a name="244"><font size=-1>244     </font></a><span class="comment">			    @{ */</span>
+<a name="245"><font size=-1>245     </font></a><span class="comment"></span>
+<a name="246"><font size=-1>246     </font></a><span class="comment">			/** ONLY for TRIPLET matrices: insert a new non-zero entry in the matrix.</span>
+<a name="247"><font size=-1>247     </font></a><span class="comment">			  *  This method cannot be used once the matrix is in column-compressed form.</span>
+<a name="248"><font size=-1>248     </font></a><span class="comment">			  *  The size of the matrix will be automatically extended if the indices are out of the current limits.</span>
+<a name="249"><font size=-1>249     </font></a><span class="comment">			  * \sa isTriplet, compressFromTriplet</span>
+<a name="250"><font size=-1>250     </font></a><span class="comment">			  */</span>
+<a name="251"><font size=-1>251     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#14145">insert_entry</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> </span><span class="default">row, </span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> </span><span class="default">col, </span><span class="keyword">const double </span><span class="default">val );</span>
+<a name="252"><font size=-1>252     </font></a><span class="default"></span>
+<a name="253"><font size=-1>253     </font></a><span class="default">			</span><span class="comment">/** This was an optimized version, but is now equivalent to insert_entry() due to the need to be compatible with unmodified CSparse system libraries. */</span>
+<a name="254"><font size=-1>254     </font></a><span class="comment">			</span><span class="keyword">inline void <a href="dictionary_M.html#14146">insert_entry_fast</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> <a href="dictionary_R.html#14147">row</a></span><span class="default">, </span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> <a href="dictionary_C.html#14148">col</a></span><span class="default">, </span><span class="keyword">const double <a href="dictionary_V.html#14149">val</a> </span><span class="default">)  { <a href="dictionary_M.html#14145">insert_entry</a>(<a href="dictionary_R.html#14147">row</a>,<a href="dictionary_C.html#14148">col</a>,<a href="dictionary_V.html#14149">val</a>); }</span>
+<a name="255"><font size=-1>255     </font></a><span class="default"></span>
+<a name="256"><font size=-1>256     </font></a><span class="default">			</span><span class="comment">/** ONLY for TRIPLET matrices: insert a given matrix (in any of the MRPT formats) at a given location of the sparse matrix.</span>
+<a name="257"><font size=-1>257     </font></a><span class="comment">			  *  This method cannot be used once the matrix is in column-compressed form.</span>
+<a name="258"><font size=-1>258     </font></a><span class="comment">			  *  The size of the matrix will be automatically extended if the indices are out of the current limits.</span>
+<a name="259"><font size=-1>259     </font></a><span class="comment">			  *  Since this is inline, it can be very efficient for fixed-size MRPT matrices.</span>
+<a name="260"><font size=-1>260     </font></a><span class="comment">			  * \sa isTriplet, compressFromTriplet, insert_entry</span>
+<a name="261"><font size=-1>261     </font></a><span class="comment">			  */</span>
+<a name="262"><font size=-1>262     </font></a><span class="comment">			</span><span class="keyword">template </span><span class="default">&lt;</span><span class="keyword">class <a href="dictionary_M.html#14151">MATRIX</a></span><span class="default">&gt;</span>
+<a name="263"><font size=-1>263     </font></a><span class="default">			</span><span class="keyword">inline void <a href="dictionary_M.html#14150">insert_submatrix</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> <a href="dictionary_R.html#14152">row</a></span><span class="default">, </span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> <a href="dictionary_C.html#14153">col</a></span><span class="default">, </span><span class="keyword">const <a href="dictionary_M.html#14151">MATRIX</a> </span><span class="default">&amp;<a href="dictionary_M.html#14154">M</a> )</span>
+<a name="264"><font size=-1>264     </font></a><span class="default">			{</span>
+<a name="265"><font size=-1>265     </font></a><span class="default">				</span><span class="keyword">if </span><span class="default">(!<a href="dictionary_M.html#14166">isTriplet</a>()) <a href="dictionary_T.html#660">THROW_EXCEPTION</a>(</span><span class="string">&quot;insert_entry() is only available for sparse matrix in 'triplet' format.&quot;</span><span class="default">)</span>
+<a name="266"><font size=-1>266     </font></a><span class="default">				</span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> <a href="dictionary_N.html#14209">nR</a> </span><span class="default">= <a href="dictionary_M.html#14154">M</a>.<a href="dictionary_G.html#1788">getRowCount</a>();</span>
+<a name="267"><font size=-1>267     </font></a><span class="default">				</span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> <a href="dictionary_N.html#14210">nC</a> </span><span class="default">= <a href="dictionary_M.html#14154">M</a>.<a href="dictionary_G.html#1787">getColCount</a>();</span>
+<a name="268"><font size=-1>268     </font></a><span class="default">				</span><span class="keyword">for </span><span class="default">(<a href="dictionary_S.html#56">size_t</a> <a href="dictionary_R.html#14211">r</a>=</span><span class="number">0</span><span class="default">;<a href="dictionary_R.html#14211">r</a>&lt;<a href="dictionary_N.html#14209">nR</a>;<a href="dictionary_R.html#14211">r</a>++)</span>
+<a name="269"><font size=-1>269     </font></a><span class="default">					</span><span class="keyword">for </span><span class="default">(<a href="dictionary_S.html#56">size_t</a> <a href="dictionary_C.html#14212">c</a>=</span><span class="number">0</span><span class="default">;<a href="dictionary_C.html#14212">c</a>&lt;<a href="dictionary_N.html#14210">nC</a>;<a href="dictionary_C.html#14212">c</a>++)</span>
+<a name="270"><font size=-1>270     </font></a><span class="default">						<a href="dictionary_M.html#14146">insert_entry_fast</a>(<a href="dictionary_R.html#14152">row</a>+<a href="dictionary_R.html#14211">r</a>,<a href="dictionary_C.html#14153">col</a>+<a href="dictionary_C.html#14212">c</a>, <a href="dictionary_M.html#14154">M</a>.<a href="dictionary_G.html#7129">get_unsafe</a>(<a href="dictionary_R.html#14211">r</a>,<a href="dictionary_C.html#14212">c</a>));</span>
+<a name="271"><font size=-1>271     </font></a><span class="default">				</span><span class="comment">// If needed, extend the size of the matrix:</span>
+<a name="272"><font size=-1>272     </font></a><span class="comment">				<a href="dictionary_M.html#14104">sparse_matrix</a></span><span class="default">.<a href="dictionary_M.html#14192">m</a> = std::<a href="dictionary_S.html#450">max</a>(<a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_M.html#14192">m</a>, </span><span class="keyword">int</span><span class="default">(<a href="dictionary_R.html#14152">row</a>+<a href="dictionary_N.html#14209">nR</a>));</span>
+<a name="273"><font size=-1>273     </font></a><span class="default">				<a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_N.html#14193">n</a> = std::<a href="dictionary_S.html#450">max</a>(<a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_N.html#14193">n</a>, </span><span class="keyword">int</span><span class="default">(<a href="dictionary_C.html#14153">col</a>+<a href="dictionary_N.html#14210">nC</a>));</span>
+<a name="274"><font size=-1>274     </font></a><span class="default">			}</span>
+<a name="275"><font size=-1>275     </font></a><span class="default"></span>
+<a name="276"><font size=-1>276     </font></a><span class="default"></span>
+<a name="277"><font size=-1>277     </font></a><span class="default">			</span><span class="comment">/** ONLY for TRIPLET matrices: convert the matrix in a column-compressed form.</span>
+<a name="278"><font size=-1>278     </font></a><span class="comment">			  * \sa insert_entry</span>
+<a name="279"><font size=-1>279     </font></a><span class="comment">			  */</span>
+<a name="280"><font size=-1>280     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#14155">compressFromTriplet</a></span><span class="default">();</span>
+<a name="281"><font size=-1>281     </font></a><span class="default"></span>
+<a name="282"><font size=-1>282     </font></a><span class="default">			</span><span class="comment">/** Return a dense representation of the sparse matrix.</span>
+<a name="283"><font size=-1>283     </font></a><span class="comment">			  * \sa saveToTextFile_dense</span>
+<a name="284"><font size=-1>284     </font></a><span class="comment">			  */</span>
+<a name="285"><font size=-1>285     </font></a><span class="comment">			</span><span class="keyword">void <a href="dictionary_M.html#14156">get_dense</a></span><span class="default">(<a href="dictionary_M.html#206">CMatrixDouble</a> &amp;outMat) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="286"><font size=-1>286     </font></a><span class="default"></span>
+<a name="287"><font size=-1>287     </font></a><span class="default">			</span><span class="comment">/** Static method to convert a &quot;cs&quot; structure into a dense representation of the sparse matrix.</span>
+<a name="288"><font size=-1>288     </font></a><span class="comment">			  */</span>
+<a name="289"><font size=-1>289     </font></a><span class="comment">			</span><span class="keyword">static void <a href="dictionary_M.html#14157">cs2dense</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_C.html#2269">cs</a></span><span class="default">&amp; SM, <a href="dictionary_M.html#206">CMatrixDouble</a> &amp;outMat);</span>
+<a name="290"><font size=-1>290     </font></a><span class="default"></span>
+<a name="291"><font size=-1>291     </font></a><span class="default">			</span><span class="comment">/** save as a dense matrix to a text file \return False on any error.</span>
+<a name="292"><font size=-1>292     </font></a><span class="comment">			  */</span>
+<a name="293"><font size=-1>293     </font></a><span class="comment">			</span><span class="keyword">bool <a href="dictionary_M.html#14158">saveToTextFile_dense</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a> &amp;filName);</span>
+<a name="294"><font size=-1>294     </font></a><span class="default"></span>
+<a name="295"><font size=-1>295     </font></a><span class="default">			</span><span class="comment">/** Save sparse structure to a text file loadable from MATLAB (can be called on triplet or CCS matrices).</span>
+<a name="296"><font size=-1>296     </font></a><span class="comment">			  *</span>
+<a name="297"><font size=-1>297     </font></a><span class="comment">			  *  The format of the text file is:</span>
+<a name="298"><font size=-1>298     </font></a><span class="comment">			  *  \code</span>
+<a name="299"><font size=-1>299     </font></a><span class="comment">			  *   NUM_ROWS   NUM_COLS   NUM_NON_ZERO_MAX</span>
+<a name="300"><font size=-1>300     </font></a><span class="comment">			  *   row_1   col_1   value_1</span>
+<a name="301"><font size=-1>301     </font></a><span class="comment">			  *   row_2   col_2   value_2</span>
+<a name="302"><font size=-1>302     </font></a><span class="comment">			  *   ...</span>
+<a name="303"><font size=-1>303     </font></a><span class="comment">			  *  \endcode</span>
+<a name="304"><font size=-1>304     </font></a><span class="comment">			  *</span>
+<a name="305"><font size=-1>305     </font></a><span class="comment">			  *  Instructions for loading from MATLAB in triplet form will be automatically writen to the</span>
+<a name="306"><font size=-1>306     </font></a><span class="comment">			  *  output file as comments in th first lines:</span>
+<a name="307"><font size=-1>307     </font></a><span class="comment">			  *</span>
+<a name="308"><font size=-1>308     </font></a><span class="comment">			  *   \code</span>
+<a name="309"><font size=-1>309     </font></a><span class="comment">			  *      D=load('file.txt');</span>
+<a name="310"><font size=-1>310     </font></a><span class="comment">			  *      SM=spconvert(D(2:end,:));</span>
+<a name="311"><font size=-1>311     </font></a><span class="comment">			  *        or, to always preserve the actual matrix size m x n:</span>
+<a name="312"><font size=-1>312     </font></a><span class="comment">                 *      m=D(1,1); n=D(1,2); nzmax=D(1,3);</span>
+<a name="313"><font size=-1>313     </font></a><span class="comment">			  *      Di=D(2:end,1); Dj=D(2:end,2); Ds=D(2:end,3);</span>
+<a name="314"><font size=-1>314     </font></a><span class="comment">			  *      M=sparse(Di,Dj,Ds, m,n, nzmax);</span>
+<a name="315"><font size=-1>315     </font></a><span class="comment">			  *   \endcode</span>
+<a name="316"><font size=-1>316     </font></a><span class="comment">			  * \return False on any error.</span>
+<a name="317"><font size=-1>317     </font></a><span class="comment">			  */</span>
+<a name="318"><font size=-1>318     </font></a><span class="comment">			</span><span class="keyword">bool <a href="dictionary_M.html#14159">saveToTextFile_sparse</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">std::<a href="dictionary_S.html#118">string</a> &amp;filName);</span>
+<a name="319"><font size=-1>319     </font></a><span class="default"></span>
+<a name="320"><font size=-1>320     </font></a><span class="default">			</span><span class="comment">// Very basic, standard methods that MRPT methods expect for any matrix:</span>
+<a name="321"><font size=-1>321     </font></a><span class="comment">			</span><span class="keyword">inline <a href="dictionary_S.html#56">size_t</a> <a href="dictionary_M.html#14160">getRowCount</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#14104">sparse_matrix</a></span><span class="default">.<a href="dictionary_M.html#14192">m</a>; }</span>
+<a name="322"><font size=-1>322     </font></a><span class="default">			</span><span class="keyword">inline <a href="dictionary_S.html#56">size_t</a> <a href="dictionary_M.html#14161">getColCount</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#14104">sparse_matrix</a></span><span class="default">.<a href="dictionary_N.html#14193">n</a>; }</span>
+<a name="323"><font size=-1>323     </font></a><span class="default"></span>
+<a name="324"><font size=-1>324     </font></a><span class="default">			</span><span class="comment">/** Change the number of rows in the matrix (can't be lower than current size) */</span>
+<a name="325"><font size=-1>325     </font></a><span class="comment">			</span><span class="keyword">inline void <a href="dictionary_M.html#14162">setRowCount</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> <a href="dictionary_N.html#14163">nRows</a></span><span class="default">) { <a href="dictionary_A.html#440">ASSERT_</a>(nRows&gt;=(size_t)<a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_M.html#661">m</a>); <a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_M.html#14192">m</a> = <a href="dictionary_N.html#14163">nRows</a>; }</span>
+<a name="326"><font size=-1>326     </font></a><span class="default">			</span><span class="keyword">inline void <a href="dictionary_M.html#14164">setColCount</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> <a href="dictionary_N.html#14165">nCols</a></span><span class="default">) { <a href="dictionary_A.html#440">ASSERT_</a>(nCols&gt;=(size_t)<a href="dictionary_M.html#14104">sparse_matrix</a>.n); <a href="dictionary_M.html#14104">sparse_matrix</a>.<a href="dictionary_N.html#14193">n</a> = <a href="dictionary_N.html#14165">nCols</a>; }</span>
+<a name="327"><font size=-1>327     </font></a><span class="default"></span>
+<a name="328"><font size=-1>328     </font></a><span class="default">			</span><span class="comment">/** Returns true if this sparse matrix is in &quot;triplet&quot; form. \sa isColumnCompressed */</span>
+<a name="329"><font size=-1>329     </font></a><span class="comment">			</span><span class="keyword">inline bool <a href="dictionary_M.html#14166">isTriplet</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#14104">sparse_matrix</a></span><span class="default">.<a href="dictionary_N.html#14198">nz</a>&gt;=</span><span class="number">0</span><span class="default">; }  </span><span class="comment">// &lt;0 means &quot;column compressed&quot;, &quot;&gt;=0&quot; means triplet.</span>
+<a name="330"><font size=-1>330     </font></a><span class="comment"></span>
+<a name="331"><font size=-1>331     </font></a><span class="comment">			/** Returns true if this sparse matrix is in &quot;column compressed&quot; form. \sa isTriplet */</span>
+<a name="332"><font size=-1>332     </font></a><span class="comment">			</span><span class="keyword">inline bool <a href="dictionary_M.html#14167">isColumnCompressed</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ </span><span class="keyword">return <a href="dictionary_M.html#14104">sparse_matrix</a></span><span class="default">.<a href="dictionary_N.html#14198">nz</a>&lt;</span><span class="number">0</span><span class="default">; }  </span><span class="comment">// &lt;0 means &quot;column compressed&quot;, &quot;&gt;=0&quot; means triplet.</span>
+<a name="333"><font size=-1>333     </font></a><span class="comment"></span>
+<a name="334"><font size=-1>334     </font></a><span class="comment">			/** @} */</span>
+<a name="335"><font size=-1>335     </font></a><span class="comment"></span>
+<a name="336"><font size=-1>336     </font></a><span class="comment"></span>
+<a name="337"><font size=-1>337     </font></a><span class="comment">			/** @name Cholesky factorization</span>
+<a name="338"><font size=-1>338     </font></a><span class="comment">			    @{  */</span>
+<a name="339"><font size=-1>339     </font></a><span class="comment"></span>
+<a name="340"><font size=-1>340     </font></a><span class="comment">			/** Auxiliary class to hold the results of a Cholesky factorization of a sparse matrix.</span>
+<a name="341"><font size=-1>341     </font></a><span class="comment">			  *  This implementation does not allow updating/downdating.</span>
+<a name="342"><font size=-1>342     </font></a><span class="comment">			  *</span>
+<a name="343"><font size=-1>343     </font></a><span class="comment">			  *  Usage example:</span>
+<a name="344"><font size=-1>344     </font></a><span class="comment">			  *   \code</span>
+<a name="345"><font size=-1>345     </font></a><span class="comment">			  *     CSparseMatrix  SM(100,100);</span>
+<a name="346"><font size=-1>346     </font></a><span class="comment">			  *     SM.insert_entry(i,j, val); ...</span>
+<a name="347"><font size=-1>347     </font></a><span class="comment">			  *     SM.compressFromTriplet();</span>
+<a name="348"><font size=-1>348     </font></a><span class="comment">			  *</span>
+<a name="349"><font size=-1>349     </font></a><span class="comment">			  *     // Do Cholesky decomposition:</span>
+<a name="350"><font size=-1>350     </font></a><span class="comment">			  *		CSparseMatrix::CholeskyDecomp  CD(SM);</span>
+<a name="351"><font size=-1>351     </font></a><span class="comment">			  *     CD.get_inverse();</span>
+<a name="352"><font size=-1>352     </font></a><span class="comment">			  *     ...</span>
+<a name="353"><font size=-1>353     </font></a><span class="comment">			  *   \endcode</span>
+<a name="354"><font size=-1>354     </font></a><span class="comment">			  *</span>
+<a name="355"><font size=-1>355     </font></a><span class="comment">			  * \note Only the upper triangular part of the input matrix is accessed.</span>
+<a name="356"><font size=-1>356     </font></a><span class="comment">			  * \note This class was initially adapted from &quot;robotvision&quot;, by Hauke Strasdat, Steven Lovegrove and Andrew J. Davison. See http://www.openslam.org/robotvision.html</span>
+<a name="357"><font size=-1>357     </font></a><span class="comment">			  * \note This class designed to be &quot;uncopiable&quot;.</span>
+<a name="358"><font size=-1>358     </font></a><span class="comment">			  * \sa The main class: CSparseMatrix</span>
+<a name="359"><font size=-1>359     </font></a><span class="comment">			  */</span>
+<a name="360"><font size=-1>360     </font></a><span class="comment">			</span><span class="keyword">class <a href="dictionary_B.html#113">BASE_IMPEXP</a> <a href="dictionary_M.html#14168">CholeskyDecomp</a>  </span><span class="default">: </span><span class="keyword">public </span><span class="default">mrpt::utils::<a href="dictionary_M.html#1208">CUncopiable</a></span>
+<a name="361"><font size=-1>361     </font></a><span class="default">			{</span>
+<a name="362"><font size=-1>362     </font></a><span class="default">			</span><span class="keyword">private</span><span class="default">:</span>
+<a name="363"><font size=-1>363     </font></a><span class="default">				<a href="dictionary_C.html#2300">css</a> * <a href="dictionary_M.html#14169">m_symbolic_structure</a>;</span>
+<a name="364"><font size=-1>364     </font></a><span class="default">				<a href="dictionary_C.html#2306">csn</a> * <a href="dictionary_M.html#14170">m_numeric_structure</a>;</span>
+<a name="365"><font size=-1>365     </font></a><span class="default">				</span><span class="keyword">const <a href="dictionary_M.html#14103">CSparseMatrix</a> </span><span class="default">*<a href="dictionary_M.html#14171">m_originalSM</a>;  </span><span class="comment">//!&lt; A const reference to the original matrix used to build this decomposition.</span>
+<a name="366"><font size=-1>366     </font></a><span class="comment"></span>
+<a name="367"><font size=-1>367     </font></a><span class="comment">			</span><span class="keyword">public</span><span class="default">:</span>
+<a name="368"><font size=-1>368     </font></a><span class="default">				</span><span class="comment">/** Constructor from a square definite-positive sparse matrix A, which can be use to solve Ax=b</span>
+<a name="369"><font size=-1>369     </font></a><span class="comment">				  *   The actual Cholesky decomposition takes places in this constructor.</span>
+<a name="370"><font size=-1>370     </font></a><span class="comment">				  *  \note Only the upper triangular part of the matrix is accessed.</span>
+<a name="371"><font size=-1>371     </font></a><span class="comment">				  *  \exception std::runtime_error On non-square input matrix.</span>
+<a name="372"><font size=-1>372     </font></a><span class="comment">				  *  \exception mrpt::math::CExceptionNotDefPos On non-definite-positive matrix as input.</span>
+<a name="373"><font size=-1>373     </font></a><span class="comment">				  */</span>
+<a name="374"><font size=-1>374     </font></a><span class="comment">				<a href="dictionary_M.html#14172">CholeskyDecomp</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#14103">CSparseMatrix</a> </span><span class="default">&amp;A);</span>
+<a name="375"><font size=-1>375     </font></a><span class="default"></span>
+<a name="376"><font size=-1>376     </font></a><span class="default">				</span><span class="comment">/** Destructor */</span>
+<a name="377"><font size=-1>377     </font></a><span class="comment">				</span><span class="keyword">virtual </span><span class="default">~<a href="dictionary_M.html#14173">CholeskyDecomp</a>();</span>
+<a name="378"><font size=-1>378     </font></a><span class="default"></span>
+<a name="379"><font size=-1>379     </font></a><span class="default">				</span><span class="comment">/** Return the L matrix (L*L' = M), as a dense matrix. */</span>
+<a name="380"><font size=-1>380     </font></a><span class="comment">				</span><span class="keyword">inline <a href="dictionary_M.html#206">CMatrixDouble</a> <a href="dictionary_M.html#14174">get_L</a></span><span class="default">() </span><span class="keyword">const </span><span class="default">{ <a href="dictionary_M.html#206">CMatrixDouble</a> <a href="dictionary_L.html#14183">L</a>; <a href="dictionary_M.html#14174">get_L</a>(<a href="dictionary_L.html#14183">L</a>); </span><span class="keyword">return <a href="dictionary_L.html#14183">L</a></span><span class="default">; }</span>
+<a name="381"><font size=-1>381     </font></a><span class="default"></span>
+<a name="382"><font size=-1>382     </font></a><span class="default">				</span><span class="comment">/** Return the L matrix (L*L' = M), as a dense matrix. */</span>
+<a name="383"><font size=-1>383     </font></a><span class="comment">				</span><span class="keyword">void <a href="dictionary_M.html#14175">get_L</a></span><span class="default">(<a href="dictionary_M.html#206">CMatrixDouble</a> &amp;out_L) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="384"><font size=-1>384     </font></a><span class="default"></span>
+<a name="385"><font size=-1>385     </font></a><span class="default">				</span><span class="comment">/** Return the vector from a back-substitution step that solves: Ux=b   */</span>
+<a name="386"><font size=-1>386     </font></a><span class="comment">				</span><span class="keyword">template </span><span class="default">&lt;</span><span class="keyword">class <a href="dictionary_V.html#14177">VECTOR</a></span><span class="default">&gt;</span>
+<a name="387"><font size=-1>387     </font></a><span class="default">				</span><span class="keyword">inline <a href="dictionary_V.html#14177">VECTOR</a> <a href="dictionary_M.html#14176">backsub</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_V.html#14177">VECTOR</a> </span><span class="default">&amp;<a href="dictionary_B.html#14178">b</a>) </span><span class="keyword">const </span><span class="default">{ <a href="dictionary_V.html#14177">VECTOR</a> <a href="dictionary_R.html#14184">res</a>; <a href="dictionary_M.html#14176">backsub</a>(<a href="dictionary_B.html#14178">b</a>,<a href="dictionary_R.html#14184">res</a>); </span><span class="keyword">return <a href="dictionary_R.html#14184">res</a></span><span class="default">; }</span>
+<a name="388"><font size=-1>388     </font></a><span class="default"></span>
+<a name="389"><font size=-1>389     </font></a><span class="default">				</span><span class="comment">/** Return the vector from a back-substitution step that solves: Ux=b. Vectors can be Eigen::VectorXd or mrpt::math::CVectorDouble   */</span>
+<a name="390"><font size=-1>390     </font></a><span class="comment">				</span><span class="keyword">void <a href="dictionary_M.html#14179">backsub</a></span><span class="default">(</span><span class="keyword">const </span><span class="default">Eigen::<a href="dictionary_E.html#14180">VectorXd</a> &amp;b, Eigen::<a href="dictionary_E.html#14180">VectorXd</a> &amp;result_x) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="391"><font size=-1>391     </font></a><span class="default"></span>
+<a name="392"><font size=-1>392     </font></a><span class="default">				</span><span class="comment">/** overload for double pointers which assume the user has reserved the output memory for \a result */</span>
+<a name="393"><font size=-1>393     </font></a><span class="comment">				</span><span class="keyword">void <a href="dictionary_M.html#14181">backsub</a></span><span class="default">(</span><span class="keyword">const double </span><span class="default">*b, </span><span class="keyword">double </span><span class="default">*result, </span><span class="keyword">const <a href="dictionary_S.html#56">size_t</a> </span><span class="default">N) </span><span class="keyword">const</span><span class="default">;</span>
+<a name="394"><font size=-1>394     </font></a><span class="default"></span>
+<a name="395"><font size=-1>395     </font></a><span class="default">				</span><span class="comment">/** Update the Cholesky factorization from an updated vesion of the original input, square definite-positive sparse matrix.</span>
+<a name="396"><font size=-1>396     </font></a><span class="comment">				  *  NOTE: This new matrix MUST HAVE exactly the same sparse structure than the original one.</span>
+<a name="397"><font size=-1>397     </font></a><span class="comment">				  */</span>
+<a name="398"><font size=-1>398     </font></a><span class="comment">				</span><span class="keyword">void <a href="dictionary_M.html#14182">update</a></span><span class="default">(</span><span class="keyword">const <a href="dictionary_M.html#14103">CSparseMatrix</a> </span><span class="default">&amp;new_SM);</span>
+<a name="399"><font size=-1>399     </font></a><span class="default">			};</span>
+<a name="400"><font size=-1>400     </font></a><span class="default"></span>
+<a name="401"><font size=-1>401     </font></a><span class="default"></span>
+<a name="402"><font size=-1>402     </font></a><span class="default">			</span><span class="comment">/** @} */</span>
+<a name="403"><font size=-1>403     </font></a><span class="comment"></span>
+<a name="404"><font size=-1>404     </font></a><span class="comment">		</span><span class="default">}; </span><span class="comment">// end class CSparseMatrix</span>
+<a name="405"><font size=-1>405     </font></a><span class="comment"></span>
+<a name="406"><font size=-1>406     </font></a><span class="comment">	</span><span class="default">}</span>
+<a name="407"><font size=-1>407     </font></a><span class="default">}</span>
+<a name="408"><font size=-1>408     </font></a><span class="default"></span><span class="preproc">#endif</span>
+<a name="409"><font size=-1>409     </font></a><span class="preproc"></span>
+</pre></body></html>

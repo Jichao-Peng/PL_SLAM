@@ -76,16 +76,16 @@ sfrust          = 0.06
 slamScene::slamScene(string configFile){
 
     CConfigFile config(configFile);
-    sbb             = config.read_double("Scene","sbb",1.f);//xyz三个轴的尺度
+    sbb             = config.read_double("Scene","sbb",1.f);//xyz三个轴的尺度 并不知道有什么用
     sref            = config.read_double("Scene","sref",0.2f);
     srad            = config.read_double("Scene","srad",0.005f);
     sline           = config.read_double("Scene","sline",2.f);
     saxis           = config.read_double("Scene","saxis",0.5f);
     sfreq           = config.read_double("Scene","sfreq",3.f);
-    szoom           = config.read_double("Scene","szoom",3.f);//缩放，数值越大缩放却多（整个窗口的初试缩放，后来还能自己调节）
+    szoom           = config.read_double("Scene","szoom",3.f);//缩放，数值越大缩放却多（整个窗口的初始缩放，后来还能自己鼠标调节）
     selli           = config.read_double("Scene","selli",1.f);
     selev           = config.read_double("Scene","selev",30.f);//观测高度
-    sazim           = config.read_double("Scene","sazim",-135.f);//观测方位角
+    sazim           = config.read_double("Scene","sazim",-135.f);//观测方位角 参考matlab view函数 这里可不多考虑
     sfrust          = config.read_double("Scene","sfrust",0.2f);
     slinef          = config.read_double("Scene","slinef",0.1f);
     //初始化一个窗口，大小是1920，,1080
@@ -107,6 +107,7 @@ slamScene::slamScene(string configFile){
     Matrix4d x_cw;
     x_cw << 1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1;
     //Matrix4d 转换成 CMatrixDouble
+    //这里x_aux依然是三个平移量，和欧拉角yaw pitch roll，和李代数完全不同
     CPose3D x_aux(getPoseFormat(x_cw));
     pose_ini = x_aux;
 
@@ -129,6 +130,7 @@ void slamScene::initializeScene(Matrix4d x_0){
     theScene = win->get3DSceneAndLock();
 
     // Initialize poses of different objects
+    //这里x_aux依然是三个平移量，和欧拉角yaw pitch roll，和李代数完全不同
     CPose3D x_aux(getPoseFormat(x_0));
     pose    = x_aux;
     pose1   = x_aux;
@@ -159,17 +161,19 @@ void slamScene::initializeScene(Matrix4d x_0){
         theScene->insert(frustObj1);
     }
 
+	//坐标轴
     srefObj = opengl::stock_objects::CornerXYZSimple();
     srefObj->setPose(pose_0);
-    srefObj->setScale(sref);
-
+	//乘100，让坐标轴变大一点
+    srefObj->setScale(sref*100);
+	theScene->insert(srefObj);
     // Initialize the axes
     if(hasAxes){
         axesObj = opengl::CAxis::Create();
         axesObj->setFrequency(sfreq);
         axesObj->enableTickMarks(false);
         axesObj->setAxisLimits(-saxis,-saxis,-saxis, saxis,saxis,saxis);
-        //theScene->insert( axesObj );
+        theScene->insert( axesObj );
     }
 
     // Initialize the text [TODO]
@@ -179,11 +183,13 @@ void slamScene::initializeScene(Matrix4d x_0){
     }
 
     // Initialize the lines
+    //线特征
     lineObj = opengl::CSetOfLines::Create();
     lineObj->setLineWidth(1.0);
     lineObj->setColor(0,0,0);
     theScene->insert( lineObj );
 
+    //局部地图里的线特征
     lineObj_local = opengl::CSetOfLines::Create();
     lineObj_local->setLineWidth(1.0);
     lineObj_local->setColor(200,0,200);
@@ -203,7 +209,11 @@ void slamScene::initializeScene(Matrix4d x_0){
     // 解锁对象win.unlockAccess3DScene();，然后绘图win.repaint();
     win->unlockAccess3DScene();
     win->repaint();
-
+    
+    frame=0;
+    nPoints=0;
+    nLines=0;
+    keyFrameNum=0;
 }
 
 void slamScene::initViewports(int W, int H){
@@ -235,315 +245,41 @@ bool slamScene::updateScene(){
 
     // Update the camera pose
     {
+		//x 是curr_frame->DT
+        //这里x_aux依然是三个平移量，和欧拉角yaw pitch roll，和李代数不同
         CPose3D x_aux1(getPoseFormat(x));
+        //pose的初值是单位矩阵，但是这个是直接加的,因为表达成了李代数形式了
+        //pose在关键帧画图更新里也会更新
         pose = pose + x_aux1;
         v_aux_ = v_aux;
-        pose.getAsVector(v_aux);
+        pose.getAsVector(v_aux);//把Pose变成CPose3D向量
+		//当前非关键帧的相机模型
         frustObj  = opengl::CFrustum::Create();
         {
+            //CPose3D的加法不是狭义加法，而是A+B是A代表的SE3乘上B代表的SE3
             frustObj->setPose(pose+frustumL_);
             frustObj->setLineWidth (slinef);
-            frustObj->setScale(sfrust);
+            frustObj->setScale(sfrust*100);
             frustObj->setColor_u8( TColor(200,0,0) );
             theScene->insert(frustObj);
         }
-        frustObj1 = opengl::CFrustum::Create();
-        {
-            frustObj1->setPose(pose+frustumR_ );
-            frustObj1->setLineWidth (slinef);
-            frustObj1->setScale(sfrust);
-            frustObj1->setColor_u8( TColor(200,0,0) );
-            theScene->insert(frustObj1);
-        }
+//         frustObj1 = opengl::CFrustum::Create();
+//         {
+//             frustObj1->setPose(pose+frustumR_ );
+//             frustObj1->setLineWidth (slinef);
+//             frustObj1->setScale(sfrust*100);
+//             frustObj1->setColor_u8( TColor(200,0,0) );
+//             theScene->insert(frustObj1);
+//         }
     }
 
-    // Update the image
+    // Update the image 把真实图片画出来
     if(hasImg)
         image->setImageView( img_mrpt_image );
 
     // Re-paint the scene
     win->unlockAccess3DScene();
     win->repaint();
-
-    return restart;
-
-}
-
-bool slamScene::updateSceneVO( Matrix4d T_last_kf ){
-
-    theScene = win->get3DSceneAndLock();
-    bool restart = false;
-
-    theScene->removeObject( frustObj );
-    theScene->removeObject( frustObj1 );
-
-    // Update the camera pose
-    pose = CPose3D( getPoseFormat( T_last_kf ) );
-    {
-        CPose3D x_aux1(getPoseFormat(x));
-        pose = pose + x_aux1;
-        v_aux_ = v_aux;
-        pose.getAsVector(v_aux);
-        frustObj  = opengl::CFrustum::Create();
-        {
-            frustObj->setPose(pose+frustumL_);
-            frustObj->setLineWidth (slinef);
-            frustObj->setScale(sfrust);
-            frustObj->setColor_u8( TColor(200,0,0) );
-            theScene->insert(frustObj);
-        }
-        frustObj1 = opengl::CFrustum::Create();
-        {
-            frustObj1->setPose(pose+frustumR_ );
-            frustObj1->setLineWidth (slinef);
-            frustObj1->setScale(sfrust);
-            frustObj1->setColor_u8( TColor(200,0,0) );
-            theScene->insert(frustObj1);
-        }
-    }
-
-    // Update the image
-    if(hasImg)
-        image->setImageView( img_mrpt_image );    
-
-    // Re-paint the scene
-    win->unlockAccess3DScene();
-    win->repaint();
-
-    return restart;
-
-}
-
-bool slamScene::updateScene(const MapHandler* map){
-
-    theScene = win->get3DSceneAndLock();
-    bool restart = false;
-
-    theScene->removeObject( kfsObj );
-    theScene->removeObject( kfsLinesObj );
-    theScene->removeObject( frustObj );
-    theScene->removeObject( frustObj1 );
-
-    // Represent KFs
-    CPose3D kf_pose;
-    Vector3d Pi;
-    try{
-    Pi = map->map_keyframes[0]->T_kf_w.col(3).head(3);
-    }catch(...){}
-    Vector3d Pj;
-    kfsObj      = opengl::CSetOfObjects::Create();
-    kfsLinesObj = opengl::CSetOfLines::Create();
-    for( vector<KeyFrame*>::const_iterator it = map->map_keyframes.begin(); it != map->map_keyframes.end(); it++ )
-    {
-        if( (*it)!=NULL )
-        {
-            // if last keyframe
-            if( (*it)->kf_idx == map->map_keyframes.back()->kf_idx )
-            {
-                kf_pose = CPose3D( getPoseFormat( (*it)->T_kf_w ) );
-                opengl::CFrustumPtr frust_ = opengl::CFrustum::Create();
-                {
-                    frust_->setPose( kf_pose + frustumL_ );
-                    frust_->setLineWidth (slinef);
-                    frust_->setScale(sfrust / 2.0 );
-                    if( (*it)->local )
-                        frust_->setColor_u8( TColor(200,0,0) );
-                    else
-                        frust_->setColor_u8( TColor(0,0,200) );
-                    kfsObj->insert( frust_ );
-                }
-                // represent spanning tree
-                Pj = (*it)->T_kf_w.col(3).head(3);
-                kfsLinesObj->appendLine( Pi(0),Pi(1),Pi(2), Pj(0),Pj(1),Pj(2) );
-                Pi = Pj;
-                // represent VO frustum
-                frustObj  = opengl::CFrustum::Create();
-                {
-                    frustObj->setPose( kf_pose + frustumL_ );
-                    frustObj->setLineWidth (slinef);
-                    frustObj->setScale(sfrust);
-                    frustObj->setColor_u8( TColor(200,0,0) );
-                    theScene->insert(frustObj);
-                }
-                frustObj1 = opengl::CFrustum::Create();
-                {
-                    frustObj1->setPose( kf_pose + frustumR_ );
-                    frustObj1->setLineWidth (slinef);
-                    frustObj1->setScale(sfrust);
-                    frustObj1->setColor_u8( TColor(200,0,0) );
-                    theScene->insert(frustObj1);
-                }
-                pose = kf_pose;
-            }
-            // if not
-            else
-            {
-                kf_pose = CPose3D( getPoseFormat( (*it)->T_kf_w ) );
-                opengl::CFrustumPtr frust_ = opengl::CFrustum::Create();
-                {
-                    frust_->setPose( kf_pose + frustumL_ );
-                    frust_->setLineWidth (slinef);
-                    frust_->setScale(sfrust / 2.0);
-                    if( (*it)->local )
-                        frust_->setColor_u8( TColor(200,0,0) );
-                    else
-                        frust_->setColor_u8( TColor(0,0,200) );
-                    kfsObj->insert( frust_ );
-                }
-                // represent spanning tree
-                Pj = (*it)->T_kf_w.col(3).head(3);
-                kfsLinesObj->appendLine( Pi(0),Pi(1),Pi(2), Pj(0),Pj(1),Pj(2) );
-                Pi = Pj;
-            }
-        }
-    }
-    kfsLinesObj->setLineWidth(0.5f);
-    kfsLinesObj->setColor(0,0.5,0);
-    theScene->insert( kfsLinesObj );
-    theScene->insert( kfsObj );
-
-    // Represent point LMs
-    if( hasPoints )
-    {
-        pointObj->clear();
-        pointObj_local->clear();
-        for( vector<MapPoint*>::const_iterator it = map->map_points.begin(); it!=map->map_points.end(); it++)
-        {
-            try{
-            if( (*it)!=NULL )
-            {
-                if( (*it)->local )
-                    pointObj_local->insertPoint( (*it)->point3D(0),(*it)->point3D(1),(*it)->point3D(2) );
-                else
-                    pointObj->insertPoint( (*it)->point3D(0),(*it)->point3D(1),(*it)->point3D(2) );
-            }
-            }catch(...){}
-        }
-    }
-
-    // Represent line LMs
-    if( hasLines )
-    {
-        lineObj->clear();
-        lineObj_local->clear();
-        for( vector<MapLine*>::const_iterator it = map->map_lines.begin(); it!=map->map_lines.end(); it++)
-        {
-            try{
-            if( (*it)!=NULL )
-            {
-                Vector6d L;
-                L = (*it)->line3D;
-                if( (*it)->local )
-                    lineObj_local->appendLine( L(0),L(1),L(2),L(3),L(4),L(5) );
-                else
-                    lineObj->appendLine( L(0),L(1),L(2),L(3),L(4),L(5) );
-            }
-            }catch(...){}
-        }
-    }
-
-    // Update the text
-    if(hasText){
-        string text = "KeyFrame: \t" + to_string(frame) + " \nFrequency: \t" + to_string_with_precision(1000.f/time,4) + " Hz \nPoints:   \t" + to_string(nPoints) + "\nLines:    \t" + to_string(nLines);
-        //string text = "Frame: \t \t" + to_string(frame) + " \n" + "Frequency: \t" + to_string_with_precision(1000.f/time,4) + " Hz \n" + "Lines:  \t" + to_string(nLines) + " (" + to_string(nLinesH) + ") \nPoints: \t" + to_string(nPoints) + " (" + to_string(nPointsH) + ")";
-        win->addTextMessage(0.85,0.95, text, TColorf(.0,.0,.0), 0, mrpt::opengl::MRPT_GLUT_BITMAP_TIMES_ROMAN_10 );
-    }
-
-    // Update the image
-    if(hasImg)
-        image->setImageView( img_mrpt_image );
-
-    // Re-paint the scene
-    win->unlockAccess3DScene();
-    win->repaint();
-
-    // Key events
-    if(win->keyHit()){
-        key = win->getPushedKey(&kmods);
-        if(key == MRPTK_SPACE){                     // Space    Reset VO
-            theScene->clear();
-            initializeScene(x_ini);
-        }
-        else if (key == MRPTK_ESCAPE){              // Esc      Restart VO
-            theScene->clear();
-            initializeScene(x_ini);
-            restart = true;
-        }
-        else if ( (key == 104) || (key == 72) ){    // H        help
-            hasHelp   = !hasHelp;
-            if(!hasHelp)
-                help->setViewportPosition(2000, 2000, 300, 376);
-            else
-                help->setViewportPosition(1600, 20, 300, 376);
-        }
-        else if ( (key == 103) || (key == 71) ){    // G        legend
-            hasLegend   = !hasLegend;
-            if(!hasLegend)
-                legend->setViewportPosition(2000, 2000, 250, 97);
-            else
-                legend->setViewportPosition(20, 900, 250, 97);
-        }
-        else if ( (key ==  97) || (key == 65) ){    // A        axes
-            hasAxes   = !hasAxes;
-            if(!hasAxes){
-                axesObj.clear();
-            }
-            else{
-                axesObj = opengl::CAxis::Create();
-                axesObj->setFrequency(sfreq);
-                axesObj->enableTickMarks(false);
-                axesObj->setAxisLimits(-saxis,-saxis,-saxis, saxis,saxis,saxis);
-                theScene->insert( axesObj );
-            }
-        }
-        else if ( (key == 112) || (key == 80) ){    // P        points
-            hasPoints = !hasPoints;
-            if(!hasPoints){
-                elliObjP.clear();
-            }
-            else{
-                elliObjP = opengl::CSetOfObjects::Create();
-                elliObjP->setScale(selli);
-                elliObjP->setPose(pose);
-                theScene->insert(elliObjP);
-            }
-        }
-        else if ( (key == 108) || (key == 76) ){    // L        lines
-            hasLines  = !hasLines;
-            if(!hasLines){
-                elliObjL.clear();
-            }
-            else{
-                elliObjL = opengl::CSetOfObjects::Create();
-                elliObjL->setScale(selli);
-                elliObjL->setPose(pose);
-                theScene->insert(elliObjL);
-            }
-        }
-        else if ( (key == 116) || (key == 84) ){    // T        text
-            hasText  = !hasText;
-            if(!hasText){
-                string text = "";
-                win->addTextMessage(0.85,0.95, text, TColorf(1.0,1.0,1.0), 0, mrpt::opengl::MRPT_GLUT_BITMAP_HELVETICA_10 );
-            }
-        }
-        else if ( (key == 105) || (key == 73) ){    // I        image
-            hasImg   = !hasImg;
-            if(isKitti){
-                if(hasImg)
-                    image->setViewportPosition(20, 20, 621, 188);
-                else
-                    image->setViewportPosition(2000, 2000, 621, 188);
-            }
-            else{
-                if(hasImg)
-                    image->setViewportPosition(20, 20, 400, 300);
-                else
-                    image->setViewportPosition(2000, 2000, 400, 300);
-            }
-
-        }
-    }
 
     return restart;
 
@@ -567,6 +303,7 @@ bool slamScene::updateSceneSafe(const MapHandler* map){
     CPose3D kf_pose;
     Vector3d Pi;
     try{
+        //轨迹初始点
     Pi = map->map_keyframes[0]->T_kf_w.col(3).head(3);
     }catch(...){}
     Vector3d Pj;
@@ -580,11 +317,13 @@ bool slamScene::updateSceneSafe(const MapHandler* map){
             if( (*it)->kf_idx == map->map_keyframes.back()->kf_idx )
             {
                 kf_pose = CPose3D( getPoseFormat( (*it)->T_kf_w ) );
+                //相机三角锥
                 opengl::CFrustumPtr frust_ = opengl::CFrustum::Create();
                 {
                     frust_->setPose( kf_pose + frustumL_ );
-                    frust_->setLineWidth (slinef);
-                    frust_->setScale(sfrust / 2.0 );
+                    frust_->setLineWidth (slinef*10);
+                    frust_->setScale(sfrust * 100 );
+                    //如果是局部地图就是红色的，不是就是蓝色的
                     if( (*it)->local )
                         frust_->setColor_u8( TColor(200,0,0) );
                     else
@@ -593,28 +332,29 @@ bool slamScene::updateSceneSafe(const MapHandler* map){
                 }
                 // represent spanning tree
                 Pj = (*it)->T_kf_w.col(3).head(3);
+                //把轨迹连上
                 kfsLinesObj->appendLine( Pi(0),Pi(1),Pi(2), Pj(0),Pj(1),Pj(2) );
                 Pi = Pj;
-                // represent VO frustum
-                frustObj  = opengl::CFrustum::Create();
-                {
-                    frustObj->setPose( kf_pose + frustumL_ );
-                    frustObj->setLineWidth (slinef);
-                    frustObj->setScale(sfrust);
-                    frustObj->setColor_u8( TColor(200,0,0) );
-                    theScene->insert(frustObj);
-                }
-                frustObj1 = opengl::CFrustum::Create();
-                {
-                    frustObj1->setPose( kf_pose + frustumR_ );
-                    frustObj1->setLineWidth (slinef);
-                    frustObj1->setScale(sfrust);
-                    frustObj1->setColor_u8( TColor(200,0,0) );
-                    theScene->insert(frustObj1);
-                }
+                // represent VO frustum 
+//                 frustObj  = opengl::CFrustum::Create();
+//                 {
+//                     frustObj->setPose( kf_pose + frustumL_ );
+//                     frustObj->setLineWidth (slinef);
+//                     frustObj->setScale(sfrust*200);
+//                     frustObj->setColor_u8( TColor(200,0,0) );
+//                     theScene->insert(frustObj);
+//                 }
+//                 frustObj1 = opengl::CFrustum::Create();
+//                 {
+//                     frustObj1->setPose( kf_pose + frustumR_ );
+//                     frustObj1->setLineWidth (slinef);
+//                     frustObj1->setScale(sfrust);
+//                     frustObj1->setColor_u8( TColor(200,0,0) );
+//                     theScene->insert(frustObj1);
+//                 }
                 pose = kf_pose;
             }
-            // if not
+            // 如果不是最后一个关键帧
             else
             {
                 kf_pose = CPose3D( getPoseFormat( (*it)->T_kf_w ) );
@@ -622,7 +362,7 @@ bool slamScene::updateSceneSafe(const MapHandler* map){
                 {
                     frust_->setPose( kf_pose + frustumL_ );
                     frust_->setLineWidth (slinef);
-                    frust_->setScale(sfrust / 2.0);
+                    frust_->setScale(sfrust * 30);
                     if( (*it)->local )
                         frust_->setColor_u8( TColor(200,0,0) );
                     else
@@ -636,8 +376,9 @@ bool slamScene::updateSceneSafe(const MapHandler* map){
             }
         }
     }
-    kfsLinesObj->setLineWidth(0.5f);
-    kfsLinesObj->setColor(0,0.5,0);
+    //轨迹线的宽度和色彩
+    kfsLinesObj->setLineWidth(1.5f);
+    kfsLinesObj->setColor(0,255,0);
     theScene->insert( kfsLinesObj );
     theScene->insert( kfsObj );
 
@@ -679,14 +420,14 @@ bool slamScene::updateSceneSafe(const MapHandler* map){
         }
     }
 
+    keyFrameNum+=1;
     // Update the text
-    if(hasText){
-        string text = "KeyFrame: \t" + to_string(frame) + " \nFrequency: \t" + to_string_with_precision(1000.f/time,4) + " Hz \nPoints:   \t" + to_string(nPoints) + "\nLines:    \t" + to_string(nLines);
-        //string text = "Frame: \t \t" + to_string(frame) + " \n" + "Frequency: \t" + to_string_with_precision(1000.f/time,4) + " Hz \n" + "Lines:  \t" + to_string(nLines) + " (" + to_string(nLinesH) + ") \nPoints: \t" + to_string(nPoints) + " (" + to_string(nPointsH) + ")";
+    //if(hasText)
+    {
+        string text = "Frame: \t" + to_string(frame) + "\nkeyFrame:   \t" + to_string(keyFrameNum) + "\nPoints:   \t" + to_string(nPoints) + "\nLines:    \t" + to_string(nLines);
         win->addTextMessage(0.85,0.95, text, TColorf(.0,.0,.0), 0, mrpt::opengl::MRPT_GLUT_BITMAP_TIMES_ROMAN_10 );
     }
-
-    // Update the image
+    // Update the image 把真实图片画出来
     if(hasImg)
         image->setImageView( img_mrpt_image );
 
@@ -695,92 +436,92 @@ bool slamScene::updateSceneSafe(const MapHandler* map){
     win->repaint();
 
     // Key events
-    if(win->keyHit()){
-        key = win->getPushedKey(&kmods);
-        if(key == MRPTK_SPACE){                     // Space    Reset VO
-            theScene->clear();
-            initializeScene(x_ini);
-        }
-        else if (key == MRPTK_ESCAPE){              // Esc      Restart VO
-            theScene->clear();
-            initializeScene(x_ini);
-            restart = true;
-        }
-        else if ( (key == 104) || (key == 72) ){    // H        help
-            hasHelp   = !hasHelp;
-            if(!hasHelp)
-                help->setViewportPosition(2000, 2000, 300, 376);
-            else
-                help->setViewportPosition(1600, 20, 300, 376);
-        }
-        else if ( (key == 103) || (key == 71) ){    // G        legend
-            hasLegend   = !hasLegend;
-            if(!hasLegend)
-                legend->setViewportPosition(2000, 2000, 250, 97);
-            else
-                legend->setViewportPosition(20, 900, 250, 97);
-        }
-        else if ( (key ==  97) || (key == 65) ){    // A        axes
-            hasAxes   = !hasAxes;
-            if(!hasAxes){
-                axesObj.clear();
-            }
-            else{
-                axesObj = opengl::CAxis::Create();
-                axesObj->setFrequency(sfreq);
-                axesObj->enableTickMarks(false);
-                axesObj->setAxisLimits(-saxis,-saxis,-saxis, saxis,saxis,saxis);
-                theScene->insert( axesObj );
-            }
-        }
-        else if ( (key == 112) || (key == 80) ){    // P        points
-            hasPoints = !hasPoints;
-            if(!hasPoints){
-                elliObjP.clear();
-            }
-            else{
-                elliObjP = opengl::CSetOfObjects::Create();
-                elliObjP->setScale(selli);
-                elliObjP->setPose(pose);
-                theScene->insert(elliObjP);
-            }
-        }
-        else if ( (key == 108) || (key == 76) ){    // L        lines
-            hasLines  = !hasLines;
-            if(!hasLines){
-                elliObjL.clear();
-            }
-            else{
-                elliObjL = opengl::CSetOfObjects::Create();
-                elliObjL->setScale(selli);
-                elliObjL->setPose(pose);
-                theScene->insert(elliObjL);
-            }
-        }
-        else if ( (key == 116) || (key == 84) ){    // T        text
-            hasText  = !hasText;
-            if(!hasText){
-                string text = "";
-                win->addTextMessage(0.85,0.95, text, TColorf(1.0,1.0,1.0), 0, mrpt::opengl::MRPT_GLUT_BITMAP_HELVETICA_10 );
-            }
-        }
-        else if ( (key == 105) || (key == 73) ){    // I        image
-            hasImg   = !hasImg;
-            if(isKitti){
-                if(hasImg)
-                    image->setViewportPosition(20, 20, 621, 188);
-                else
-                    image->setViewportPosition(2000, 2000, 621, 188);
-            }
-            else{
-                if(hasImg)
-                    image->setViewportPosition(20, 20, 400, 300);
-                else
-                    image->setViewportPosition(2000, 2000, 400, 300);
-            }
-
-        }
-    }
+//     if(win->keyHit()){
+//         key = win->getPushedKey(&kmods);
+//         if(key == MRPTK_SPACE){                     // Space    Reset VO
+//             theScene->clear();
+//             initializeScene(x_ini);
+//         }
+//         else if (key == MRPTK_ESCAPE){              // Esc      Restart VO
+//             theScene->clear();
+//             initializeScene(x_ini);
+//             restart = true;
+//         }
+//         else if ( (key == 104) || (key == 72) ){    // H        help
+//             hasHelp   = !hasHelp;
+//             if(!hasHelp)
+//                 help->setViewportPosition(2000, 2000, 300, 376);
+//             else
+//                 help->setViewportPosition(1600, 20, 300, 376);
+//         }
+//         else if ( (key == 103) || (key == 71) ){    // G        legend
+//             hasLegend   = !hasLegend;
+//             if(!hasLegend)
+//                 legend->setViewportPosition(2000, 2000, 250, 97);
+//             else
+//                 legend->setViewportPosition(20, 900, 250, 97);
+//         }
+//         else if ( (key ==  97) || (key == 65) ){    // A        axes
+//             hasAxes   = !hasAxes;
+//             if(!hasAxes){
+//                 axesObj.clear();
+//             }
+//             else{
+//                 axesObj = opengl::CAxis::Create();
+//                 axesObj->setFrequency(sfreq);
+//                 axesObj->enableTickMarks(false);
+//                 axesObj->setAxisLimits(-saxis,-saxis,-saxis, saxis,saxis,saxis);
+//                 theScene->insert( axesObj );
+//             }
+//         }
+//         else if ( (key == 112) || (key == 80) ){    // P        points
+//             hasPoints = !hasPoints;
+//             if(!hasPoints){
+//                 elliObjP.clear();
+//             }
+//             else{
+//                 elliObjP = opengl::CSetOfObjects::Create();
+//                 elliObjP->setScale(selli);
+//                 elliObjP->setPose(pose);
+//                 theScene->insert(elliObjP);
+//             }
+//         }
+//         else if ( (key == 108) || (key == 76) ){    // L        lines
+//             hasLines  = !hasLines;
+//             if(!hasLines){
+//                 elliObjL.clear();
+//             }
+//             else{
+//                 elliObjL = opengl::CSetOfObjects::Create();
+//                 elliObjL->setScale(selli);
+//                 elliObjL->setPose(pose);
+//                 theScene->insert(elliObjL);
+//             }
+//         }
+//         else if ( (key == 116) || (key == 84) ){    // T        text
+//             hasText  = !hasText;
+//             if(!hasText){
+//                 string text = "";
+//                 win->addTextMessage(0.85,0.95, text, TColorf(1.0,1.0,1.0), 0, mrpt::opengl::MRPT_GLUT_BITMAP_HELVETICA_10 );
+//             }
+//         }
+//         else if ( (key == 105) || (key == 73) ){    // I        image
+//             hasImg   = !hasImg;
+//             if(isKitti){
+//                 if(hasImg)
+//                     image->setViewportPosition(20, 20, 621, 188);
+//                 else
+//                     image->setViewportPosition(2000, 2000, 621, 188);
+//             }
+//             else{
+//                 if(hasImg)
+//                     image->setViewportPosition(20, 20, 400, 300);
+//                 else
+//                     image->setViewportPosition(2000, 2000, 400, 300);
+//             }
+// 
+//         }
+//     }
 
     return restart;
 
@@ -994,7 +735,7 @@ void slamScene::setPose(Matrix4d x_){
 }
 
 void slamScene::setPoints(CMatrixFloat pData_){
-    pData = pData_;
+    pData = pData_;//
 }
 
 void slamScene::setLines(CMatrixFloat lData_){
@@ -1074,4 +815,284 @@ bool slamScene::getPose(Matrix4d &T){
     }
 }
 
+
+bool slamScene::updateSceneVO( Matrix4d T_last_kf ){
+
+    theScene = win->get3DSceneAndLock();
+    bool restart = false;
+
+    theScene->removeObject( frustObj );
+    theScene->removeObject( frustObj1 );
+
+    // Update the camera pose
+    pose = CPose3D( getPoseFormat( T_last_kf ) );
+    {
+        CPose3D x_aux1(getPoseFormat(x));
+        pose = pose + x_aux1;
+        v_aux_ = v_aux;
+        pose.getAsVector(v_aux);
+        frustObj  = opengl::CFrustum::Create();
+        {
+            frustObj->setPose(pose+frustumL_);
+            frustObj->setLineWidth (slinef);
+            frustObj->setScale(sfrust);
+            frustObj->setColor_u8( TColor(200,0,0) );
+            theScene->insert(frustObj);
+        }
+        frustObj1 = opengl::CFrustum::Create();
+        {
+            frustObj1->setPose(pose+frustumR_ );
+            frustObj1->setLineWidth (slinef);
+            frustObj1->setScale(sfrust);
+            frustObj1->setColor_u8( TColor(200,0,0) );
+            theScene->insert(frustObj1);
+        }
+    }
+
+    // Update the image
+    if(hasImg)
+        image->setImageView( img_mrpt_image );    
+
+    // Re-paint the scene
+    win->unlockAccess3DScene();
+    win->repaint();
+
+    return restart;
+
 }
+
+bool slamScene::updateScene(const MapHandler* map){
+
+    theScene = win->get3DSceneAndLock();
+    bool restart = false;
+
+    theScene->removeObject( kfsObj );
+    theScene->removeObject( kfsLinesObj );
+    theScene->removeObject( frustObj );
+    theScene->removeObject( frustObj1 );
+
+    // Represent KFs
+    CPose3D kf_pose;
+    Vector3d Pi;
+    try{
+    Pi = map->map_keyframes[0]->T_kf_w.col(3).head(3);
+    }catch(...){}
+    Vector3d Pj;
+    kfsObj      = opengl::CSetOfObjects::Create();
+    kfsLinesObj = opengl::CSetOfLines::Create();
+    for( vector<KeyFrame*>::const_iterator it = map->map_keyframes.begin(); it != map->map_keyframes.end(); it++ )
+    {
+        if( (*it)!=NULL )
+        {
+            // if last keyframe
+            if( (*it)->kf_idx == map->map_keyframes.back()->kf_idx )
+            {
+                kf_pose = CPose3D( getPoseFormat( (*it)->T_kf_w ) );
+                opengl::CFrustumPtr frust_ = opengl::CFrustum::Create();
+                {
+                    frust_->setPose( kf_pose + frustumL_ );
+                    frust_->setLineWidth (slinef);
+                    frust_->setScale(sfrust / 2.0 );
+                    if( (*it)->local )
+                        frust_->setColor_u8( TColor(200,0,0) );
+                    else
+                        frust_->setColor_u8( TColor(0,0,200) );
+                    kfsObj->insert( frust_ );
+                }
+                // represent spanning tree
+                Pj = (*it)->T_kf_w.col(3).head(3);
+                kfsLinesObj->appendLine( Pi(0),Pi(1),Pi(2), Pj(0),Pj(1),Pj(2) );
+                Pi = Pj;
+                // represent VO frustum
+                frustObj  = opengl::CFrustum::Create();
+                {
+                    frustObj->setPose( kf_pose + frustumL_ );
+                    frustObj->setLineWidth (slinef);
+                    frustObj->setScale(sfrust);
+                    frustObj->setColor_u8( TColor(200,0,0) );
+                    theScene->insert(frustObj);
+                }
+                frustObj1 = opengl::CFrustum::Create();
+                {
+                    frustObj1->setPose( kf_pose + frustumR_ );
+                    frustObj1->setLineWidth (slinef);
+                    frustObj1->setScale(sfrust);
+                    frustObj1->setColor_u8( TColor(200,0,0) );
+                    theScene->insert(frustObj1);
+                }
+                pose = kf_pose;
+            }
+            // if not
+            else
+            {
+                kf_pose = CPose3D( getPoseFormat( (*it)->T_kf_w ) );
+                opengl::CFrustumPtr frust_ = opengl::CFrustum::Create();
+                {
+                    frust_->setPose( kf_pose + frustumL_ );
+                    frust_->setLineWidth (slinef);
+                    frust_->setScale(sfrust / 2.0);
+                    if( (*it)->local )
+                        frust_->setColor_u8( TColor(200,0,0) );
+                    else
+                        frust_->setColor_u8( TColor(0,0,200) );
+                    kfsObj->insert( frust_ );
+                }
+                // represent spanning tree
+                Pj = (*it)->T_kf_w.col(3).head(3);
+                kfsLinesObj->appendLine( Pi(0),Pi(1),Pi(2), Pj(0),Pj(1),Pj(2) );
+                Pi = Pj;
+            }
+        }
+    }
+    kfsLinesObj->setLineWidth(1.5f);
+    kfsLinesObj->setColor(0,255,0);
+    theScene->insert( kfsLinesObj );
+    theScene->insert( kfsObj );
+
+    // Represent point LMs
+    if( hasPoints )
+    {
+        pointObj->clear();
+        pointObj_local->clear();
+        for( vector<MapPoint*>::const_iterator it = map->map_points.begin(); it!=map->map_points.end(); it++)
+        {
+            try{
+            if( (*it)!=NULL )
+            {
+                if( (*it)->local )
+                    pointObj_local->insertPoint( (*it)->point3D(0),(*it)->point3D(1),(*it)->point3D(2) );
+                else
+                    pointObj->insertPoint( (*it)->point3D(0),(*it)->point3D(1),(*it)->point3D(2) );
+            }
+            }catch(...){}
+        }
+    }
+
+    // Represent line LMs
+    if( hasLines )
+    {
+        lineObj->clear();
+        lineObj_local->clear();
+        for( vector<MapLine*>::const_iterator it = map->map_lines.begin(); it!=map->map_lines.end(); it++)
+        {
+            try{
+            if( (*it)!=NULL )
+            {
+                Vector6d L;
+                L = (*it)->line3D;
+                if( (*it)->local )
+                    lineObj_local->appendLine( L(0),L(1),L(2),L(3),L(4),L(5) );
+                else
+                    lineObj->appendLine( L(0),L(1),L(2),L(3),L(4),L(5) );
+            }
+            }catch(...){}
+        }
+    }
+    // Update the text
+    if(hasText){
+        string text = "KeyFrame: \t" + to_string(frame) + " \nFrequency: \t" + to_string_with_precision(1000.f/time,4) + " Hz \nPoints:   \t" + to_string(nPoints) + "\nLines:    \t" + to_string(nLines);
+        //string text = "Frame: \t \t" + to_string(frame) + " \n" + "Frequency: \t" + to_string_with_precision(1000.f/time,4) + " Hz \n" + "Lines:  \t" + to_string(nLines) + " (" + to_string(nLinesH) + ") \nPoints: \t" + to_string(nPoints) + " (" + to_string(nPointsH) + ")";
+        win->addTextMessage(0.85,0.95, text, TColorf(.0,.0,.0), 0, mrpt::opengl::MRPT_GLUT_BITMAP_TIMES_ROMAN_10 );
+    }
+
+    // Update the image
+    if(hasImg)
+        image->setImageView( img_mrpt_image );
+
+    // Re-paint the scene
+    win->unlockAccess3DScene();
+    win->repaint();
+
+    // Key events
+    if(win->keyHit()){
+        key = win->getPushedKey(&kmods);
+        if(key == MRPTK_SPACE){                     // Space    Reset VO
+            theScene->clear();
+            initializeScene(x_ini);
+        }
+        else if (key == MRPTK_ESCAPE){              // Esc      Restart VO
+            theScene->clear();
+            initializeScene(x_ini);
+            restart = true;
+        }
+        else if ( (key == 104) || (key == 72) ){    // H        help
+            hasHelp   = !hasHelp;
+            if(!hasHelp)
+                help->setViewportPosition(2000, 2000, 300, 376);
+            else
+                help->setViewportPosition(1600, 20, 300, 376);
+        }
+        else if ( (key == 103) || (key == 71) ){    // G        legend
+            hasLegend   = !hasLegend;
+            if(!hasLegend)
+                legend->setViewportPosition(2000, 2000, 250, 97);
+            else
+                legend->setViewportPosition(20, 900, 250, 97);
+        }
+        else if ( (key ==  97) || (key == 65) ){    // A        axes
+            hasAxes   = !hasAxes;
+            if(!hasAxes){
+                axesObj.clear();
+            }
+            else{
+                axesObj = opengl::CAxis::Create();
+                axesObj->setFrequency(sfreq);
+                axesObj->enableTickMarks(false);
+                axesObj->setAxisLimits(-saxis,-saxis,-saxis, saxis,saxis,saxis);
+                theScene->insert( axesObj );
+            }
+        }
+        else if ( (key == 112) || (key == 80) ){    // P        points
+            hasPoints = !hasPoints;
+            if(!hasPoints){
+                elliObjP.clear();
+            }
+            else{
+                elliObjP = opengl::CSetOfObjects::Create();
+                elliObjP->setScale(selli);
+                elliObjP->setPose(pose);
+                theScene->insert(elliObjP);
+            }
+        }
+        else if ( (key == 108) || (key == 76) ){    // L        lines
+            hasLines  = !hasLines;
+            if(!hasLines){
+                elliObjL.clear();
+            }
+            else{
+                elliObjL = opengl::CSetOfObjects::Create();
+                elliObjL->setScale(selli);
+                elliObjL->setPose(pose);
+                theScene->insert(elliObjL);
+            }
+        }
+        else if ( (key == 116) || (key == 84) ){    // T        text
+            hasText  = !hasText;
+            if(!hasText){
+                string text = "";
+                win->addTextMessage(0.85,0.95, text, TColorf(1.0,1.0,1.0), 0, mrpt::opengl::MRPT_GLUT_BITMAP_HELVETICA_10 );
+            }
+        }
+        else if ( (key == 105) || (key == 73) ){    // I        image
+            hasImg   = !hasImg;
+            if(isKitti){
+                if(hasImg)
+                    image->setViewportPosition(20, 20, 621, 188);
+                else
+                    image->setViewportPosition(2000, 2000, 621, 188);
+            }
+            else{
+                if(hasImg)
+                    image->setViewportPosition(20, 20, 400, 300);
+                else
+                    image->setViewportPosition(2000, 2000, 400, 300);
+            }
+
+        }
+    }
+
+    return restart;
+
+}
+}
+
