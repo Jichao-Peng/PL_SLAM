@@ -13,3 +13,4 @@ pl_slam/vocabulary/mapir_lsd.yml
 pl_slam/vocabulary/mapir_orb.yml 
 pl_slam/vocabulary/mapir_fld.yml
 /line-point
+*.udb
