@@ -205,11 +205,12 @@ void StereoFrame::matchStereoPoints( vector<KeyPoint> points_l, vector<KeyPoint>
                 Vector3d P_ = cam->backProjection(pl_(0), pl_(1), disp_);
                 //更新双目的点特征集
                 //initial frame_idx==0
-                //如果是第一帧初始化，对每个特征点进行标号，如果不是就先作为-1，之后再选择？
+                //如果是第一帧初始化，对每个特征点进行标号，因为是第一帧，认为所有关键点都是地图点
                 if (initial)
                     //放到点特征集里 像素坐标，视差，3D点，对应特征点的金字塔层级（int）
                     stereo_pt.push_back(new PointFeature(pl_, disp_, P_, pt_idx++, points_l[i1].octave));
                 else
+                    //如果不是就先作为-1，之后在局部建图线程里会更新
                     stereo_pt.push_back(new PointFeature(pl_, disp_, P_, -1, points_l[i1].octave));
             }
         }

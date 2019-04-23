@@ -47,8 +47,9 @@ MapHandler::MapHandler(PinholeStereoCamera* cam_)
 void MapHandler::initialize( KeyFrame *kf0 )
 {
     curr_kf = kf0;
+    prev_kf=curr_kf;
 
-    Twf = Matrix4d::Identity();
+    T_kf_w = Matrix4d::Identity();
     DT = Matrix4d::Identity();
 
     // reset information from the map
@@ -132,34 +133,28 @@ void MapHandler::addKeyFrame( KeyFrame *curr_kf )
         KeyFrame* prev_kf;        
         //获得map_keyframes 末尾的引用，就是上一个关键帧
         prev_kf = map_keyframes.back();
-        max_kf_idx++;
-        curr_kf->kf_idx = max_kf_idx;
         curr_kf->local  = true;
         // update pose of current keyframe wrt previous one (in case of LC local closure)
-        //curr_kf->T_kf_w是一个小值
-        Matrix4d T_curr_w = prev_kf->T_kf_w * curr_kf->T_kf_w;
-        
-//         cout<<"qiao1"<<endl;
-//         logT(prev_kf->T_kf_w);
-//         logT(curr_kf->T_kf_w);
-        
-        curr_kf->x_kf_w = logmap_se3(T_curr_w);
-        curr_kf->T_kf_w = expmap_se3(curr_kf->x_kf_w);
-        // Estimates Twf
-        Twf = expmap_se3(logmap_se3(  inverse_se3( curr_kf->T_kf_w ) ));
+        curr_kf->x_kf_w = logmap_se3(prev_kf->T_w_kf * curr_kf->T_kf_curr);
+        curr_kf->T_w_kf = expmap_se3(curr_kf->x_kf_w);
+        // Estimates T_kf_w
+        T_kf_w = expmap_se3(logmap_se3(  inverse_se3( curr_kf->T_w_kf ) ));
         // estimates pose increment
-        DT = expmap_se3(logmap_se3( Twf * prev_kf->T_kf_w ));
+        DT = expmap_se3(logmap_se3( T_kf_w * prev_kf->T_w_kf ));
         // reset indices
         for (PointFeature* pt : curr_kf->stereo_frame->stereo_pt)
             pt->idx = -1;
         for (LineFeature* ls : curr_kf->stereo_frame->stereo_ls)
             ls->idx = -1;
         // insert keyframe and add to map of indexes
-        vector<int> aux_vec;
         map_keyframes.push_back( curr_kf );
+        vector<int> aux_vec;
+        max_kf_idx++;
+        curr_kf->kf_idx = max_kf_idx;
         map_points_kf_idx.insert( std::make_pair(curr_kf->kf_idx, aux_vec) );
         map_lines_kf_idx.insert(  std::make_pair(curr_kf->kf_idx, aux_vec) );
         // call
+		//更新了kf_queue list<pair<KeyFrame*,KeyFrame*>>
         addKeyFrame_multiThread(curr_kf,prev_kf);
         return;
     }
@@ -184,16 +179,16 @@ void MapHandler::addKeyFrame( KeyFrame *curr_kf )
 
     // update pose of current keyframe wrt previous one (in case of LC)
     // wrt with respect to
-    Matrix4d T_curr_w = prev_kf->T_kf_w * curr_kf->T_kf_w;
+    Matrix4d T_curr_w = prev_kf->T_w_kf * curr_kf->T_w_kf;
     
     curr_kf->x_kf_w = logmap_se3(T_curr_w);
-    curr_kf->T_kf_w = expmap_se3(curr_kf->x_kf_w);
+    curr_kf->T_w_kf = expmap_se3(curr_kf->x_kf_w);
 
-    // Estimates Twf
-    Twf = expmap_se3(logmap_se3(  inverse_se3( curr_kf->T_kf_w ) ));
+    // Estimates T_kf_w
+    T_kf_w = expmap_se3(logmap_se3(  inverse_se3( curr_kf->T_w_kf ) ));
 
     // estimates pose increment
-    DT = expmap_se3(logmap_se3( Twf * prev_kf->T_kf_w ));
+    DT = expmap_se3(logmap_se3( T_kf_w * prev_kf->T_w_kf ));
 
     // reset indices
     for (PointFeature* pt : curr_kf->stereo_frame->stereo_pt)
@@ -259,7 +254,7 @@ int MapHandler::matchKF2KFPoints(KeyFrame *prev_kf, KeyFrame *curr_kf) {
     int matches = 0;
     vector<int> matches_12;
 
-    // small window; if it fails, run standard matching
+    // small window; if it fails, run standard matching Kitti数据集不使用，跳过
     if (SlamConfig::fastMatching()) {
         std::vector<point_2d> pj_points;
         pj_points.reserve(prev_frame->stereo_pt.size());
@@ -287,41 +282,43 @@ int MapHandler::matchKF2KFPoints(KeyFrame *prev_kf, KeyFrame *curr_kf) {
     if (curr_frame->stereo_pt.size() > SlamConfig::minPointMatches() &&
             prev_frame->stereo_pt.size() > SlamConfig::minPointMatches() &&
             matches < SlamConfig::minPointMatches()) {
+        //返还相邻关键帧的匹配数量match
         matches = match(prev_frame->pdesc_l, curr_frame->pdesc_l, SlamConfig::minRatio12P(), matches_12);
     }
 
     for (int i1 = 0; i1 < matches_12.size(); ++i1) {
         const int i2 = matches_12[i1];
         if (i2 < 0) continue;
-
+        //i1是上一个关键帧的特征点索引，i2是i1特征点对应的当前关键帧特征点的索引
         // this shouldn't happen
         if (prev_frame->stereo_pt[i1] == nullptr)
             throw runtime_error("[MapHandler] NULL stereo point (prev)");
         if (curr_frame->stereo_pt[i2] == nullptr)
             throw runtime_error("[MapHandler] NULL stereo point (curr)");
 
-        // new 3D landmark
+        // new 3D landmark（当前关键帧的特征匹配关系在之前已被清楚，判断上一帧的）
+        // 如果是新的3D路标
         if( prev_frame->stereo_pt[i1]->idx == -1 ) {
-            // assign indices
+            // assign indices 更新索引
             prev_frame->stereo_pt[i1]->idx = max_pt_idx;
             curr_frame->stereo_pt[i2]->idx = max_pt_idx;
             // create new 3D landmark with the observation from previous KF
-            Matrix4d Tfw = ( prev_kf->T_kf_w );
-            Vector3d P3d = Tfw.block(0,0,3,3) * prev_frame->stereo_pt[i1]->P + Tfw.col(3).head(3);
+            Vector3d P3d = prev_kf->T_w_kf.block(0,0,3,3) * prev_frame->stereo_pt[i1]->P + prev_kf->T_w_kf.col(3).head(3);
             //Vector3d dir = kf0->stereo_frame->stereo_pt[lr_qdx]->P / kf0->stereo_frame->stereo_pt[lr_qdx]->P.norm();
             Vector3d dir = P3d.normalized();
+            //地图点索引，世界坐标系下的坐标，描述子（上一帧里的），关键帧（上一帧）索引，（上一帧）像素坐标，归一化的世界坐标
             MapPoint* map_point = new MapPoint(max_pt_idx,
                                                P3d,
                                                prev_frame->pdesc_l.row(i1),
                                                kf1_idx,
                                                prev_frame->stereo_pt[i1]->pl,
                                                dir);
-            // add new 3D landmark to kf_idx where it was first observed
+            // add new 3D landmark to kf_idx where it was first observed//id的关键帧看见的所有地图点的集合
             map_points_kf_idx.at( kf1_idx ).push_back( max_pt_idx );
             // add observation of the 3D landmark from current KF
-            P3d = curr_kf->T_kf_w.block(0,0,3,3) * curr_frame->stereo_pt[i2]->P + curr_kf->T_kf_w.col(3).head(3);
-            //dir = kf1->stereo_frame->stereo_pt[lr_tdx]->P / kf1->stereo_frame->stereo_pt[lr_tdx]->P.norm();
-            dir = P3d / P3d.norm();
+            P3d = curr_kf->T_w_kf.block(0,0,3,3) * curr_frame->stereo_pt[i2]->P + curr_kf->T_w_kf.col(3).head(3);
+            dir = P3d.normalized();
+            //再建立一个观测关系,用当前帧(一个不同点可能有很多个观测)
             map_point->addMapPointObservation(curr_frame->pdesc_l.row(i2),
                                               kf2_idx,
                                               curr_frame->stereo_pt[i2]->pl,
@@ -329,24 +326,25 @@ int MapHandler::matchKF2KFPoints(KeyFrame *prev_kf, KeyFrame *curr_kf) {
             // add 3D landmark to map
             map_points.push_back(map_point);
             max_pt_idx++;
-            // update full graph (new feature)
+            // update full graph (new feature) 共视点越多，这个值越大
             full_graph[kf2_idx][kf1_idx]++;
             full_graph[kf1_idx][kf2_idx]++;
 
-            // if has refine pose:
+            // if has refine pose: 不进行此步
             if (SlamConfig::hasRefinement()) {
                 PointFeature* pt = prev_frame->stereo_pt[i1];
                 pt->pl_obs = curr_frame->stereo_pt[i2]->pl;
                 pt->inlier = true;
                 matched_pt.push_back(pt);
             }
-        } else { // 3D landmark exists: copy idx && add observation to map landmark
-            // copy idx
+        } else { 
+            // 3D landmark exists: copy idx && add observation to map landmark
+            // copy idx 如果是已存在的地图点，那就直接添加观测。（这种办法无法解决这种情况，ABC三帧，AC共视的B不共视，AC共视关系就不会建立，但后面还会有和地图点的匹配）
             int lm_idx = prev_frame->stereo_pt[i1]->idx;
             if (map_points[lm_idx] != nullptr) {
                 curr_frame->stereo_pt[i2]->idx = lm_idx;
                 // add observation of the 3D landmark from current KF
-                Vector3d p3d = curr_kf->T_kf_w.block(0,0,3,3) * curr_frame->stereo_pt[i2]->P + curr_kf->T_kf_w.col(3).head(3);
+                Vector3d p3d = curr_kf->T_w_kf.block(0,0,3,3) * curr_frame->stereo_pt[i2]->P + curr_kf->T_w_kf.col(3).head(3);
                 //Vector3d dir = kf1->stereo_frame->stereo_pt[lr_tdx]->P / kf1->stereo_frame->stereo_pt[lr_tdx]->P.norm();
                 Vector3d dir = p3d.normalized();
                 map_points[lm_idx]->addMapPointObservation(curr_frame->pdesc_l.row(i2),
@@ -371,7 +369,6 @@ int MapHandler::matchKF2KFPoints(KeyFrame *prev_kf, KeyFrame *curr_kf) {
             }
         }
     }
-
     return matches;
 }
 
@@ -454,7 +451,7 @@ int MapHandler::matchKF2KFLines(KeyFrame *prev_kf, KeyFrame *curr_kf) {
             prev_frame->stereo_ls[i1]->idx = max_ls_idx;
             curr_frame->stereo_ls[i2]->idx = max_ls_idx;
             // create new 3D landmark with the observation from previous KF
-            Matrix4d Tfw = ( prev_kf->T_kf_w );
+            Matrix4d Tfw = ( prev_kf->T_w_kf );
             Vector3d sP3d = Tfw.block(0,0,3,3) * prev_frame->stereo_ls[i1]->sP + Tfw.col(3).head(3);
             Vector3d eP3d = Tfw.block(0,0,3,3) * prev_frame->stereo_ls[i1]->eP + Tfw.col(3).head(3);
             Vector6d L3d;
@@ -474,7 +471,7 @@ int MapHandler::matchKF2KFLines(KeyFrame *prev_kf, KeyFrame *curr_kf) {
             map_lines_kf_idx.at( kf1_idx ).push_back( max_ls_idx );
             // add observation of the 3D landmark from current KF
             mP3d = 0.5*( curr_frame->stereo_ls[i2]->sP + curr_frame->stereo_ls[i2]->eP );
-            mP3d = curr_kf->T_kf_w.block(0,0,3,3) * mP3d + curr_kf->T_kf_w.col(3).head(3);
+            mP3d = curr_kf->T_w_kf.block(0,0,3,3) * mP3d + curr_kf->T_w_kf.col(3).head(3);
             mP3d = mP3d.normalized();
             pts << curr_frame->stereo_ls[i2]->spl, curr_frame->stereo_ls[i2]->epl;
             map_line->addMapLineObservation(curr_frame->ldesc_l.row(i2),
@@ -507,7 +504,7 @@ int MapHandler::matchKF2KFLines(KeyFrame *prev_kf, KeyFrame *curr_kf) {
                 curr_frame->stereo_ls[i2]->idx = lm_idx;
                 // add observation of the 3D landmark from current KF
                 Vector3d mP3d = 0.5*(curr_frame->stereo_ls[i2]->sP+curr_frame->stereo_ls[i2]->eP);
-                mP3d = curr_kf->T_kf_w.block(0,0,3,3) * mP3d + curr_kf->T_kf_w.col(3).head(3);
+                mP3d = curr_kf->T_w_kf.block(0,0,3,3) * mP3d + curr_kf->T_w_kf.col(3).head(3);
                 mP3d = mP3d.normalized();
                 Vector4d pts;
                 pts << curr_frame->stereo_ls[i2]->spl, curr_frame->stereo_ls[i2]->epl;
@@ -544,6 +541,7 @@ int MapHandler::matchKF2KFLines(KeyFrame *prev_kf, KeyFrame *curr_kf) {
 
 int MapHandler::matchMap2KFPoints() {
 
+    //取出当前关键帧实例和索引
     int kf2_idx = curr_kf->kf_idx;
     StVO::StereoFrame* curr_frame = curr_kf->stereo_frame;
 
@@ -554,13 +552,14 @@ int MapHandler::matchMap2KFPoints() {
 
     if (!SlamConfig::hasPoints() || curr_frame->stereo_pt.empty())
         return 0;
-
+    //遍历当前地图点里所有的点
     for (MapPoint* pt : map_points) {
-        // if it is local and not found in the current KF
+        // if it is local and not found in the current KF如果是局部地图里的，并且没有和当前帧匹配
         if (pt != nullptr && pt->local && pt->kf_obs_list.back() != kf2_idx) {
             // if the LM is projected inside the current image
-            Vector3d Pf = Twf.block(0,0,3,3) * pt->point3D + Twf.col(3).head(3);
+            Vector3d Pf = T_kf_w.block(0,0,3,3) * pt->point3D + T_kf_w.col(3).head(3);
             Vector2d pf = cam->projection(Pf);
+            //把这个地图点（世界坐标系）投影到图像坐标系里，如果在当前帧的图像内，则加入map_local_points中（此时还无法确定和当前关键帧哪个像素匹配）
             if (pf(0) > 0 && pf(0) < cam->getWidth() && pf(1) > 0 && pf(1) < cam->getHeight() && Pf(2) > 0.0) {
                 // add the point and its representative descriptor
                 map_local_points.push_back(pt);
@@ -570,7 +569,7 @@ int MapHandler::matchMap2KFPoints() {
         }
     }
 
-    // select unmatched points
+    // select unmatched points挑选出当前帧没有和地图点匹配的特征点
     vector<PointFeature*> unmatched_points;
     Mat unmatched_pt_desc;
     for( int idx = 0; idx < curr_kf->stereo_frame->stereo_pt.size(); ++idx) {
@@ -604,6 +603,7 @@ int MapHandler::matchMap2KFPoints() {
         matches = matchGrid(pj_points, map_lpt_desc, grid, unmatched_pt_desc, w, matches_12);
     }
 
+    //建立能投影在当前关键帧的地图点 和 当前关键帧没有匹配点直接的关系，用描述子
     if (pj_points.size() > SlamConfig::minPointMatches() &&
             map_local_points.size() > SlamConfig::minPointMatches() &&
             matches < SlamConfig::minPointMatches()) {
@@ -615,7 +615,7 @@ int MapHandler::matchMap2KFPoints() {
         const int i2 = matches_12[i1];
         if (i2 < 0) continue;
 
-        Vector3d Pf_map = Twf.block(0,0,3,3) * map_local_points[i1]->point3D + Twf.col(3).head(3);
+        Vector3d Pf_map = T_kf_w.block(0,0,3,3) * map_local_points[i1]->point3D + T_kf_w.col(3).head(3);
         Vector3d Pf_kf  = unmatched_points[i2]->P;
         // check that the viewing direction condition is also satisfied
         Vector3d dir_kf  = Pf_kf.normalized();
@@ -623,12 +623,13 @@ int MapHandler::matchMap2KFPoints() {
         Vector2d pf_map = cam->projection( Pf_map );
         Vector2d pf_kf  = unmatched_points[i2]->pl;
         double error_epip = ( pf_map - pf_kf ).norm();
+        //如果两个点像素距离也很近的话，更新地图点和当前关键帧的匹配关系（观测关系）（不会增加新的地图点）
         if (error_epip < SlamConfig::maxKFEpipP()) {
             // copy idx
             int lm_idx = map_local_points[i1]->idx;
             unmatched_points[i2]->idx = lm_idx;
             // add observation of the 3D LM from current KF
-            dir_kf = curr_kf->T_kf_w.block(0,0,3,3) * dir_kf + curr_kf->T_kf_w.col(3).head(3);
+            dir_kf = curr_kf->T_w_kf.block(0,0,3,3) * dir_kf + curr_kf->T_w_kf.col(3).head(3);
             map_points[lm_idx]->addMapPointObservation( unmatched_pt_desc.row(i2), kf2_idx, unmatched_points[i2]->pl, dir_kf );
             // update full graph (previously observed feature)
             for (int obs : map_points[lm_idx]->kf_obs_list) {
@@ -660,9 +661,9 @@ int MapHandler::matchMap2KFLines() {
     for (MapLine* ls : map_lines) {
         if (ls != nullptr && ls->local && ls->kf_obs_list.back() != kf2_idx) {
             // if the LM is projected inside the current image
-            Vector3d sPf = Twf.block(0,0,3,3) * ls->line3D.head(3) + Twf.col(3).head(3);
+            Vector3d sPf = T_kf_w.block(0,0,3,3) * ls->line3D.head(3) + T_kf_w.col(3).head(3);
             Vector2d spf = cam->projection( sPf );
-            Vector3d ePf = Twf.block(0,0,3,3) * ls->line3D.tail(3) + Twf.col(3).head(3);
+            Vector3d ePf = T_kf_w.block(0,0,3,3) * ls->line3D.tail(3) + T_kf_w.col(3).head(3);
             Vector2d epf = cam->projection( ePf );
             if (spf(0) > 0 && spf(0) < cam->getWidth() && spf(1) > 0 && spf(1) < cam->getHeight() && sPf(2) > 0.0 &&
                     epf(0) > 0 && epf(0) < cam->getWidth() && epf(1) > 0 && epf(1) < cam->getHeight() && ePf(2) > 0.0) {
@@ -730,9 +731,9 @@ int MapHandler::matchMap2KFLines() {
         const int i2 = matches_12[i1];
         if (i2 < 0) continue;
 
-        Vector3d sP_ = Twf.block(0,0,3,3) * map_local_lines[i1]->line3D.head(3) + Twf.col(3).head(3);
+        Vector3d sP_ = T_kf_w.block(0,0,3,3) * map_local_lines[i1]->line3D.head(3) + T_kf_w.col(3).head(3);
         Vector2d spl_proj = cam->projection( sP_ );
-        Vector3d eP_ = Twf.block(0,0,3,3) * map_local_lines[i1]->line3D.tail(3) + Twf.col(3).head(3);
+        Vector3d eP_ = T_kf_w.block(0,0,3,3) * map_local_lines[i1]->line3D.tail(3) + T_kf_w.col(3).head(3);
         Vector2d epl_proj = cam->projection( eP_ );
         Vector3d l_obs = unmatched_lines[i2]->le;
         // check the epipolar constraint
@@ -745,7 +746,7 @@ int MapHandler::matchMap2KFLines() {
             unmatched_lines[i2]->idx = lm_idx;
             // add observation of the 3D landmark from current KF
             Vector3d mP3d = 0.5*(unmatched_lines[i2]->sP + unmatched_lines[i2]->eP);
-            mP3d = curr_kf->T_kf_w.block(0,0,3,3) * mP3d + curr_kf->T_kf_w.col(3).head(3);
+            mP3d = curr_kf->T_w_kf.block(0,0,3,3) * mP3d + curr_kf->T_w_kf.col(3).head(3);
             mP3d = mP3d.normalized();
             Vector4d pts;
             pts << unmatched_lines[i2]->spl, unmatched_lines[i2]->epl;
@@ -763,20 +764,20 @@ int MapHandler::matchMap2KFLines() {
 
     return matches;
 }
-
+//传入pre cur
 void MapHandler::lookForCommonMatches( KeyFrame* kf0, KeyFrame* &kf1 )
 {
     // ---------------------------------------------------
     // find matches between prev_keyframe and curr_frame
     // ---------------------------------------------------
     // points f2f tracking
-    int common_pt = matchKF2KFPoints(prev_kf, curr_kf);
-
+    //curr_kf和curr_kf_mt完全相等的，搞不清，很费解，为什么这么干
+    int common_pt = matchKF2KFPoints(prev_kf, curr_kf);//获得相邻关键帧共同匹配点的数量，更新地图点
     // line segments f2f tracking
     int common_ls = matchKF2KFLines(prev_kf, curr_kf);
 
     // ---------------------------------------------------
-    // refine pose between kf0 and kf1
+    // refine pose between kf0 and kf1 此步默认不进行
     // ---------------------------------------------------
     if (SlamConfig::hasRefinement()) {
         StVO::StereoFrameHandler* stf = new StereoFrameHandler( cam );
@@ -809,13 +810,13 @@ void MapHandler::lookForCommonMatches( KeyFrame* kf0, KeyFrame* &kf1 )
 
         if (stf->n_inliers > SlamConfig::minFeatures() && inl_ratio_condition) {
             Matrix4d DT_ = stf->curr_frame->DT;
-            kf1->T_kf_w = expmap_se3(logmap_se3( kf0->T_kf_w * DT_ ));
+            kf1->T_w_kf = expmap_se3(logmap_se3( kf0->T_w_kf * DT_ ));
         } else
-            kf1->T_kf_w = expmap_se3(logmap_se3( kf0->T_kf_w * inverse_se3(DT) ));
+            kf1->T_w_kf = expmap_se3(logmap_se3( kf0->T_w_kf * inverse_se3(DT) ));
 
-        // update DT & Twf
-        Twf = expmap_se3(logmap_se3(  inverse_se3( curr_kf->T_kf_w ) ));
-        DT = expmap_se3(logmap_se3( Twf * prev_kf->T_kf_w ));
+        // update DT & T_kf_w
+        T_kf_w = expmap_se3(logmap_se3(  inverse_se3( curr_kf->T_w_kf ) ));
+        DT = expmap_se3(logmap_se3( T_kf_w * prev_kf->T_w_kf ));
 
         delete stf;
     }
@@ -836,7 +837,7 @@ void MapHandler::lookForCommonMatches( KeyFrame* kf0, KeyFrame* &kf1 )
 void MapHandler::expandGraphs()
 {
     int g_size = full_graph.size() + 1;
-    // full graph
+    // full graph是个对称矩阵，数值越大，代表两个关键帧的共视关系越大
     full_graph.resize( g_size );
     for(unsigned int i = 0; i < g_size; i++ )
         full_graph[i].resize( g_size );
@@ -844,6 +845,15 @@ void MapHandler::expandGraphs()
     conf_matrix.resize( g_size );
     for(unsigned int i = 0; i < g_size; i++ )
         conf_matrix[i].resize( g_size );
+    
+//     cout<<endl<<endl;
+//     for(int i=0;i<g_size;i++)
+//     {
+//         for(int j=0;j<g_size;j++)
+//             cout<<full_graph[i][j]<<" ";
+//         cout<<endl;
+//     }
+    
 }
 
 void MapHandler::formLocalMap()
@@ -917,7 +927,7 @@ void MapHandler::formLocalMap()
 void MapHandler::formLocalMap( KeyFrame * kf )
 {
 
-    // reset local KFs & LMs
+    // reset local KFs & LMs重置关键帧，特征点，特征线
     for( vector<KeyFrame*>::iterator kf_it = map_keyframes.begin(); kf_it != map_keyframes.end(); kf_it++ )
     {
         if( (*kf_it) != NULL )
@@ -934,7 +944,7 @@ void MapHandler::formLocalMap( KeyFrame * kf )
             (*ls_it)->local = false;
     }
 
-    // set first KF and their associated LMs as local
+    // set first KF（当前关键帧） and their associated LMs as local
     kf->local = true;
     for( vector<PointFeature*>::iterator pt_it = kf->stereo_frame->stereo_pt.begin(); pt_it != kf->stereo_frame->stereo_pt.end(); pt_it++ )
     {
@@ -956,13 +966,14 @@ void MapHandler::formLocalMap( KeyFrame * kf )
     }
 
     // loop over covisibility graph / full graph if we want to find more points
-    int g_size = full_graph.size()-1;
+    int g_size = full_graph.size()-1;//当前关键帧索引
     for( int i = 0; i < g_size; i++ )
     {
+        //如果i和当前关键帧离得足够近（默认局部地图最多只有四帧），并且i和当前关键帧共视关系大于最小值
         if( full_graph[g_size][i] >= SlamConfig::minLMCovGraph() || abs(g_size-i) <= SlamConfig::minKFLocalMap() )
         {
             map_keyframes[i]->local = true;
-            // loop over the landmarks seen by KF{i}
+            // loop over the landmarks seen by KF{i}更新第i关键帧的地图点和地图线
             for( vector<PointFeature*>::iterator pt_it = map_keyframes[i]->stereo_frame->stereo_pt.begin(); pt_it != map_keyframes[i]->stereo_frame->stereo_pt.end(); pt_it++ )
             {
                 int lm_idx = (*pt_it)->idx;
@@ -994,7 +1005,7 @@ void MapHandler::addKeyFrame_multiThread(KeyFrame *curr_kf , KeyFrame *prev_kf) 
     }
     new_kf.notify_one();
 }
-
+//每次关键帧插入时运行
 void MapHandler::handlerThread() {
 
     if (!threads_started) return;
@@ -1004,11 +1015,12 @@ void MapHandler::handlerThread() {
         std::unique_lock<std::mutex> lk(kf_queue_mutex);
         if (kf_queue.empty())
             new_kf.wait(lk, [this]{return !kf_queue.empty();});
-
+		//获取kf_queue头元素  这老哥整的我好无语哦，末尾插入，开头获取，其实list总共也就一个元素
         curr_kf_mt = kf_queue.front().first;
         prev_kf_mt = kf_queue.front().second;
+		//删除kf_queue头元素
         kf_queue.pop_front();
-
+        //cout<<"cur id: "<<curr_kf_mt->kf_idx<<'\t'<<"pre id: "<<prev_kf_mt->kf_idx<<"que num"<<kf_queue.size()<<endl;
         lk.unlock();
 
         // notify threads
@@ -1091,7 +1103,7 @@ void MapHandler::killThreads() {
     if (lc_thread_status != LC_TERMINATED)
         lc_join.wait(lc_lk, [this]{return (lc_thread_status == LC_TERMINATED);});
 }
-
+//局部地图线程
 void MapHandler::localMappingThread() {
 
     if (!threads_started) return;
@@ -1105,7 +1117,8 @@ void MapHandler::localMappingThread() {
         lk.unlock();
 
         if (curr_kf_mt == nullptr || prev_kf_mt == nullptr) break;
-
+		
+		//清空当前关键帧的特征匹配关系
         // reset indices
         for (PointFeature* pt : curr_kf_mt->stereo_frame->stereo_pt)
             pt->idx = -1;
@@ -1113,14 +1126,16 @@ void MapHandler::localMappingThread() {
             ls->idx = -1;
 
         // look for common matches and update the full graph
+		//prev_kf_mt上一个关键帧，curr_kf_mt当前关键帧
+        //这一步会根据前一关键帧和当前关键帧增加新的地图点，并且建立已有地图点和当前关键帧特征点的对应关系，并且会更新full graph
         lookForCommonMatches( prev_kf_mt, curr_kf_mt );
-
-        // form local map
+        
+        // form local map 建立局部地图（最多四个关键帧）
         formLocalMap(curr_kf_mt);
 
         // perform local bundle adjustment
         int lba = localBundleAdjustment();
-
+        
         // recent map LMs culling (implement filters for line segments, which seems to be unaccurate)
         removeBadMapLandmarks();
 
@@ -1233,10 +1248,10 @@ void MapHandler::loopClosureThread() {
 int MapHandler::localBundleAdjustment()
 {
 
-    vector<double> X_aux;
+    vector<double> X_aux;//优化变量 依次是局部地图关键帧的李代数，地图点，地图线的参数
 
     // create list of local keyframes
-    vector<int> kf_list;
+    vector<int> kf_list;//依次是局部地图关键帧的索引
     for( vector<KeyFrame*>::iterator kf_it = map_keyframes.begin(); kf_it != map_keyframes.end(); kf_it++)
     {
         if( (*kf_it)!= NULL )
@@ -1252,29 +1267,35 @@ int MapHandler::localBundleAdjustment()
     }
 
     // create list of local point landmarks
-    vector<Vector6i> pt_obs_list;
-    vector<int> pt_list;
-    int lm_local_idx = 0;
+    vector<Vector6i> pt_obs_list;   //局部地图点所有观测信息的集合
+    vector<int> pt_list;    //局部地图里特征点的索引集合
+    int lm_local_idx = 0;   //局部地图里特征点的数量
+    //遍历所有地图点
     for( vector<MapPoint*>::iterator pt_it = map_points.begin(); pt_it != map_points.end(); pt_it++)
     {
+        //非空
         if( (*pt_it)!= NULL )
         {
+            //局部
             if( (*pt_it)->local )
             {
+                //世界坐标系下3D点
                 Vector3d point_aux = (*pt_it)->point3D;
                 for(int i = 0; i < 3; i++)
                     X_aux.push_back( point_aux(i) );
                 // gather all observations
                 for( int i = 0; i < (*pt_it)->obs_list.size(); i++)
                 {
+                    //auxiliary辅助（的）
                     Vector6i obs_aux;
-                    obs_aux(0) = (*pt_it)->idx; // LM idx
-                    obs_aux(1) = lm_local_idx;  // LM local idx
-                    obs_aux(2) = i;             // LM obs idx
+                    obs_aux(0) = (*pt_it)->idx; // LM idx 所有地图点中的索引，同一地图点的所有观测这一项都相同
+                    obs_aux(1) = lm_local_idx;  // LM local idx 局部地图点索引（从0开始），同一地图点的所有观测这一项都相同
+                    obs_aux(2) = i;             // LM obs idx 该地图点的第i个观测
                     int kf_obs_list_ = (*pt_it)->kf_obs_list[i];
-                    obs_aux(3) = kf_obs_list_;  // KF idx
-                    obs_aux(4) = -1;            // KF local idx (-1 if not local)
-                    obs_aux(5) = 1;             // 1 if the observation is an inlier
+                    obs_aux(3) = kf_obs_list_;  // KF idx 该观测对应的关键帧索引号
+                    obs_aux(4) = -1;            // KF local idx (-1 if not local) 是否是local
+                    obs_aux(5) = 1;             // 1 if the observation is an inlier 是否是内点
+                    //更新第五个，和local关键帧索引比较，是否是local，是第几个local
                     for( int j = 0; j < kf_list.size(); j++ )
                     {
                         if( kf_list[j] == kf_obs_list_ )
@@ -1293,8 +1314,8 @@ int MapHandler::localBundleAdjustment()
     }
 
     // create list of local line segment landmarks
-    vector<Vector6i> ls_obs_list;
-    vector<int> ls_list;
+    vector<Vector6i> ls_obs_list; //局部地图线所有观测信息的集合
+    vector<int> ls_list;          //局部地图里特征线的索引集合
     lm_local_idx = 0;
     for( vector<MapLine*>::iterator ls_it = map_lines.begin(); ls_it != map_lines.end(); ls_it++)
     {
@@ -1336,6 +1357,7 @@ int MapHandler::localBundleAdjustment()
     // Levenberg-Marquardt optimization of the local map
     if( pt_obs_list.size() + ls_obs_list.size() != 0 )
         //return levMarquardtOptimizationPoseOnlyLBA(X_aux,kf_list,pt_list,ls_list,pt_obs_list,ls_obs_list);
+        //传入待优化变量，关键帧索引集合，特征点索引集合，特征点观测信息集合，特征线索引集合，特征线信息集合
         return levMarquardtOptimizationLBA(X_aux,kf_list,pt_list,ls_list,pt_obs_list,ls_obs_list);
     else
         return -1;
@@ -1349,16 +1371,21 @@ int MapHandler::levMarquardtOptimizationLBA( vector<double> X_aux, vector<int> k
     int    Nkf = kf_list.size();
     int      N = X_aux.size();
 
+    //初始化优化变量X，增量DX，H，g
     VectorXd X = VectorXd::Zero(N), DX = VectorXd::Zero(N);
     VectorXd g = VectorXd::Zero(N);
     MatrixXd H = MatrixXd::Zero(N,N);
-
+    //初值
     for(int i = 0; i < N; i++)
         X(i) = X_aux[i];
+    //稀疏矩阵H_
     SparseMatrix<double> H_(N,N);
 
     // create Levenberg-Marquardt parameters
     double err = 0.0, err_prev = 999999999.9;
+    /*lambda_lba_lm         = 0.00001;    // (if auto, this is the initial tau)
+    lambda_lba_k          = 10.0;       // lambda_k for LM method in LBA
+    max_iters_lba         = 15;         // maximum number of iterations*/
     double lambda = SlamConfig::lambdaLbaLM(), lambda_k = SlamConfig::lambdaLbaK();
     int    max_iters = SlamConfig::maxItersLba();
 
@@ -1367,20 +1394,20 @@ int MapHandler::levMarquardtOptimizationLBA( vector<double> X_aux, vector<int> k
     // point observations
     int Npt = 0, Npt_obs = 0;
     if( pt_obs_list.size() != 0 )
-        Npt = pt_obs_list.back()(1)+1;
+        Npt = pt_obs_list.back()(1)+1;//因为索引从0开始，所以+1
     for( vector<Vector6i>::iterator pt_it = pt_obs_list.begin(); pt_it != pt_obs_list.end(); pt_it++ )
     {
-        int lm_idx_map = (*pt_it)(0);
-        int lm_idx_loc = (*pt_it)(1);
-        int lm_idx_obs = (*pt_it)(2);
-        int kf_idx_map = (*pt_it)(3);
-        int kf_idx_loc = (*pt_it)(4);
+        int lm_idx_map = (*pt_it)(0);// LM idx 所有地图点中的索引，同一地图点的所有观测这一项都相同
+        int lm_idx_loc = (*pt_it)(1);// LM local idx 局部地图点索引（从0开始），同一地图点的所有观测这一项都相同
+        int lm_idx_obs = (*pt_it)(2);// LM obs idx 该地图点的第i个观测
+        int kf_idx_map = (*pt_it)(3);// KF idx 该观测对应的关键帧索引号
+        int kf_idx_loc = (*pt_it)(4);// KF local idx (-1 if not local) 是否是local，是的话，是local的第几个关键帧
         if( map_points[lm_idx_map] != NULL && map_keyframes[kf_idx_map] != NULL)
         {
             // grab 3D LM (Xwj)
             Vector3d Xwj   = map_points[lm_idx_map]->point3D;
             // grab 6DoF KF (Tiw)
-            Matrix4d Tiw   = map_keyframes[kf_idx_map]->T_kf_w;
+            Matrix4d Tiw   = map_keyframes[kf_idx_map]->T_w_kf;
             // projection error
             Tiw = inverse_se3( Tiw );
             Vector3d Xwi   = Tiw.block(0,0,3,3) * Xwj + Tiw.block(0,3,3,1);
@@ -1401,7 +1428,7 @@ int MapHandler::levMarquardtOptimizationLBA( vector<double> X_aux, vector<int> k
             double fxdx = fx*dx;
             double fydy = fy*dy;
             // estimate Jacobian wrt KF pose
-            Vector6d Jij_Tiw = Vector6d::Zero();
+            Vector6d Jij_Tiw = Vector6d::Zero(); //位姿雅克比
             Jij_Tiw << + gz2 * fxdx * gz,
                        + gz2 * fydy * gz,
                        - gz2 * ( fxdx*gx + fydy*gy ),
@@ -1410,7 +1437,7 @@ int MapHandler::levMarquardtOptimizationLBA( vector<double> X_aux, vector<int> k
                        + gz2 * ( fydy*gx*gz - fxdx*gy*gz );
             Jij_Tiw = Jij_Tiw / std::max(SlamConfig::homogTh(),p_err_norm);
             // estimate Jacobian wrt LM
-            Vector3d Jij_Xwj = Vector3d::Zero();
+            Vector3d Jij_Xwj = Vector3d::Zero();    //地图点雅克比
             Jij_Xwj << + gz2 * fxdx * gz,
                        + gz2 * fydy * gz,
                        - gz2 * ( fxdx*gx + fydy*gy );
@@ -1421,14 +1448,16 @@ int MapHandler::levMarquardtOptimizationLBA( vector<double> X_aux, vector<int> k
 
             // update hessian, gradient, and error
             MatrixXd Haux  = MatrixXd::Zero(3,6);
-            int idx = 6 * kf_idx_loc;
-            int jdx = 6*Nkf + 3*lm_idx_loc;
+            int idx = 6 * kf_idx_loc;//优化变量中的帧李代数索引
+            int jdx = 6*Nkf + 3*lm_idx_loc;//优化变量中的地图点索引
+            //如果不是局部的
             if( kf_idx_loc == -1 )
             {
                 g.block(jdx,0,3,1) += Jij_Xwj * p_err_norm * w ;
                 err += p_err_norm * p_err_norm * w ;
                 H.block(jdx,jdx,3,3) += Jij_Xwj * Jij_Xwj.transpose() * w ;
             }
+            //如果是局部的
             else
             {
                 g.block(idx,0,6,1) += Jij_Tiw * p_err_norm * w;
@@ -1459,7 +1488,7 @@ int MapHandler::levMarquardtOptimizationLBA( vector<double> X_aux, vector<int> k
             Vector3d Pwj   = map_lines[lm_idx_map]->line3D.head(3);
             Vector3d Qwj   = map_lines[lm_idx_map]->line3D.tail(3);
             // grab 6DoF KF (Tiw)
-            Matrix4d Tiw   = map_keyframes[kf_idx_map]->T_kf_w;
+            Matrix4d Tiw   = map_keyframes[kf_idx_map]->T_w_kf;
             // projection error
             Tiw = inverse_se3( Tiw );
             Vector3d Pwi   = Tiw.block(0,0,3,3) * Pwj + Tiw.block(0,3,3,1);
@@ -1553,22 +1582,26 @@ int MapHandler::levMarquardtOptimizationLBA( vector<double> X_aux, vector<int> k
     }
     err /= (Npt_obs+Nls_obs);
 
-    // initial guess of lambda
+    //以上建立起了H和g
+    
+    // initial guess of lambda 初始值lambda 0.00001
     double Hmax = 0.0;
-    for( int i = 0; i < N; i++)
+    for( int i = 0; i < N; i++) //N是优化变量维数
     {
         if( H(i,i) > Hmax || H(i,i) < -Hmax )
             Hmax = fabs( H(i,i) );
     }
     lambda *= Hmax;
 
-    // solve the first iteration
+    // solve the first iteration  这一步应该是H+lambda*D，对应L-M算法
     for(int i = 0; i < N; i++)
         H(i,i) += lambda * H(i,i) ;
     H_ = H.sparseView();
     SimplicialLDLT< SparseMatrix<double> > solver1(H_);
+    //求解增量DX
     DX = solver1.solve( g );
 
+    //更新增量DX
     // update KFs
     for( int i = 0; i < Nkf; i++)
     {
@@ -1586,7 +1619,7 @@ int MapHandler::levMarquardtOptimizationLBA( vector<double> X_aux, vector<int> k
     // update error
     err_prev = err;
 
-    // LM iterations
+    // LM iterations 真正的迭代过程，以上只是求初始解
     //---------------------------------------------------------------------------------------------
     int iters;
     for( iters = 1; iters < max_iters; iters++)
@@ -1613,7 +1646,7 @@ int MapHandler::levMarquardtOptimizationLBA( vector<double> X_aux, vector<int> k
                 if( kf_idx_loc != -1 )
                     Tiw = expmap_se3( X.block( 6*kf_idx_loc,0,6,1 ) );
                 else
-                    Tiw = map_keyframes[kf_idx_map]->T_kf_w;
+                    Tiw = map_keyframes[kf_idx_map]->T_w_kf;
                 // projection error
                 Tiw = inverse_se3( Tiw );
                 Vector3d Xwi   = Tiw.block(0,0,3,3) * Xwj + Tiw.block(0,3,3,1);
@@ -1691,7 +1724,7 @@ int MapHandler::levMarquardtOptimizationLBA( vector<double> X_aux, vector<int> k
                 Vector3d Pwj = X.block(6*Nkf+3*Npt+3*lm_idx_loc,0,3,1);
                 Vector3d Qwj = X.block(6*Nkf+3*Npt+3*lm_idx_loc,0,3,1);
                 // grab 6DoF KF (Tiw)
-                Matrix4d Tiw   = map_keyframes[kf_idx_map]->T_kf_w;
+                Matrix4d Tiw   = map_keyframes[kf_idx_map]->T_w_kf;
                 // projection error
                 Tiw = inverse_se3( Tiw );
                 Vector3d Pwi   = Tiw.block(0,0,3,3) * Pwj + Tiw.block(0,3,3,1);
@@ -1835,7 +1868,7 @@ int MapHandler::levMarquardtOptimizationLBA( vector<double> X_aux, vector<int> k
     for( int i = 0; i < Nkf; i++)
     {
         Matrix4d Test = expmap_se3( X.block( 6*i,0,6,1 ) );
-        map_keyframes[ kf_list[i] ]->T_kf_w = Test;
+        map_keyframes[ kf_list[i] ]->T_w_kf = Test;
     }
     // update point LMs
     for( int i = 0; i < Npt; i++)
@@ -1867,7 +1900,7 @@ int MapHandler::levMarquardtOptimizationLBA( vector<double> X_aux, vector<int> k
 
     }
 
-    // Remove bad observations
+    // Remove bad observations 移除那些不是来源于局部地图的关键帧的观测
     //---------------------------------------------------------------------------------------------
     for( vector<Vector6i>::reverse_iterator pt_it = pt_obs_list.rbegin(); pt_it != pt_obs_list.rend(); ++pt_it )
     {
@@ -2146,7 +2179,7 @@ void MapHandler::levMarquardtOptimizationGBA( vector<double> X_aux, vector<int> 
             // grab 3D LM (Xwj)
             Vector3d Xwj   = map_points[lm_idx_map]->point3D;
             // grab 6DoF KF (Tiw)
-            Matrix4d Tiw   = map_keyframes[kf_idx_map]->T_kf_w;
+            Matrix4d Tiw   = map_keyframes[kf_idx_map]->T_w_kf;
             // projection error
             Tiw = inverse_se3( Tiw );
             Vector3d Xwi   = Tiw.block(0,0,3,3) * Xwj + Tiw.block(0,3,3,1);
@@ -2256,7 +2289,7 @@ void MapHandler::levMarquardtOptimizationGBA( vector<double> X_aux, vector<int> 
             Vector3d Pwj   = map_lines[lm_idx_map]->line3D.head(3);
             Vector3d Qwj   = map_lines[lm_idx_map]->line3D.tail(3);
             // grab 6DoF KF (Tiw)
-            Matrix4d Tiw   = map_keyframes[kf_idx_map]->T_kf_w;
+            Matrix4d Tiw   = map_keyframes[kf_idx_map]->T_w_kf;
             // projection error
             Tiw = inverse_se3( Tiw );
             Vector3d Pwi   = Tiw.block(0,0,3,3) * Pwj + Tiw.block(0,3,3,1);
@@ -2426,7 +2459,7 @@ void MapHandler::levMarquardtOptimizationGBA( vector<double> X_aux, vector<int> 
                 if( kf_idx_loc != -1 )
                     Tiw = expmap_se3( X.block( 6*kf_idx_loc,0,6,1 ) );
                 else
-                    Tiw = map_keyframes[kf_idx_map]->T_kf_w;
+                    Tiw = map_keyframes[kf_idx_map]->T_w_kf;
                 // projection error
                 Tiw = inverse_se3( Tiw );
                 Vector3d Xwi   = Tiw.block(0,0,3,3) * Xwj + Tiw.block(0,3,3,1);
@@ -2533,7 +2566,7 @@ void MapHandler::levMarquardtOptimizationGBA( vector<double> X_aux, vector<int> 
                 Vector3d Pwj = X.block(6*Nkf+3*Npt+3*lm_idx_loc,0,3,1);
                 Vector3d Qwj = X.block(6*Nkf+3*Npt+3*lm_idx_loc,0,3,1);
                 // grab 6DoF KF (Tiw)
-                Matrix4d Tiw   = map_keyframes[kf_idx_map]->T_kf_w;
+                Matrix4d Tiw   = map_keyframes[kf_idx_map]->T_w_kf;
                 // projection error
                 Tiw = inverse_se3( Tiw );
                 Vector3d Pwi   = Tiw.block(0,0,3,3) * Pwj + Tiw.block(0,3,3,1);
@@ -2689,7 +2722,7 @@ void MapHandler::levMarquardtOptimizationGBA( vector<double> X_aux, vector<int> 
     for( int i = 0; i < Nkf; i++)
     {
         Matrix4d Test = expmap_se3( X.block( 6*i,0,6,1 ) );
-        map_keyframes[ kf_list[i] ]->T_kf_w = Test;
+        map_keyframes[ kf_list[i] ]->T_w_kf = Test;
     }
     // update point LMs
     for( int i = 0; i < Npt; i++)
@@ -2717,14 +2750,15 @@ void MapHandler::levMarquardtOptimizationGBA( vector<double> X_aux, vector<int> 
 
 void MapHandler::removeBadMapLandmarks()
 {
-
     // point features
     for( vector<MapPoint*>::iterator pt_it = map_points.begin(); pt_it != map_points.end(); pt_it++)
     {
         if( (*pt_it)!=NULL )
         {
+            //如果不是局部地图点并且当前关键帧和能观测到该点的最早的关键帧相差大于10帧
             if( (*pt_it)->local == false && max_kf_idx - (*pt_it)->kf_obs_list[0] > 10 )
             {
+                //如果不是内点，并且观测到该地图点的关键帧数量很少
                 if( (*pt_it)->inlier == false || (*pt_it)->obs_list.size() < SlamConfig::minLMObs() )
                 {
                     int kf_obs = (*pt_it)->kf_obs_list[0];
@@ -4025,7 +4059,7 @@ bool MapHandler::loopClosureOptimizationEssGraphG2O()
             {
                 // update pose of LC vertex
                 v_se3->setFixed(true);
-                v_se3->setEstimate( g2o::SE3Quat::exp( reverse_se3(logmap_se3( (expmap_se3(lc_pose_list[id])) * map_keyframes[lc_idxs[id](0)]->T_kf_w )) ) );
+                v_se3->setEstimate( g2o::SE3Quat::exp( reverse_se3(logmap_se3( (expmap_se3(lc_pose_list[id])) * map_keyframes[lc_idxs[id](0)]->T_w_kf )) ) );
             }
             else
             {
@@ -4046,7 +4080,7 @@ bool MapHandler::loopClosureOptimizationEssGraphG2O()
                 ( full_graph[i][j] >= SlamConfig::minLMEssGraph() || abs(i-j) == 1  ) )
             {
                 // kf2kf constraint
-                Matrix4d T_ji_constraint = inverse_se3( map_keyframes[i]->T_kf_w ) * map_keyframes[j]->T_kf_w;
+                Matrix4d T_ji_constraint = inverse_se3( map_keyframes[i]->T_w_kf ) * map_keyframes[j]->T_w_kf;
                 // add edge
                 g2o::EdgeSE3* e_se3 = new g2o::EdgeSE3();
                 e_se3->setVertex( 0, optimizer.vertex(i) );
@@ -4091,8 +4125,8 @@ bool MapHandler::loopClosureOptimizationEssGraphG2O()
         Matrix4d Tkfw, Tkfw_prev;
         x = reverse_se3(Tiw_corr.log());
         Tkfw = expmap_se3( x );
-        Tkfw_prev = map_keyframes[ (*kf_it) ]->T_kf_w;
-        map_keyframes[ (*kf_it) ]->T_kf_w = Tkfw;
+        Tkfw_prev = map_keyframes[ (*kf_it) ]->T_w_kf;
+        map_keyframes[ (*kf_it) ]->T_w_kf = Tkfw;
         map_keyframes[ (*kf_it) ]->x_kf_w = logmap_se3(Tkfw);
         // update map
         Tkfw_corr = Tkfw * inverse_se3( Tkfw_prev );
@@ -4140,8 +4174,8 @@ bool MapHandler::loopClosureOptimizationEssGraphG2O()
     for( int i = kf_curr_idx + 1; i < map_keyframes.size(); i++ )
     {
         // update pose
-        map_keyframes[i]->T_kf_w = Tkfw_corr * map_keyframes[i]->T_kf_w;
-        map_keyframes[i]->x_kf_w = logmap_se3(map_keyframes[i]->T_kf_w);
+        map_keyframes[i]->T_w_kf = Tkfw_corr * map_keyframes[i]->T_w_kf;
+        map_keyframes[i]->x_kf_w = logmap_se3(map_keyframes[i]->T_w_kf);
         // update landmarks
         for( auto it = map_points_kf_idx.at(i).begin(); it != map_points_kf_idx.at(i).end(); it++ )
         {
@@ -4252,7 +4286,7 @@ bool MapHandler::loopClosureOptimizationCovGraphG2O()
             {
                 // update pose of LC vertex
                 v_se3->setFixed(false);
-                v_se3->setEstimate( g2o::SE3Quat::exp( reverse_se3(logmap_se3( (expmap_se3(lc_pose_list[id])) * map_keyframes[lc_idx_list[id](0)]->T_kf_w )) ) );
+                v_se3->setEstimate( g2o::SE3Quat::exp( reverse_se3(logmap_se3( (expmap_se3(lc_pose_list[id])) * map_keyframes[lc_idx_list[id](0)]->T_w_kf )) ) );
             }
             else
             {
@@ -4273,7 +4307,7 @@ bool MapHandler::loopClosureOptimizationCovGraphG2O()
                 ( full_graph[i][j] >= SlamConfig::minLMEssGraph() || full_graph[i][j] >= SlamConfig::minLMCovGraph() || abs(i-j) == 1  ) )
             {
                 // kf2kf constraint
-                Matrix4d T_ji_constraint = inverse_se3( map_keyframes[i]->T_kf_w ) * map_keyframes[j]->T_kf_w;
+                Matrix4d T_ji_constraint = inverse_se3( map_keyframes[i]->T_w_kf ) * map_keyframes[j]->T_w_kf;
                 // add edge
                 g2o::EdgeSE3* e_se3 = new g2o::EdgeSE3();
                 e_se3->setVertex( 0, optimizer.vertex(i) );
@@ -4318,8 +4352,8 @@ bool MapHandler::loopClosureOptimizationCovGraphG2O()
         Matrix4d Tkfw, Tkfw_prev;
         x = reverse_se3(Tiw_corr.log());
         Tkfw = expmap_se3( x );
-        Tkfw_prev = map_keyframes[ (*kf_it) ]->T_kf_w;
-        map_keyframes[ (*kf_it) ]->T_kf_w = Tkfw;
+        Tkfw_prev = map_keyframes[ (*kf_it) ]->T_w_kf;
+        map_keyframes[ (*kf_it) ]->T_w_kf = Tkfw;
         map_keyframes[ (*kf_it) ]->x_kf_w = logmap_se3(Tkfw);
         // update map
         Tkfw_corr = Tkfw * inverse_se3( Tkfw_prev );
@@ -4367,8 +4401,8 @@ bool MapHandler::loopClosureOptimizationCovGraphG2O()
     for( int i = kf_curr_idx + 1; i < map_keyframes.size(); i++ )
     {
         // update pose
-        map_keyframes[i]->T_kf_w = Tkfw_corr * map_keyframes[i]->T_kf_w;
-        map_keyframes[i]->x_kf_w = logmap_se3(map_keyframes[i]->T_kf_w);
+        map_keyframes[i]->T_w_kf = Tkfw_corr * map_keyframes[i]->T_w_kf;
+        map_keyframes[i]->x_kf_w = logmap_se3(map_keyframes[i]->T_w_kf);
         // update landmarks
         for( auto it = map_points_kf_idx.at(i).begin(); it != map_points_kf_idx.at(i).end(); it++ )
         {
@@ -4482,14 +4516,14 @@ void MapHandler::loopClosureFuseLandmarks()
                         map_keyframes[kf_prev_idx]->stereo_frame->stereo_pt[lm_ldx0]->idx = max_pt_idx;
                         map_keyframes[kf_curr_idx]->stereo_frame->stereo_pt[lm_ldx1]->idx = max_pt_idx;
                         // create new 3D landmark with the observation from previous KF
-                        Matrix4d Tfw = ( map_keyframes[kf_prev_idx]->T_kf_w );
+                        Matrix4d Tfw = ( map_keyframes[kf_prev_idx]->T_w_kf );
                         Vector3d P3d = Tfw.block(0,0,3,3) * map_keyframes[kf_prev_idx]->stereo_frame->stereo_pt[lm_ldx0]->P + Tfw.col(3).head(3);
                         Vector3d dir = P3d / P3d.norm();
                         MapPoint* map_point = new MapPoint(max_pt_idx,P3d,map_keyframes[kf_prev_idx]->stereo_frame->pdesc_l.row(lm_ldx0),map_keyframes[kf_prev_idx]->kf_idx,map_keyframes[kf_prev_idx]->stereo_frame->stereo_pt[lm_ldx0]->pl,dir);
                         // add new 3D landmark to kf_idx where it was first observed
                         map_points_kf_idx.at( kf_prev_idx ).push_back( max_pt_idx );
                         // add observation of the 3D landmark from current KF
-                        P3d = map_keyframes[kf_curr_idx]->T_kf_w.block(0,0,3,3) *  map_keyframes[kf_curr_idx]->stereo_frame->stereo_pt[lm_ldx1]->P + map_keyframes[kf_curr_idx]->T_kf_w.col(3).head(3);
+                        P3d = map_keyframes[kf_curr_idx]->T_w_kf.block(0,0,3,3) *  map_keyframes[kf_curr_idx]->stereo_frame->stereo_pt[lm_ldx1]->P + map_keyframes[kf_curr_idx]->T_w_kf.col(3).head(3);
                         dir = P3d / P3d.norm();
                         map_point->addMapPointObservation(map_keyframes[kf_curr_idx]->stereo_frame->pdesc_l.row(lm_ldx1),map_keyframes[kf_curr_idx]->kf_idx,map_keyframes[kf_curr_idx]->stereo_frame->stereo_pt[lm_ldx1]->pl,dir);
                         // add 3D landmark to map
@@ -4617,7 +4651,7 @@ void MapHandler::loopClosureFuseLandmarks()
                         map_keyframes[kf_prev_idx]->stereo_frame->stereo_ls[lm_ldx0]->idx = max_ls_idx;
                         map_keyframes[kf_curr_idx]->stereo_frame->stereo_ls[lm_ldx1]->idx = max_ls_idx;
                         // create new 3D landmark with the observation from previous KF
-                        Matrix4d Tfw  = ( map_keyframes[kf_prev_idx]->T_kf_w );
+                        Matrix4d Tfw  = ( map_keyframes[kf_prev_idx]->T_w_kf );
                         Vector3d sP3d = Tfw.block(0,0,3,3) * map_keyframes[kf_prev_idx]->stereo_frame->stereo_ls[lm_ldx0]->sP + Tfw.col(3).head(3);
                         Vector3d eP3d = Tfw.block(0,0,3,3) * map_keyframes[kf_prev_idx]->stereo_frame->stereo_ls[lm_ldx0]->eP + Tfw.col(3).head(3);
                         Vector3d mP3d = 0.5 * ( sP3d + eP3d );
@@ -4631,8 +4665,8 @@ void MapHandler::loopClosureFuseLandmarks()
                         // add new 3D landmark to kf_idx where it was first observed
                         map_lines_kf_idx.at( kf_prev_idx ).push_back( max_ls_idx );
                         // add observation of the 3D landmark from current KF
-                        sP3d = map_keyframes[kf_curr_idx]->T_kf_w.block(0,0,3,3) *  map_keyframes[kf_curr_idx]->stereo_frame->stereo_ls[lm_ldx1]->sP + map_keyframes[kf_curr_idx]->T_kf_w.col(3).head(3);
-                        eP3d = map_keyframes[kf_curr_idx]->T_kf_w.block(0,0,3,3) *  map_keyframes[kf_curr_idx]->stereo_frame->stereo_ls[lm_ldx1]->eP + map_keyframes[kf_curr_idx]->T_kf_w.col(3).head(3);
+                        sP3d = map_keyframes[kf_curr_idx]->T_w_kf.block(0,0,3,3) *  map_keyframes[kf_curr_idx]->stereo_frame->stereo_ls[lm_ldx1]->sP + map_keyframes[kf_curr_idx]->T_w_kf.col(3).head(3);
+                        eP3d = map_keyframes[kf_curr_idx]->T_w_kf.block(0,0,3,3) *  map_keyframes[kf_curr_idx]->stereo_frame->stereo_ls[lm_ldx1]->eP + map_keyframes[kf_curr_idx]->T_w_kf.col(3).head(3);
                         mP3d = 0.5 * ( sP3d + eP3d );
                         dir = mP3d / mP3d.norm();
                         pts.head(2) = map_keyframes[kf_curr_idx]->stereo_frame->stereo_ls[lm_ldx1]->spl;

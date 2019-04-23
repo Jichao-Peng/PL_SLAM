@@ -411,12 +411,12 @@ void StereoFrameHandler::optimizePose()
         //expmap_se3(logmap_se3这里好像不是很有意义
         //curr_frame->DT=Tpre_cur
         curr_frame->DT       = expmap_se3(logmap_se3( inverse_se3(DT) ));
-        //更新Tk_k+1的协方差矩阵
+        //Tpre_cur的协方差（在迭代的时候用信息矩阵的逆代替）
         curr_frame->DT_cov   = DT_cov;
         curr_frame->err_norm = err;
         //更新 prev_frame->Tfw在updateFrame里更新，但每当关键帧插入时都会变成单位矩阵。并且在updateFrame里，prev_frame会被整体更新
         curr_frame->Tfw      = expmap_se3(logmap_se3( prev_frame->Tfw * curr_frame->DT ));
-        //更新Twc的协方差矩阵？？？
+        //curr_frame->Tfw_cov=prev_frame->Tfw_cov+ad(prev_frame->Tfw)*DT_cov*ad(prev_frame->Tfw)^T
         curr_frame->Tfw_cov  = unccomp_se3( prev_frame->Tfw, prev_frame->Tfw_cov, DT_cov );
         SelfAdjointEigenSolver<Matrix6d> eigensolver(DT_cov);
         curr_frame->DT_cov_eig = eigensolver.eigenvalues();
@@ -1259,7 +1259,7 @@ bool StereoFrameHandler::needNewKF()
 
     // check geometric distances from previous KF
     //DT是T_prevKF_curr 和类里的DT不同
-    //这里的T_prevKF一直是单位矩阵
+    //这里的T_prevKF一直是单位矩阵,这里应该是有问题的？
     Matrix4d DT = inverse_se3( curr_frame->Tfw ) * T_prevKF;
     Vector6d dX = logmap_se3( DT );
 
@@ -1272,7 +1272,7 @@ bool StereoFrameHandler::needNewKF()
     Matrix6d adjTprevkf = adjoint_se3( T_prevKF );
     //？？？不是很懂，用DT的逆的伴随去更新协方差
     Matrix6d covDTinv   = uncTinv_se3( curr_frame->DT, curr_frame->DT_cov );
-    //这个量原来是累加得到的，一直累加到满足条件为止，别处有复位（currFrameIsKF()）
+    //这个量原来是累加得到的，一直累加到满足条件为止，别处有复位（currFrameIsKF()） 
     cov_prevKF_currF += adjTprevkf * covDTinv * adjTprevkf.transpose();
     //将代表不确定性的协方差转化为一个标量，称之为entropy
     double entropy_curr  = 3.0*(1.0+log(2.0*acos(-1))) + 0.5*log( cov_prevKF_currF.determinant() );

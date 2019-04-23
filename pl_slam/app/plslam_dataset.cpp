@@ -162,6 +162,7 @@ int main(int argc, char **argv)
                 scene.setImage(StVO->prev_frame->plotStereoFrame());
                 scene.updateSceneSafe( map );
             #endif
+            StVO->T_w_curr=StVO->curr_frame->Tfw;
         }
         else // run
         {
@@ -178,6 +179,14 @@ int main(int argc, char **argv)
             // check if a new keyframe is 
             scene.frame+=1;
             scene.setText(scene.frame,0,StVO->n_inliers_pt,StVO->n_inliers_ls);
+            if(map->prev_kf!=NULL)
+            {
+                StVO->T_w_curr=map->prev_kf->T_w_kf*StVO->curr_frame->Tfw;
+            }
+            else
+            {
+                StVO->T_w_curr=StVO->curr_frame->Tfw;
+            }
             if( StVO->needNewKF() )
             {
 //                 cout <<         "#KeyFrame:     " << map->max_kf_idx + 1;
@@ -192,13 +201,9 @@ int main(int argc, char **argv)
                 map->addKeyFrame( curr_kf );
                 // update scene
                 #ifndef NO_SECENE
-                    // plotStereoFrame() 把点线特征给画上去
                     scene.setImage(StVO->curr_frame->plotStereoFrame());
                     scene.updateSceneSafe( map );
                 #endif
-                Matrix3d R = curr_kf->T_kf_w.block(0,0,3,3).transpose();
-                vector<float> q = toQuaternion(R);
-                fout << setprecision(7) << " "<< curr_kf->T_kf_w(0, 3) << " " << curr_kf->T_kf_w(1, 3) << " " << curr_kf->T_kf_w(2, 3) << " "<< q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;    
             }
             else
             {
@@ -207,19 +212,16 @@ int main(int argc, char **argv)
                     scene.setPose( StVO->curr_frame->DT );
                     scene.updateScene();
                 #endif
-                Matrix3d R = StVO->curr_frame->Tfw.block(0,0,3,3).transpose();
-                vector<float> q = toQuaternion(R);
-                fout << setprecision(7) << " "<< StVO->curr_frame->Tfw(0, 3) << " " << StVO->curr_frame->Tfw(1, 3) << " " << StVO->curr_frame->Tfw(2, 3) << " "<< q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
             }
-        
-            // update StVO
-        StVO->updateFrame();
         }
-
         frame_counter++;
+        // update StVO
+        StVO->updateFrame();
+        vector<float> q = toQuaternion(StVO->T_w_curr.block(0,0,3,3));
+        fout << setprecision(7) << " "<< StVO->T_w_curr(0, 3) << " " << StVO->T_w_curr(1, 3) << " " << StVO->T_w_curr(2, 3) << " "<< q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
     }
-
     fout.close();
+
     // finish SLAM
     map->finishSLAM();
     

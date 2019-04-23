@@ -64,7 +64,7 @@ int matchNNR(const cv::Mat &desc1, const cv::Mat &desc2, float nnr, std::vector<
 }
 
 //nnr minRatio12P
-//传入 上一帧，当前帧的描述子矩阵，参数，结果
+//传入 上一帧，当前帧的描述子矩阵，参数，结果 没有引入坐标信息，是否会有错误？
 int match(const cv::Mat &desc1, const cv::Mat &desc2, float nnr, std::vector<int> &matches_12) {
 
     //true if double-checking the matches between the two images

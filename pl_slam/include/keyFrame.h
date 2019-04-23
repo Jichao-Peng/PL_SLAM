@@ -66,8 +66,9 @@ public:
     string    img_name;
 
     int      kf_idx;
-    Matrix4d T_kf_w;    // Twc
+    Matrix4d T_w_kf;    // Twc
     Vector6d x_kf_w;
+    Matrix4d T_kf_curr;
     Matrix6d xcov_kf_w;
 
     DBoW2::BowVector descDBoW_P, descDBoW_L;

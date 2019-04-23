@@ -82,6 +82,7 @@ public:
     bool     prev_f_iskf;                   //一个flag，前一帧是否为关键帧
     double   entropy_first_prevKF;          //熵，论文中提到，将代表不确定性的协方差矩阵转换为一个标量，称之为entropy
     Matrix4d T_prevKF;                      //前一个关键帧的位姿
+    Matrix4d T_w_curr;                      //当前帧到世界坐标系
     Matrix6d cov_prevKF_currF;
     int      N_prevKF_currF;
 

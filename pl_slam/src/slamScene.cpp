@@ -304,7 +304,7 @@ bool slamScene::updateSceneSafe(const MapHandler* map){
     Vector3d Pi;
     try{
         //轨迹初始点
-    Pi = map->map_keyframes[0]->T_kf_w.col(3).head(3);
+    Pi = map->map_keyframes[0]->T_w_kf.col(3).head(3);
     }catch(...){}
     Vector3d Pj;
     kfsObj      = opengl::CSetOfObjects::Create();
@@ -316,7 +316,7 @@ bool slamScene::updateSceneSafe(const MapHandler* map){
             // if last keyframe
             if( (*it)->kf_idx == map->map_keyframes.back()->kf_idx )
             {
-                kf_pose = CPose3D( getPoseFormat( (*it)->T_kf_w ) );
+                kf_pose = CPose3D( getPoseFormat( (*it)->T_w_kf ) );
                 //相机三角锥
                 opengl::CFrustumPtr frust_ = opengl::CFrustum::Create();
                 {
@@ -331,7 +331,7 @@ bool slamScene::updateSceneSafe(const MapHandler* map){
                     kfsObj->insert( frust_ );
                 }
                 // represent spanning tree
-                Pj = (*it)->T_kf_w.col(3).head(3);
+                Pj = (*it)->T_w_kf.col(3).head(3);
                 //把轨迹连上
                 kfsLinesObj->appendLine( Pi(0),Pi(1),Pi(2), Pj(0),Pj(1),Pj(2) );
                 Pi = Pj;
@@ -357,7 +357,7 @@ bool slamScene::updateSceneSafe(const MapHandler* map){
             // 如果不是最后一个关键帧
             else
             {
-                kf_pose = CPose3D( getPoseFormat( (*it)->T_kf_w ) );
+                kf_pose = CPose3D( getPoseFormat( (*it)->T_w_kf ) );
                 opengl::CFrustumPtr frust_ = opengl::CFrustum::Create();
                 {
                     frust_->setPose( kf_pose + frustumL_ );
@@ -370,7 +370,7 @@ bool slamScene::updateSceneSafe(const MapHandler* map){
                     kfsObj->insert( frust_ );
                 }
                 // represent spanning tree
-                Pj = (*it)->T_kf_w.col(3).head(3);
+                Pj = (*it)->T_w_kf.col(3).head(3);
                 kfsLinesObj->appendLine( Pi(0),Pi(1),Pi(2), Pj(0),Pj(1),Pj(2) );
                 Pi = Pj;
             }
@@ -545,7 +545,7 @@ void slamScene::updateSceneGraphs( const MapHandler* map )
     {
         if( (*it)!=NULL )
         {
-            kf_pose = CPose3D( getPoseFormat( (*it)->T_kf_w ) );
+            kf_pose = CPose3D( getPoseFormat( (*it)->T_w_kf ) );
             opengl::CFrustumPtr frust_ = opengl::CFrustum::Create();
             {
                 frust_->setPose( kf_pose + frustumL_ );
@@ -571,8 +571,8 @@ void slamScene::updateSceneGraphs( const MapHandler* map )
             {
                 if( map->full_graph[i][j] >= SlamConfig::minLMCovGraph() )
                 {
-                    Vector3d Pi = map->map_keyframes[i]->T_kf_w.col(3).head(3);
-                    Vector3d Pj = map->map_keyframes[j]->T_kf_w.col(3).head(3);
+                    Vector3d Pi = map->map_keyframes[i]->T_w_kf.col(3).head(3);
+                    Vector3d Pj = map->map_keyframes[j]->T_w_kf.col(3).head(3);
                     opengl::CSimpleLinePtr obj = opengl::CSimpleLine::Create();
                     obj->setLineCoords(Pi(0),Pi(1),Pi(2), Pj(0),Pj(1),Pj(2));
                     obj->setLineWidth(0.5f);
@@ -875,7 +875,7 @@ bool slamScene::updateScene(const MapHandler* map){
     CPose3D kf_pose;
     Vector3d Pi;
     try{
-    Pi = map->map_keyframes[0]->T_kf_w.col(3).head(3);
+    Pi = map->map_keyframes[0]->T_w_kf.col(3).head(3);
     }catch(...){}
     Vector3d Pj;
     kfsObj      = opengl::CSetOfObjects::Create();
@@ -887,7 +887,7 @@ bool slamScene::updateScene(const MapHandler* map){
             // if last keyframe
             if( (*it)->kf_idx == map->map_keyframes.back()->kf_idx )
             {
-                kf_pose = CPose3D( getPoseFormat( (*it)->T_kf_w ) );
+                kf_pose = CPose3D( getPoseFormat( (*it)->T_w_kf ) );
                 opengl::CFrustumPtr frust_ = opengl::CFrustum::Create();
                 {
                     frust_->setPose( kf_pose + frustumL_ );
@@ -900,7 +900,7 @@ bool slamScene::updateScene(const MapHandler* map){
                     kfsObj->insert( frust_ );
                 }
                 // represent spanning tree
-                Pj = (*it)->T_kf_w.col(3).head(3);
+                Pj = (*it)->T_w_kf.col(3).head(3);
                 kfsLinesObj->appendLine( Pi(0),Pi(1),Pi(2), Pj(0),Pj(1),Pj(2) );
                 Pi = Pj;
                 // represent VO frustum
@@ -925,7 +925,7 @@ bool slamScene::updateScene(const MapHandler* map){
             // if not
             else
             {
-                kf_pose = CPose3D( getPoseFormat( (*it)->T_kf_w ) );
+                kf_pose = CPose3D( getPoseFormat( (*it)->T_w_kf ) );
                 opengl::CFrustumPtr frust_ = opengl::CFrustum::Create();
                 {
                     frust_->setPose( kf_pose + frustumL_ );
@@ -938,7 +938,7 @@ bool slamScene::updateScene(const MapHandler* map){
                     kfsObj->insert( frust_ );
                 }
                 // represent spanning tree
-                Pj = (*it)->T_kf_w.col(3).head(3);
+                Pj = (*it)->T_w_kf.col(3).head(3);
                 kfsLinesObj->appendLine( Pi(0),Pi(1),Pi(2), Pj(0),Pj(1),Pj(2) );
                 Pi = Pj;
             }

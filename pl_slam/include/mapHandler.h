@@ -139,7 +139,8 @@ public:
     list<PointFeature*> matched_pt;
     list<LineFeature*>  matched_ls;
 
-    map<int,vector<int>> map_points_kf_idx; // base KF list from which the LM is observed
+	//map的第一个元素key代表关键帧的id
+    map<int,vector<int>> map_points_kf_idx; //id的关键帧看见的所有地图点的集合
     map<int,vector<int>> map_lines_kf_idx;
 
     vector< vector<unsigned int> > full_graph;
@@ -150,7 +151,7 @@ public:
     unsigned int max_pt_idx, max_ls_idx, max_kf_idx ;
 
     KeyFrame *prev_kf, *curr_kf;
-    Matrix4d Twf;//Tcurkey_w 世界坐标系到当前关键帧
+    Matrix4d T_kf_w;//Tcurkey_w 世界坐标系到当前关键帧
     Matrix4d DT;//Tcurkey_prekey 上一个关键帧到当前关键帧
 
     // experiment variables
@@ -198,10 +199,10 @@ public:
 
     // KF queue
     std::list<pair<KeyFrame*,KeyFrame*>> kf_queue;  // list of curr_kf_mt and prev_kf_mt
+    KeyFrame* curr_kf_mt;//可能是mutex的一种使用方法
+    KeyFrame* prev_kf_mt;
     std::mutex kf_queue_mutex;
     std::condition_variable new_kf;
-    KeyFrame* curr_kf_mt;
-    KeyFrame* prev_kf_mt;
 
     std::mutex cout_mutex;
     void print_msg(const std::string &msg);
