@@ -213,10 +213,10 @@ int main(int argc, char **argv)
                     scene.updateScene();
                 #endif
             }
+            // update StVO
+            StVO->updateFrame();v
         }
         frame_counter++;
-        // update StVO
-        StVO->updateFrame();
         vector<float> q = toQuaternion(StVO->T_w_curr.block(0,0,3,3));
         fout << setprecision(7) << " "<< StVO->T_w_curr(0, 3) << " " << StVO->T_w_curr(1, 3) << " " << StVO->T_w_curr(2, 3) << " "<< q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
     }
