@@ -21,6 +21,7 @@
 *****************************************************************************/
 
 #include "mapHandler.h"
+#include "timer.h"
 
 #include <iostream>
 #include <opencv2/imgproc.hpp>
@@ -139,8 +140,10 @@ void MapHandler::addKeyFrame( KeyFrame *curr_kf )
         curr_kf->T_w_kf = expmap_se3(curr_kf->x_kf_w);
         // Estimates T_kf_w
         T_kf_w = expmap_se3(logmap_se3(  inverse_se3( curr_kf->T_w_kf ) ));
+        //cout<<"Display: T_kf_w\n"<<expmap_se3(logmap_se3(  inverse_se3( curr_kf->T_w_kf ) ))<<"\n\n"<<inverse_se3( curr_kf->T_w_kf )<<endl;
         // estimates pose increment
         DT = expmap_se3(logmap_se3( T_kf_w * prev_kf->T_w_kf ));
+        //cout<<"Display: DT\n"<<expmap_se3(logmap_se3( T_kf_w * prev_kf->T_w_kf ))<<"\n\n"<<T_kf_w * prev_kf->T_w_kf<<endl;
         // reset indices
         for (PointFeature* pt : curr_kf->stereo_frame->stereo_pt)
             pt->idx = -1;
@@ -1104,8 +1107,8 @@ void MapHandler::killThreads() {
         lc_join.wait(lc_lk, [this]{return (lc_thread_status == LC_TERMINATED);});
 }
 //局部地图线程
+StVO::Timer timer;
 void MapHandler::localMappingThread() {
-
     if (!threads_started) return;
 
     std::unique_lock<std::mutex> lk(lba_mutex, std::defer_lock);
@@ -1117,7 +1120,7 @@ void MapHandler::localMappingThread() {
         lk.unlock();
 
         if (curr_kf_mt == nullptr || prev_kf_mt == nullptr) break;
-		
+		timer.start();
 		//清空当前关键帧的特征匹配关系
         // reset indices
         for (PointFeature* pt : curr_kf_mt->stereo_frame->stereo_pt)
@@ -1139,6 +1142,7 @@ void MapHandler::localMappingThread() {
         // recent map LMs culling (implement filters for line segments, which seems to be unaccurate)
         removeBadMapLandmarks();
 
+        //cout << endl << "LM: " << timer.stop() << endl;
         lk.lock();
         lba_thread_status = LBA_IDLE;
         lk.unlock();

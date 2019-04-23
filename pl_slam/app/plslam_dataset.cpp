@@ -147,8 +147,11 @@ int main(int argc, char **argv)
     //当数据集不空时
     while (dataset.nextFrame(img_l, img_r))
     {
+        cout << "------------------------------------------   Frame #" << frame_counter
+                 << "   ----------------------------------------" << endl;
         if( frame_counter == 0 ) // initialize
         {
+            timer.start();
             //双目的初始化
             StVO->initialize(img_l,img_r,0);
             //第一帧肯定是关键帧
@@ -163,30 +166,26 @@ int main(int argc, char **argv)
                 scene.updateSceneSafe( map );
             #endif
             StVO->T_w_curr=StVO->curr_frame->Tfw;
+            cout << endl << "VO initialize: " << timer.stop() << endl;
         }
         else // run
         {
             // PL-StVO
-            timer.start();
             //frame_counter>0
+            timer.start();
             StVO->insertStereoPair( img_l, img_r, frame_counter );
+            //cout << endl << "VO insertStereoPair: " << timer.stop() << endl;
+            timer.start();
             StVO->optimizePose();
-            double t1 = timer.stop(); //ms
-//             cout << "------------------------------------------   Frame #" << frame_counter
-//                  << "   ----------------------------------------" << endl;
-//             cout << endl << "VO Runtime: " << t1 << endl;
-
+            //cout << endl << "VO optimizePose: " << timer.stop() << endl;
             // check if a new keyframe is 
             scene.frame+=1;
             scene.setText(scene.frame,0,StVO->n_inliers_pt,StVO->n_inliers_ls);
             if(map->prev_kf!=NULL)
-            {
                 StVO->T_w_curr=map->prev_kf->T_w_kf*StVO->curr_frame->Tfw;
-            }
             else
-            {
                 StVO->T_w_curr=StVO->curr_frame->Tfw;
-            }
+            
             if( StVO->needNewKF() )
             {
 //                 cout <<         "#KeyFrame:     " << map->max_kf_idx + 1;
@@ -198,7 +197,9 @@ int main(int argc, char **argv)
                 PLSLAM::KeyFrame* curr_kf = new PLSLAM::KeyFrame( StVO->curr_frame );
                 // update KF in StVO
                 StVO->currFrameIsKF();
+                timer.start();
                 map->addKeyFrame( curr_kf );
+                //cout << endl << "VO addKeyFrame: " << timer.stop() << endl;
                 // update scene
                 #ifndef NO_SECENE
                     scene.setImage(StVO->curr_frame->plotStereoFrame());
@@ -214,7 +215,7 @@ int main(int argc, char **argv)
                 #endif
             }
             // update StVO
-            StVO->updateFrame();v
+            StVO->updateFrame();
         }
         frame_counter++;
         vector<float> q = toQuaternion(StVO->T_w_curr.block(0,0,3,3));

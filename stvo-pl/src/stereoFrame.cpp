@@ -31,6 +31,7 @@
 
 #include "lineIterator.h"
 #include "matching.h"
+#include "timer.h"
 
 namespace StVO{
 
@@ -82,6 +83,7 @@ void StereoFrame::extractStereoFeatures( double llength_th, int fast_th )
 
 void StereoFrame::detectStereoPoints( int fast_th )
 {
+    Timer timer;
     //是否用点
     if( !Config::hasPoints() )
         return;
@@ -90,12 +92,14 @@ void StereoFrame::detectStereoPoints( int fast_th )
     // true if detecting and matching features in parallel
     if( Config::lrInParallel() )
     {
+        timer.start();
         //这一步的作用是检测关键点和提取描述子，分别放入左右图像的vector和mat里
         //points_l，pdesc_l是该双目帧的成员变量，vector<KeyPoint>和Mat
         auto detect_l = async(launch::async, &StereoFrame::detectPointFeatures, this, img_l, ref(points_l), ref(pdesc_l), fast_th );
         auto detect_r = async(launch::async, &StereoFrame::detectPointFeatures, this, img_r, ref(points_r), ref(pdesc_r), fast_th );
         detect_l.wait();
         detect_r.wait();
+        //cout << endl << "VO detectPointFeatures: " << timer.stop() << endl;
     }
     else
     {
@@ -106,8 +110,9 @@ void StereoFrame::detectStereoPoints( int fast_th )
     // perform the stereo matching
     // 传入左右图像提取的特征，并会改变左图像的描述子
     // 最终建立了该帧的特征点（2D坐标，3D坐标，金字塔层级，视差，索引）集合以及描述子矩阵。
+    timer.start();
     matchStereoPoints(points_l, points_r, pdesc_l, pdesc_r, (frame_idx==0) );
-
+    //cout << endl << "VO matchStereoPoints: " << timer.stop() << endl;
 }
 
 void StereoFrame::detectPointFeatures( Mat img, vector<KeyPoint> &points, Mat &pdesc, int fast_th )
@@ -229,17 +234,19 @@ void StereoFrame::matchPointFeatures(BFMatcher* bfm, Mat pdesc_1, Mat pdesc_2, v
 
 void StereoFrame::detectStereoLineSegments(double llength_th)
 {
-
+    Timer timer;
     if( !Config::hasLines() )
         return;
 
     // detect and estimate each descriptor for both the left and right image
     if( Config::lrInParallel() )
     {
+        timer.start();
         auto detect_l = async(launch::async, &StereoFrame::detectLineFeatures, this, img_l, ref(lines_l), ref(ldesc_l), llength_th );
         auto detect_r = async(launch::async, &StereoFrame::detectLineFeatures, this, img_r, ref(lines_r), ref(ldesc_r), llength_th );
         detect_l.wait();
         detect_r.wait();
+        //cout << endl << "VO detectLineFeatures: " << timer.stop() << endl;
     }
     else
     {
@@ -248,8 +255,10 @@ void StereoFrame::detectStereoLineSegments(double llength_th)
         detectLineFeatures( img_r, lines_r, ldesc_r, llength_th );
     }
 
+    timer.start();
     // perform the stereo matching
     matchStereoLines(lines_l,  lines_r,  ldesc_l, ldesc_r, (frame_idx==0));
+    //cout << endl << "VO matchStereoLines: " << timer.stop() << endl;
 
 }
 

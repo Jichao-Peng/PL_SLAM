@@ -23,9 +23,9 @@
 #include <stereoFrameHandler.h>
 #include <random>
 #include "matching.h"
+#include "timer.h"
 
 namespace StVO{
-
 StereoFrameHandler::StereoFrameHandler( PinholeStereoCamera *cam_ ) : cam(cam_) {}
 
 StereoFrameHandler::~StereoFrameHandler(){}
@@ -111,7 +111,7 @@ void StereoFrameHandler::updateFrame()
 //更新matched_pt，内点数量，当前帧和上一帧的匹配关系和部分成员变量，如pl_obs，idx，inlier
 void StereoFrameHandler::f2fTracking()
 {
-
+    Timer timer;
     // feature matching 这个是值两帧之间的匹配，不是左右图像
     matched_pt.clear();
     matched_ls.clear();
@@ -119,10 +119,12 @@ void StereoFrameHandler::f2fTracking()
     //判断是否有点，有线，是否共同使用
     if( Config::plInParallel() && Config::hasPoints() && Config::hasLines() )
     {
+        timer.start();
         auto detect_p = async(launch::async, &StereoFrameHandler::matchF2FPoints, this );
         auto detect_l = async(launch::async, &StereoFrameHandler::matchF2FLines,  this );
         detect_p.wait();
         detect_l.wait();
+        //cout << endl << "VO matchF2FLinesPoints: " << timer.stop() << endl;
     }
     else
     {
@@ -411,11 +413,13 @@ void StereoFrameHandler::optimizePose()
         //expmap_se3(logmap_se3这里好像不是很有意义
         //curr_frame->DT=Tpre_cur
         curr_frame->DT       = expmap_se3(logmap_se3( inverse_se3(DT) ));
+        //cout<<"Display: curr_frame->DT\n"<<expmap_se3(logmap_se3( inverse_se3(DT) ))<<"\n\n"<<inverse_se3(DT)<<endl;
         //Tpre_cur的协方差（在迭代的时候用信息矩阵的逆代替）
         curr_frame->DT_cov   = DT_cov;
         curr_frame->err_norm = err;
         //更新 prev_frame->Tfw在updateFrame里更新，但每当关键帧插入时都会变成单位矩阵。并且在updateFrame里，prev_frame会被整体更新
         curr_frame->Tfw      = expmap_se3(logmap_se3( prev_frame->Tfw * curr_frame->DT ));
+        //cout<<"Display: curr_frame->Tfw\n"<<expmap_se3(logmap_se3( prev_frame->Tfw * curr_frame->DT ))<<"\n\n"<<prev_frame->Tfw * curr_frame->DT<<endl;
         //curr_frame->Tfw_cov=prev_frame->Tfw_cov+ad(prev_frame->Tfw)*DT_cov*ad(prev_frame->Tfw)^T
         curr_frame->Tfw_cov  = unccomp_se3( prev_frame->Tfw, prev_frame->Tfw_cov, DT_cov );
         SelfAdjointEigenSolver<Matrix6d> eigensolver(DT_cov);
@@ -441,9 +445,12 @@ void StereoFrameHandler::optimizePose()
 void StereoFrameHandler::gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov, double &err_, int max_iters)
 {
     Matrix6d H;
-    Vector6d g, DT_inc;//DT_inc是Hx=g的解
+    Vector6d g, DT_inc,DT_inc2;//DT_inc是Hx=g的解
     double err, err_prev = 999999999.9;
-
+    static float iterTimes=0;
+    static float time=0;
+    int iterTimeTemp=0;
+    time++;
     int iters;
     for( iters = 0; iters < max_iters; iters++)
     {
@@ -466,8 +473,11 @@ void StereoFrameHandler::gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov,
         // update step
         ColPivHouseholderQR<Matrix6d> solver(H);
         DT_inc = solver.solve(g);
+        //DT_inc2=solver.solve(-g);
         // 增量更新  DT Tcur_pre  这里右乘的原因是算H和g的时候，g忘取了一个负号（原作者真坑）
+        //DT  << expmap_se3(DT_inc2)*DT;
         DT  << DT * inverse_se3( expmap_se3(DT_inc) );
+        //cout<<"left and right multiply"<<DT<<"\n\n"<<expmap_se3(DT_inc2)*DT<<"\n\n"<<DT-expmap_se3(DT_inc2)*DT<<endl;
         // if the parameter change is small stop
         //1e-7        # min. error change to stop the optimization
         if( DT_inc.head(3).norm() < Config::minErrorChange() && DT_inc.tail(3).norm() < Config::minErrorChange()) {
@@ -478,11 +488,15 @@ void StereoFrameHandler::gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov,
         //cout<<err_prev-err<<' ';
         // update previous values
         err_prev = err;
+        iterTimeTemp++;
     }
-    //cout<<endl;
+    //计算平均迭代次数
+    iterTimes=(iterTimes*(time-1)+iterTimeTemp)/time;
+    //cout<<iterTimes<<endl;
     DT_cov = H.inverse();  //DT_cov = Matrix6d::Identity(); 协方差矩阵就是海塞矩阵的逆
     err_   = err;
 }
+
 
 void StereoFrameHandler::gaussNewtonOptimizationRobust(Matrix4d &DT, Matrix6d &DT_cov, double &err_, int max_iters)
 {
