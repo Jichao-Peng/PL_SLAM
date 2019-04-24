@@ -44,8 +44,8 @@ void StereoFrameHandler::initialize(const Mat img_l_, const Mat img_r_ , const i
     //提取点特征和线特征
     prev_frame->extractStereoFeatures( llength_th, orb_fast_th );
     //位姿是单位矩阵
-    prev_frame->Tfw     = Matrix4d::Identity();
-    prev_frame->Tfw_cov = Matrix6d::Identity();
+    prev_frame->T_kf_f     = Matrix4d::Identity();
+    prev_frame->Tkf_f_cov = Matrix6d::Identity();
     prev_frame->DT      = Matrix4d::Identity();
     curr_frame = prev_frame;
     // SLAM variables for KF decision  关键帧选择的量
@@ -163,7 +163,7 @@ void StereoFrameHandler::matchF2FPoints()
         //i2是当前帧对应上一帧i1的匹配特征的索引
         const int i2 = matches_12[i1];
         if (i2 < 0) continue;//i2=-1
-        /*执行匹配过程，并更新内点*/
+        /*执行匹配过程，并更新观测，更新内点*/
         prev_frame->stereo_pt[i1]->pl_obs = curr_frame->stereo_pt[i2]->pl;
         prev_frame->stereo_pt[i1]->inlier = true;
         matched_pt.push_back( prev_frame->stereo_pt[i1]->safeCopy() );
@@ -376,6 +376,8 @@ void StereoFrameHandler::optimizePose()
         // remove outliers (implement some logic based on the covariance's eigenvalues and optim error)
         if( isGoodSolution(DT_,DT_cov,err) )
         {
+            //cout<<"  P_L: "<<curr_frame->points_l.size()<<"  P_R: "<<curr_frame->points_r.size()<<"  S_P: "<<curr_frame->stereo_pt.size()<<"  M_P"<<matched_pt.size()<<endl;
+            //cout<<"  L_L: "<<curr_frame->lines_l.size()<<"  L_R: "<<curr_frame->lines_r.size()<<"  S_L: "<<curr_frame->stereo_ls.size()<<"  M_L"<<matched_ls.size()<<endl;
             removeOutliers(DT_);
             
             // refine without outliers
@@ -417,17 +419,17 @@ void StereoFrameHandler::optimizePose()
         //Tpre_cur的协方差（在迭代的时候用信息矩阵的逆代替）
         curr_frame->DT_cov   = DT_cov;
         curr_frame->err_norm = err;
-        //更新 prev_frame->Tfw在updateFrame里更新，但每当关键帧插入时都会变成单位矩阵。并且在updateFrame里，prev_frame会被整体更新
-        curr_frame->Tfw      = expmap_se3(logmap_se3( prev_frame->Tfw * curr_frame->DT ));
-        //cout<<"Display: curr_frame->Tfw\n"<<expmap_se3(logmap_se3( prev_frame->Tfw * curr_frame->DT ))<<"\n\n"<<prev_frame->Tfw * curr_frame->DT<<endl;
-        //curr_frame->Tfw_cov=prev_frame->Tfw_cov+ad(prev_frame->Tfw)*DT_cov*ad(prev_frame->Tfw)^T
-        curr_frame->Tfw_cov  = unccomp_se3( prev_frame->Tfw, prev_frame->Tfw_cov, DT_cov );
+        //更新 prev_frame->T_kf_f在updateFrame里更新，但每当关键帧插入时都会变成单位矩阵。并且在updateFrame里，prev_frame会被整体更新
+        curr_frame->T_kf_f      = expmap_se3(logmap_se3( prev_frame->T_kf_f * curr_frame->DT ));
+        //cout<<"Display: curr_frame->T_kf_f\n"<<expmap_se3(logmap_se3( prev_frame->T_kf_f * curr_frame->DT ))<<"\n\n"<<prev_frame->T_kf_f * curr_frame->DT<<endl;
+        //curr_frame->Tkf_f_cov=prev_frame->Tkf_f_cov+ad(prev_frame->T_kf_f)*DT_cov*ad(prev_frame->T_kf_f)^T
+        curr_frame->Tkf_f_cov  = unccomp_se3( prev_frame->T_kf_f, prev_frame->Tkf_f_cov, DT_cov );
         SelfAdjointEigenSolver<Matrix6d> eigensolver(DT_cov);
         curr_frame->DT_cov_eig = eigensolver.eigenvalues();
         
 //         cout<<"qiao"<<endl;
 //         logT(curr_frame->DT);
-//         logT(curr_frame->Tfw);
+//         logT(curr_frame->T_kf_f);
 
     }
     else
@@ -436,8 +438,8 @@ void StereoFrameHandler::optimizePose()
         curr_frame->DT       = Matrix4d::Identity();
         curr_frame->DT_cov   = Matrix6d::Zero();
         curr_frame->err_norm = -1.0;
-        curr_frame->Tfw      = prev_frame->Tfw;
-        curr_frame->Tfw_cov  = prev_frame->Tfw_cov;
+        curr_frame->T_kf_f      = prev_frame->T_kf_f;
+        curr_frame->Tkf_f_cov  = prev_frame->Tkf_f_cov;
         curr_frame->DT_cov_eig = Vector6d::Zero();
     }
 }
@@ -1274,7 +1276,7 @@ bool StereoFrameHandler::needNewKF()
     // check geometric distances from previous KF
     //DT是T_prevKF_curr 和类里的DT不同
     //这里的T_prevKF一直是单位矩阵,这里应该是有问题的？
-    Matrix4d DT = inverse_se3( curr_frame->Tfw ) * T_prevKF;
+    Matrix4d DT = inverse_se3( curr_frame->T_kf_f ) * T_prevKF;
     Vector6d dX = logmap_se3( DT );
 
     double t = dX.head(3).norm();
@@ -1337,12 +1339,12 @@ void StereoFrameHandler::currFrameIsKF()
 
     // update KF
     //// 把当前帧的位姿和协方差矩阵都设置为单位矩阵
-    curr_frame->Tfw     = Matrix4d::Identity();
-    curr_frame->Tfw_cov = Matrix6d::Identity();
+    curr_frame->T_kf_f     = Matrix4d::Identity();
+    curr_frame->Tkf_f_cov = Matrix6d::Identity();
 
     // update SLAM variables for KF decision
     // 更新前一个关键帧的位姿，以及前一个关键帧到当前关键帧的协方差矩阵
-    T_prevKF = curr_frame->Tfw; //这里岂不是一直是单位矩阵了？？？有没有问题
+    T_prevKF = curr_frame->T_kf_f; //这里岂不是一直是单位矩阵了？？？有没有问题
     cov_prevKF_currF = Matrix6d::Zero();
     prev_f_iskf = true;
     N_prevKF_currF = 0;
@@ -1552,11 +1554,11 @@ void StereoFrameHandler::optimizePoseDebug()
     if( is_finite(DT) && err != -1.0 )
     {
         curr_frame->DT     = inverse_se3( DT );
-        curr_frame->Tfw    = prev_frame->Tfw * curr_frame->DT;
+        curr_frame->T_kf_f    = prev_frame->T_kf_f * curr_frame->DT;
         curr_frame->DT_cov = DT_cov;
         SelfAdjointEigenSolver<Matrix6d> eigensolver(DT_cov);
         curr_frame->DT_cov_eig = eigensolver.eigenvalues();
-        curr_frame->Tfw_cov = unccomp_se3( prev_frame->Tfw, prev_frame->Tfw_cov, DT_cov );
+        curr_frame->Tkf_f_cov = unccomp_se3( prev_frame->T_kf_f, prev_frame->Tkf_f_cov, DT_cov );
         curr_frame->err_norm   = err;
     }
     else
@@ -1564,8 +1566,8 @@ void StereoFrameHandler::optimizePoseDebug()
         curr_frame->DT     = Matrix4d::Identity();
         curr_frame->DT_cov = Matrix6d::Identity();
         curr_frame->err_norm   = -1.0;
-        curr_frame->Tfw    = prev_frame->Tfw;
-        curr_frame->Tfw_cov= prev_frame->Tfw_cov;
+        curr_frame->T_kf_f    = prev_frame->T_kf_f;
+        curr_frame->Tkf_f_cov= prev_frame->Tkf_f_cov;
         SelfAdjointEigenSolver<Matrix6d> eigensolver(DT_cov);
         curr_frame->DT_cov_eig = eigensolver.eigenvalues();
     }
@@ -1600,18 +1602,18 @@ void StereoFrameHandler::optimizePoseDebug()
     if( is_finite(DT) )
     {
         curr_frame->DT     = inverse_se3( DT );
-        curr_frame->Tfw    = prev_frame->Tfw * curr_frame->DT;
+        curr_frame->T_kf_f    = prev_frame->T_kf_f * curr_frame->DT;
         curr_frame->DT_cov = DT_cov;
         SelfAdjointEigenSolver<Matrix6d> eigensolver(DT_cov);
         curr_frame->DT_cov_eig = eigensolver.eigenvalues();
-        curr_frame->Tfw_cov = unccomp_se3( prev_frame->Tfw, prev_frame->Tfw_cov, DT_cov );
+        curr_frame->Tkf_f_cov = unccomp_se3( prev_frame->T_kf_f, prev_frame->Tkf_f_cov, DT_cov );
         curr_frame->err_norm   = err;
     }
     else
     {
         curr_frame->DT     = Matrix4d::Identity();
-        curr_frame->Tfw    = prev_frame->Tfw;
-        curr_frame->Tfw_cov= prev_frame->Tfw_cov;
+        curr_frame->T_kf_f    = prev_frame->T_kf_f;
+        curr_frame->Tkf_f_cov= prev_frame->Tkf_f_cov;
         curr_frame->DT_cov = DT_cov;
         SelfAdjointEigenSolver<Matrix6d> eigensolver(DT_cov);
         curr_frame->DT_cov_eig = eigensolver.eigenvalues();

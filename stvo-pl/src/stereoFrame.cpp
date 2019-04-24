@@ -290,7 +290,7 @@ void StereoFrame::detectLineFeatures( Mat img, vector<KeyLine> &lines, Mat &ldes
             opts.min_length   = min_line_length;
             //lines 左右图像的vector<KeyLine> scale 1.2 1：金字塔
             lsd->detect( img, lines, Config::lsdScale(), 1, opts);
-            // filter lines 如果提取总数大于阈值（100），则从中提取100个线特征
+            // filter lines 如果提取总数大于阈值（300），则从中提取300个线特征
             if( lines.size()>Config::lsdNFeatures() && Config::lsdNFeatures()!=0  )
             {
                 // sort lines by their response KeyLine.response
@@ -323,7 +323,7 @@ void StereoFrame::detectLineFeatures( Mat img, vector<KeyLine> &lines, Mat &ldes
             Ptr<cv::ximgproc::FastLineDetector> fld = cv::ximgproc::createFastLineDetector(min_line_length);
             fld->detect( fld_img, fld_lines );
 
-            // 如果线段过多，则用长度挑选出其中前100个
+            // 如果线段过多，则用长度挑选出其中前300个
             if( fld_lines.size()>Config::lsdNFeatures() && Config::lsdNFeatures()!=0  )
             {
                 // sort lines by their response

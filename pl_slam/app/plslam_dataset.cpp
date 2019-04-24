@@ -165,7 +165,7 @@ int main(int argc, char **argv)
                 scene.setImage(StVO->prev_frame->plotStereoFrame());
                 scene.updateSceneSafe( map );
             #endif
-            StVO->T_w_curr=StVO->curr_frame->Tfw;
+            StVO->T_w_curr=StVO->curr_frame->T_kf_f;
             cout << endl << "VO initialize: " << timer.stop() << endl;
         }
         else // run
@@ -182,9 +182,9 @@ int main(int argc, char **argv)
             scene.frame+=1;
             scene.setText(scene.frame,0,StVO->n_inliers_pt,StVO->n_inliers_ls);
             if(map->prev_kf!=NULL)
-                StVO->T_w_curr=map->prev_kf->T_w_kf*StVO->curr_frame->Tfw;
+                StVO->T_w_curr=map->prev_kf->T_w_kf*StVO->curr_frame->T_kf_f;
             else
-                StVO->T_w_curr=StVO->curr_frame->Tfw;
+                StVO->T_w_curr=StVO->curr_frame->T_kf_f;
             
             if( StVO->needNewKF() )
             {
