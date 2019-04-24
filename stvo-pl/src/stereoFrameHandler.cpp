@@ -1163,10 +1163,12 @@ void StereoFrameHandler::removeOutliers(Matrix4d DT)
 
 void StereoFrameHandler::gfPointSeclet(Matrix4d DT)
 {
+    Timer timer;
     int size=n_inliers_pt;
     int discardNUm=n_inliers_pt/4;
     Matrix6d HcTHc=Matrix6d::Zero();
     Matrix6d HcTHc_=Matrix6d::Zero();
+    timer.start();
     if (Config::hasPoints()) {
         for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++)
         {
@@ -1207,7 +1209,8 @@ void StereoFrameHandler::gfPointSeclet(Matrix4d DT)
             discardNUm--;
             if(discardNUm==0) break;
         }
-    }    
+    }
+    cout<<"time: "<<timer.stop()<<endl;
 }
 
 void StereoFrameHandler::prefilterOutliers(Matrix4d DT)
