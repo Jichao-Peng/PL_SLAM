@@ -380,13 +380,17 @@ void StereoFrameHandler::optimizePose()
             //cout<<"  P_L: "<<curr_frame->points_l.size()<<"  P_R: "<<curr_frame->points_r.size()<<"  S_P: "<<curr_frame->stereo_pt.size()<<"  M_P"<<matched_pt.size()<<endl;
             //cout<<"  L_L: "<<curr_frame->lines_l.size()<<"  L_R: "<<curr_frame->lines_r.size()<<"  S_L: "<<curr_frame->stereo_ls.size()<<"  M_L"<<matched_ls.size()<<endl;
             removeOutliers(DT_);
-            
             // refine without outliers
             // 去除外点之后，再进行一次优化
             if( n_inliers >= Config::minFeatures() )
             {
                 //这里的DT初始值还是单位矩阵（不使用恒速模型）
-                if( mode == 0 )      gaussNewtonOptimization(DT,DT_cov,err,Config::maxItersRef());
+                if( mode == 0 )      
+                {
+                    gaussNewtonOptimization(DT,DT_cov,err,Config::maxItersRef());
+                    gfPointSeclet(DT);
+                    gaussNewtonOptimization(DT,DT_cov,err,Config::maxItersRef());
+                }
                 else if( mode == 1 ) gaussNewtonOptimizationRobust(DT,DT_cov,err,Config::maxItersRef());
                 else if( mode == 2 ) levenbergMarquardtOptimization(DT,DT_cov,err,Config::maxItersRef());
             }
@@ -1166,9 +1170,9 @@ void StereoFrameHandler::gfPointSeclet(Matrix4d DT)
     if (Config::hasPoints()) {
         for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++)
         {
-            (*it)->Hx=getHx(logmap_se3(DT),(*it)->P_obs);
-            (*it)->Hp=getHp(logmap_se3(DT),(*it)->P_obs);
-            (*it)->Hc=pInv((*it)->Hp)*(*it)->Hx;  
+            (*it)->Hx=getPointHx(logmap_se3(DT),(*it)->P_obs);
+            (*it)->Hp=getPointHp(logmap_se3(DT),(*it)->P_obs);
+            (*it)->Hc=pInv((*it)->Hp)*((*it)->Hx);  
             (*it)->HcTHc=(*it)->Hc.transpose()*(*it)->Hc;  
         }
         
@@ -1696,7 +1700,7 @@ void StereoFrameHandler::gaussNewtonOptimizationRobustDebug(Matrix4d &DT, Matrix
 
 }
 
-Matrix26d StereoFrameHandler:: getHx(Vector6d x,Vector3d Pc)
+Matrix26d StereoFrameHandler:: getPointHx(Vector6d x,Vector3d Pc)
 {
     Matrix23d dePc;//投影函数对PC的雅克比
     Matrix36d deDT;//Pc对李代数的扰动的雅克比
@@ -1721,7 +1725,7 @@ Matrix26d StereoFrameHandler:: getHx(Vector6d x,Vector3d Pc)
 }
 
 
-Matrix23d StereoFrameHandler:: getHp(Vector6d x,Vector3d Pc)
+Matrix23d StereoFrameHandler:: getPointHp(Vector6d x,Vector3d Pc)
 {
     Matrix23d dePc;//投影函数对PC的雅克比
     Matrix3d dePw;//Pc对李代数的扰动的雅克比

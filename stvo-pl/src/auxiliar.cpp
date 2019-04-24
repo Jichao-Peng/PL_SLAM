@@ -609,8 +609,6 @@ std::vector<float> toQuaternion(const Matrix3d &M)
     return v;
 }
 
-using Eigen::Dynamic; 
-using Eigen::RowMajor; 
 MatXf pInv(MatXf x) 
 { 
     JacobiSVD<MatXf> svd(x,ComputeFullU | ComputeFullV); 

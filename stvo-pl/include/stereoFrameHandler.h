@@ -69,8 +69,8 @@ public:
     
     /*求Hx,Hp*/
     
-    Matrix26d getHx(Vector6d x,Vector3d Pc);
-    Matrix23d getHp(Vector6d x,Vector3d Pc);
+    Matrix26d getPointHx(Vector6d x,Vector3d Pc);
+    Matrix23d getPointHp(Vector6d x,Vector3d Pc);
 
 
     //list< boost::shared_ptr<PointFeature> > matched_pt;
