@@ -104,7 +104,7 @@ void StereoFrameHandler::insertStereoPair(const Mat & img_l_, const Mat & img_r_
         // assess the uncertainty of stereo from previous frame
         prev_frame->estimateStereoUncertainty();
     }
-    //
+    
     // crossFrameMatching_Brute();
     crossFrameMatching_Hybrid();
     //    crossFrameMatching_Proj();

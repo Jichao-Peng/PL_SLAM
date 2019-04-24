@@ -99,6 +99,7 @@ private:
 
     void prefilterOutliers( Matrix4d DT );
     // good point features selection
+    void gfPointSeclet_Greedy(Matrix4d DT);
     void gfPointSeclet(Matrix4d DT);
     void removeOutliers( Matrix4d DT );
     void gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov, double &err_, int max_iters);

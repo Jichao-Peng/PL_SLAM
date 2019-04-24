@@ -1161,6 +1161,57 @@ void StereoFrameHandler::removeOutliers(Matrix4d DT)
         throw runtime_error("[StVO; stereoFrameHandler] Assetion failed: n_inliers != (n_inliers_pt + n_inliers_ls)");
 }
 
+void StereoFrameHandler::gfPointSeclet_Greedy(Matrix4d DT)
+{
+    Timer timer;
+    int size=n_inliers_pt;
+    int discardNUm=n_inliers_pt/4;
+    Matrix6d HcTHc=Matrix6d::Zero();
+    Matrix6d HcTHc_=Matrix6d::Zero();
+    timer.start();
+    if (Config::hasPoints()) {
+        for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++)
+        {
+            (*it)->Hx=getPointHx(logmap_se3(DT),(*it)->P_obs);
+            (*it)->Hp=getPointHp(logmap_se3(DT),(*it)->P_obs);
+            (*it)->Hc=pInv((*it)->Hp)*((*it)->Hx);  
+            (*it)->HcTHc=(*it)->Hc.transpose()*(*it)->Hc;  
+        }
+        
+        for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++)
+            if( (*it)->inlier )
+                HcTHc= HcTHc+(*it)->HcTHc;
+            
+        while(1)
+        {
+            double value_min=99999999.9;
+            PointFeature* discardId;
+            for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++)
+            {
+                if( (*it)->inlier )
+                {
+                    HcTHc_=HcTHc-(*it)->HcTHc;
+                    double det=HcTHc_.determinant();
+                    //找到去掉该点后，HcTHc_的行列式值最小的那个
+                    if(det<value_min)
+                    {
+                        value_min=det;
+                        discardId=*it;
+                    }
+                }
+            }
+            //更新总集
+            HcTHc=HcTHc-discardId->HcTHc;
+            //去除内点
+            discardId->inlier = false;
+            n_inliers--;
+            n_inliers_pt--;
+            discardNUm--;
+            if(discardNUm==0) break;
+        }
+    }
+    cout<<"time: "<<timer.stop()<<endl;
+}
 void StereoFrameHandler::gfPointSeclet(Matrix4d DT)
 {
     Timer timer;
@@ -1212,7 +1263,6 @@ void StereoFrameHandler::gfPointSeclet(Matrix4d DT)
     }
     cout<<"time: "<<timer.stop()<<endl;
 }
-
 void StereoFrameHandler::prefilterOutliers(Matrix4d DT)
 {
 

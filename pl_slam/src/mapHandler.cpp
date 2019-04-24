@@ -1081,8 +1081,8 @@ void MapHandler::startThreads() {
         std::lock_guard<std::mutex> lk(lc_mutex);
         lc_thread_status = LC_IDLE;
     }
-    std::thread loopClosure(&MapHandler::loopClosureThread, this);
-    loopClosure.detach();
+//     std::thread loopClosure(&MapHandler::loopClosureThread, this);
+//     loopClosure.detach();
 }
 
 void MapHandler::killThreads() {
