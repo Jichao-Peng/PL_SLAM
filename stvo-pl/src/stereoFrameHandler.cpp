@@ -165,6 +165,7 @@ void StereoFrameHandler::matchF2FPoints()
         if (i2 < 0) continue;//i2=-1
         /*执行匹配过程，并更新观测，更新内点*/
         prev_frame->stereo_pt[i1]->pl_obs = curr_frame->stereo_pt[i2]->pl;
+        prev_frame->stereo_pt[i1]->P_obs = curr_frame->stereo_pt[i2]->P;
         prev_frame->stereo_pt[i1]->inlier = true;
         matched_pt.push_back( prev_frame->stereo_pt[i1]->safeCopy() );
         //以先前帧为标准，当前帧和上一帧的匹配点索引相同
@@ -1158,33 +1159,51 @@ void StereoFrameHandler::removeOutliers(Matrix4d DT)
 
 void StereoFrameHandler::gfPointSeclet(Matrix4d DT)
 {
+    int size=n_inliers_pt;
+    int discardNUm=n_inliers_pt/4;
+    Matrix6d HcTHc=Matrix6d::Zero();
+    Matrix6d HcTHc_=Matrix6d::Zero();
     if (Config::hasPoints()) {
-        // point features
-        vector<double> res_p;
-
-        res_p.reserve(matched_pt.size());
-        int iter = 0;
-        for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++, iter++)
+        for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++)
         {
-            // projection error
-            Vector3d P_ = DT.block(0,0,3,3) * (*it)->P + DT.col(3).head(3);     
-            Vector2d pl_proj = cam->projection( P_ );                          
-            res_p.push_back( ( pl_proj - (*it)->pl_obs ).norm() * sqrt((*it)->sigma2) );    
+            (*it)->Hx=getHx(logmap_se3(DT),(*it)->P_obs);
+            (*it)->Hp=getHp(logmap_se3(DT),(*it)->P_obs);
+            (*it)->Hc=pInv((*it)->Hp)*(*it)->Hx;  
+            (*it)->HcTHc=(*it)->Hc.transpose()*(*it)->Hc;  
         }
-
-        iter = 0;
-        //一σ原则
-        for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++, iter++)
+        
+        for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++)
+            if( (*it)->inlier )
+                HcTHc= HcTHc+(*it)->HcTHc;
+            
+        while(1)
         {
-            if( (*it)->inlier && fabs(0) > 1.0 )
+            double value_min=99999999.9;
+            PointFeature* discardId;
+            for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++)
             {
-                (*it)->inlier = false;
-                n_inliers--;
-                n_inliers_pt--;
+                if( (*it)->inlier )
+                {
+                    HcTHc_=HcTHc-(*it)->HcTHc;
+                    double det=HcTHc_.determinant();
+                    //找到去掉该点后，HcTHc_的行列式值最小的那个
+                    if(det<value_min)
+                    {
+                        value_min=det;
+                        discardId=*it;
+                    }
+                }
             }
+            //更新总集
+            HcTHc=HcTHc-discardId->HcTHc;
+            //去除内点
+            discardId->inlier = false;
+            n_inliers--;
+            n_inliers_pt--;
+            discardNUm--;
+            if(discardNUm==0) break;
         }
     }    
-    
 }
 
 void StereoFrameHandler::prefilterOutliers(Matrix4d DT)
@@ -1675,6 +1694,58 @@ void StereoFrameHandler::gaussNewtonOptimizationRobustDebug(Matrix4d &DT, Matrix
         DT_cov = Matrix6d::Identity();
     }
 
+}
+
+Matrix26d StereoFrameHandler:: getHx(Vector6d x,Vector3d Pc)
+{
+    Matrix23d dePc;//投影函数对PC的雅克比
+    Matrix36d deDT;//Pc对李代数的扰动的雅克比
+//     Matrix6d  Jl;  //SE的左雅克比矩阵
+//     Matrix3d  jl;  //SO上的左雅克比矩阵
+//     Matrix3d  Ql;  //参见Jl的求法
+    double fx=cam->getFx();
+    double fy=cam->getFy();
+    double cx=cam->getCx();
+    double cy=cam->getCy();
+    
+    double pc_x=Pc(0);
+    double pc_y=Pc(1);
+    double pc_z=Pc(2);
+    double pc_z2=pc_z*pc_z;
+    
+    dePc<<fx/pc_z,0,-fx*pc_x/pc_z2,0,fy/pc_z,-fy*pc_y/pc_z2;
+    deDT.block(0,0,3,3)=Matrix3d::Identity();
+    deDT.block(0,3,3,3)=-skew(Pc);
+    
+    return dePc*deDT;
+}
+
+
+Matrix23d StereoFrameHandler:: getHp(Vector6d x,Vector3d Pc)
+{
+    Matrix23d dePc;//投影函数对PC的雅克比
+    Matrix3d dePw;//Pc对李代数的扰动的雅克比
+//     Matrix6d  Jl;  //SE的左雅克比矩阵
+//     Matrix3d  jl;  //SO上的左雅克比矩阵
+//     Matrix3d  Ql;  //参见Jl的求法
+    double fx=cam->getFx();
+    double fy=cam->getFy();
+    double cx=cam->getCx();
+    double cy=cam->getCy();
+    
+    double pc_x=Pc(0);
+    double pc_y=Pc(1);
+    double pc_z=Pc(2);
+    double pc_z2=pc_z*pc_z;
+    
+    dePc<<fx/pc_z,0,-fx*pc_x/pc_z2,0,fy/pc_z,-fy*pc_y/pc_z2;
+    
+    
+    //旋转向量
+    dePw=fast_skewexp(x.tail(3));
+ 
+    
+    return dePc*dePw;
 }
 
 }

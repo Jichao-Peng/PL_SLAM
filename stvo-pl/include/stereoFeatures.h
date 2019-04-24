@@ -23,6 +23,7 @@
 #pragma once
 #include <eigen3/Eigen/Core>
 #include <config.h>
+#include "auxiliar.h"
 using namespace Eigen;
 
 namespace StVO{
@@ -41,7 +42,7 @@ public:
     PointFeature( Vector2d pl_, double disp_, Vector3d P_, int idx_, int level, Matrix3d covP_an_ );
     PointFeature( Vector2d pl_, double disp_, Vector3d P_, Vector2d pl_obs_ );
     PointFeature( Vector2d pl_, double disp_, Vector3d P_, Vector2d pl_obs_,
-                  int idx_, int level_, double sigma2_, Matrix3d covP_an_, bool inlier_ );
+                  int idx_, int level_, double sigma2_, Matrix3d covP_an_, bool inlier_,Vector3d P_obs );
     ~PointFeature(){};
 
     PointFeature* safeCopy();
@@ -49,11 +50,16 @@ public:
     int idx;                    //点特征索引
     Vector2d pl, pl_obs;        //特征点在当前帧和在匹配帧的像素坐标
     double   disp;              //特征点的像素视差
-    Vector3d P;                 //特征点的3D坐标 相机坐标系下的
+    Vector3d P,P_obs;                 //特征点的3D坐标 相机坐标系下的
     bool inlier;                //是否为内点
     int level;
     double sigma2 = 1.0;
     Matrix3d covP_an;
+    
+    Matrix23d Hp; 
+    Matrix26d Hx;
+    Matrix36d Hc;
+    Matrix6d  HcTHc;
 
 };
 

@@ -609,7 +609,24 @@ std::vector<float> toQuaternion(const Matrix3d &M)
     return v;
 }
 
-
+using Eigen::Dynamic; 
+using Eigen::RowMajor; 
+MatXf pInv(MatXf x) 
+{ 
+    JacobiSVD<MatXf> svd(x,ComputeFullU | ComputeFullV); 
+    double pinvtoler=1.e-8; 
+    //tolerance 
+    MatXf singularValues_inv = svd.singularValues(); 
+    for ( long i=0; i<x.cols(); ++i) 
+    { 
+        if ( singularValues_inv(i) > pinvtoler ) 
+            singularValues_inv(i)=1.0/singularValues_inv(i); 
+        else singularValues_inv(i)=0; 
+        
+    } 
+    return svd.matrixV()*singularValues_inv.asDiagonal()*svd.matrixU().transpose(); 
+    
+} 
 
 
 

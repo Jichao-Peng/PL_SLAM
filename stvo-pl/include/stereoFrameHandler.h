@@ -23,6 +23,7 @@
 #pragma once
 #include <stereoFrame.h>
 #include <stereoFeatures.h>
+#include "auxiliar.h"
 
 typedef Matrix<double,6,6> Matrix6d;
 typedef Matrix<double,6,1> Vector6d;
@@ -65,6 +66,12 @@ public:
     // slam-specific functions
     bool needNewKF();
     void currFrameIsKF();
+    
+    /*求Hx,Hp*/
+    
+    Matrix26d getHx(Vector6d x,Vector3d Pc);
+    Matrix23d getHp(Vector6d x,Vector3d Pc);
+
 
     //list< boost::shared_ptr<PointFeature> > matched_pt;
     //list< boost::shared_ptr<LineFeature>  > matched_ls;

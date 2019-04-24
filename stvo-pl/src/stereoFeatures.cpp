@@ -59,12 +59,12 @@ PointFeature::PointFeature( Vector2d pl_, double disp_, Vector3d P_, Vector2d pl
 {}
 
 PointFeature::PointFeature( Vector2d pl_, double disp_, Vector3d P_, Vector2d pl_obs_,
-              int idx_, int level_, double sigma2_, Matrix3d covP_an_, bool inlier_ ) :
-    pl(pl_), disp(disp_), P(P_), pl_obs(pl_obs_), inlier(inlier_), level(level_), sigma2(sigma2_), covP_an(covP_an_)
+              int idx_, int level_, double sigma2_, Matrix3d covP_an_, bool inlier_ , Vector3d P_obs) :
+    pl(pl_), disp(disp_), P(P_), pl_obs(pl_obs_), inlier(inlier_), level(level_), sigma2(sigma2_), covP_an(covP_an_), P_obs(P_obs)
 {}
 
 PointFeature* PointFeature::safeCopy(){
-    return new PointFeature( pl, disp, P, pl_obs, idx, level, sigma2, covP_an, inlier );
+    return new PointFeature( pl, disp, P, pl_obs, idx, level, sigma2, covP_an, inlier, P_obs );
 }
 
 

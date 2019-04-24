@@ -38,9 +38,12 @@ using namespace std;
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Eigenvalues>
 using namespace Eigen;
-
+typedef Matrix<double,2,3> Matrix23d;
+typedef Matrix<double,3,6> Matrix36d;
+typedef Matrix<double,2,6> Matrix26d;
 typedef Matrix<double,6,1> Vector6d;
 typedef Matrix<double,6,6> Matrix6d;
+typedef Matrix<double, Dynamic, Dynamic, RowMajor> MatXf; 
 
 // Kinematics functions
 Matrix3d skew(Vector3d v);
@@ -59,7 +62,7 @@ Matrix6d adjoint_se3(Matrix4d T);
 Matrix6d uncTinv_se3(Matrix4d T, Matrix6d covT );
 Matrix6d unccomp_se3(Matrix4d T1, Matrix6d covT1, Matrix6d covTinc );
 Vector6d reverse_se3(Vector6d x);
-
+MatXf pInv(MatXf x);
 
 Vector3d logarithm_map_so3(Matrix3d R);
 MatrixXd der_logarithm_map(Matrix4d T);
