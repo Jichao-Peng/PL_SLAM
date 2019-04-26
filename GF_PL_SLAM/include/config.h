@@ -32,7 +32,7 @@ public:
 
     Config();
     ~Config();
-
+	//每次获得函数时都调用这个函数，以获得默认参数
     static Config& getInstance();
 
     // SLAM parameters

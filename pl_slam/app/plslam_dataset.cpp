@@ -109,15 +109,16 @@ int main(int argc, char **argv)
     //数据集类
     Dataset dataset(dataset_dir, *cam_pin, frame_offset, frame_number, frame_step);
 
-    // create scene 
+    // create scene  std::string::npos 表示string最大值，表示不存在的未知
     string scene_cfg_name;
-    if( (dataset_name.find("kitti")!=std::string::npos) ||
-        (dataset_name.find("malaga")!=std::string::npos)  )
+    if( (dataset_dir.find("KITTI")!=std::string::npos) ||
+        (dataset_dir.find("malaga")!=std::string::npos)  )
     {
+        cout<<1234567<<endl;
         scene_cfg_name = "../config/scene_config.ini";
     }
     else{
-        //执行这一步
+        cout<<123456<<endl;
         scene_cfg_name = "../config/scene_config_indoor.ini";
     }
     //场景类

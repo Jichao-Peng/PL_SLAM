@@ -45,18 +45,21 @@ StereoFrameHandler::~StereoFrameHandler(){}
 void StereoFrameHandler::initialize(const Mat & img_l_, const Mat & img_r_ ,
                                     const int idx_, double time_stamp_)
 {
+	//创建新的帧
     prev_frame = new StereoFrame( img_l_, img_r_, idx_, cam, time_stamp_ );
+	//提取特征
     prev_frame->extractInitialStereoFeatures();
     prev_frame->Tfw = Matrix4d::Identity();
     prev_frame->Tfw_cov = Matrix6d::Identity();
     prev_frame->DT  = Matrix4d::Identity();
+	
     // variables for adaptative FAST
     orb_fast_th = Config::orbFastTh();
     // SLAM variables for KF decision
     T_prevKF         = Matrix4d::Identity();
     cov_prevKF_currF = Matrix6d::Zero();
     prev_f_iskf      = true;
-
+	//设置标定参数
     this->setLeftCamExtrinCalib(0, 0, 0, 0, 0, 0);
 
     // init orb extractor
@@ -67,6 +70,7 @@ void StereoFrameHandler::initialize(const Mat & img_l_, const Mat & img_r_ ,
 
     //    std::cout << "ORB extractor to be init!" << std::endl;
 
+	//1000特征点 尺度因子1.2 4层金字塔 初始化orb特征提取器
     mpORBextractor_l = new ORB_SLAM2::ORBextractor(Config::orbNFeatures(), Config::orbScaleFactor(), Config::orbNLevels(),
                                                    20, 7);
     mpORBextractor_r = new ORB_SLAM2::ORBextractor(Config::orbNFeatures(), Config::orbScaleFactor(), Config::orbNLevels(),
@@ -88,6 +92,7 @@ void StereoFrameHandler::insertStereoPair(const Mat & img_l_, const Mat & img_r_
     time_st = clock();
     curr_frame = new StereoFrame( img_l_, img_r_, idx_, cam, mpORBextractor_l, mpORBextractor_r, time_stamp_ );
 //    curr_frame->extractStereoFeatures_Brute( orb_fast_th );
+	//提取出立体的point和line
     curr_frame->extractStereoFeatures_ORBSLAM( orb_fast_th );
     // viz
     //    curr_frame->plotStereoFrameBoth( true );
@@ -96,16 +101,17 @@ void StereoFrameHandler::insertStereoPair(const Mat & img_l_, const Mat & img_r_
         std::cout << "func insertStereoPair: time cost to extract stereo features = "
                   << float(time_ed - time_st) / CLOCKS_PER_SEC << std::endl;
 
-    // predict Tfw of current frame with constant vel model
+    // predict Tfw of current frame with constant vel model 预测当前帧到世界坐标系的变换位姿
     predictFramePose();
 
     time_st = clock();
     if (Config::useLineConfCut() == true) {
         // assess the uncertainty of stereo from previous frame
+		// 求得相机坐标系的坐标协方差矩阵（上一帧的） covSpt3D
         prev_frame->estimateStereoUncertainty();
     }
     
-    // crossFrameMatching_Brute();
+    // crossFrameMatching_Brute();  最终确定matched_pt
     crossFrameMatching_Hybrid();
     //    crossFrameMatching_Proj();
     time_ed = clock();
@@ -113,29 +119,22 @@ void StereoFrameHandler::insertStereoPair(const Mat & img_l_, const Mat & img_r_
         std::cout << "func insertStereoPair: time cost to match features cross-frame = "
                   << float(time_ed - time_st) / CLOCKS_PER_SEC << std::endl;
 
-            #ifdef DO_VIZ
+    #ifdef DO_VIZ
     plotMatchedPointLine(false);
-#endif
+	#endif
 
     if (Config::useLineConfCut() == true) {
         time_st = clock();
         // propogate the uncertainty to current frame
         //        estimateProjUncertainty_greedy();
-        //        if (Config::hasPoints() == false && Config::hasLines() == true)
-        //            // for line-only case, it turned out that the unbounded gradient descend
-        //            // per line works much better than the theoretical submodular solver
-        //            estimateProjUncertainty_descent( 0.05, rngCutRatio );
-        //        else
-        //            // with additional info from point features, submodular solver clearly
-        //            // out-performs other line cutting approach; future work would definitely
-        //            // involve the comparison between line-only and point + line
-        //            estimateProjUncertainty_submodular( 0.05, rngCutRatio );
+        /*for line-only case, it turned out that the unbounded gradient descend,
+		per line works much better than the theoretical submodular solver with additional info from point features, 
+		submodular solver clearly out-performs other line cutting approach; future work would definitely involve the comparison between line-only and point + line*/
 
         double rngCutRatio[2] = {0, 1.0};
         estimateProjUncertainty_submodular( 0.05, rngCutRatio );
         
-//        double rngCutRatio[2] = {-0.5, 1.5};
-//        estimateProjUncertainty_submodular( 0.05, rngCutRatio );
+//        double rngCutRatio[2] = {-0.5, 1.5}; estimateProjUncertainty_submodular( 0.05, rngCutRatio );
 
         time_ed = clock();
         curr_frame->log_.time_ln_cut = float(time_ed - time_st) / CLOCKS_PER_SEC;
@@ -151,22 +150,9 @@ void StereoFrameHandler::insertStereoPair(const Mat & img_l_, const Mat & img_r_
 }
 
 void StereoFrameHandler::predictFramePose() {
-    //
     assert(curr_frame != NULL && prev_frame != NULL);
     // predict the motion of current frame
     curr_frame->Tfw    = prev_frame->Tfw * prev_frame->DT;
-
-    //    std::cout << prev_frame->DT << std::endl;
-
-    //    if (print_frame_info)
-    //        std::cout << "func predictFramePose: current frame pose pred. = " << std::endl
-    //                  << curr_frame->Tfw << std::endl;
-    //
-    // NOTE
-    // for some reason Tfw has to be print out to be valid; not sure what happend
-    //
-    //    std::cout << "func predictFramePose: current frame pose pred. = " << std::endl
-    //              << curr_frame->Tfw << std::endl;
 }
 
 void StereoFrameHandler::setFramePose(const cv::Matx44f Tfw_curr) {
@@ -464,10 +450,11 @@ void StereoFrameHandler::crossFrameMatching_Hybrid() {
 
         BFMatcher* bfm = new BFMatcher( NORM_HAMMING, false );    // cross-check
         Mat pdesc_l1, pdesc_l2;
-        vector<vector<DMatch>> pmatches_12, pmatches_21;
         // 12 and 21 matches
         pdesc_l1 = prev_frame->pdesc_l;
         pdesc_l2 = curr_frame->pdesc_l;
+        vector<vector<DMatch>> pmatches_12, pmatches_21;
+		//通过描述子获得了pmatches_12
         if( Config::bestLRMatches() )
         {
             if( Config::lrInParallel() )
@@ -491,7 +478,7 @@ void StereoFrameHandler::crossFrameMatching_Hybrid() {
         }
         else
             bfm->knnMatch( pdesc_l1, pdesc_l2, pmatches_12, 2);
-
+		
         std::multimap<int, std::pair<int,float>> pair_frame;
         for ( int i = 0; i < pmatches_12.size(); i++ ) {
 
@@ -514,38 +501,24 @@ void StereoFrameHandler::crossFrameMatching_Hybrid() {
                                            point_proj_l,
                                            point_proj_r);
 
-            //            std::cout << "Projection of 3D point: " << pt_proj_tmp(0)
-            //                      << "; " << pt_proj_tmp(1) << std::endl;
+            //            std::cout << "Projection of 3D point: " << pt_proj_tmp(0) << "; " << pt_proj_tmp(1) << std::endl;
 
-            //                double  proj_ept_dist_min = 9999999;
-            //            int     p12_tdx_min = -1;
-            // instead of enforcing bidirectional best match between left and right,
-            // top-K matches are tested to generate more matches
+            // instead of enforcing bidirectional best match between left and right, top-K matches are tested to generate more matches
             for (int j=0; j<(pmatches_12[i]).size(); ++j) {
+				//判断是否匹配上
                 assert(pmatches_12[i][j].queryIdx == p12_qdx);
                 // [2] check the distance between projected line and observed line =====
                 int p12_tdx = pmatches_12[i][j].trainIdx;
-                //
-                //if (curr_frame->left_sel[l12_tdx].frame_matched == true) {
-                //    continue ;
-                //}
-                // line_proj_tmp
-                // curr_frame->stereo_ls[l12_tdx]
                 double rng_included = 10.0; // 20.0; //
                 // std::cout << pmatches_12[i][j].distance << std::endl;
+				//对预测和实际测量进行比对，如果太大，这跳过
                 if ( (point_proj_l - curr_frame->stereo_pt[p12_tdx]->pl).norm() > rng_included ) {
                     continue ;
                 }
                 //                std::cout << (pt_proj_tmp - curr_frame->stereo_pt[p12_tdx]->pl).norm() << " ";
-
-                //
                 std::pair<int,float> current_match(p12_qdx, pmatches_12[i][j].distance);
                 pair_frame.insert(std::pair<int,pair<int,double>>(p12_tdx, current_match));
-
-                //                break ;
             }
-
-            //            std::cout << std::endl;
         }
 
         auto x = pair_frame.begin();
@@ -1632,7 +1605,10 @@ void StereoFrameHandler::estimateProjUncertainty_submodular(const double stepCut
         { -stepCutRatio, -stepCutRatio }
     };
     //    Matrix4d rel_Tfw = prev_frame->Tfw.inverse() * curr_frame->Tfw;
+	//上一帧到当前帧  这里应该和上一帧一直一样的吧
     Matrix4d DT_inv = curr_frame->Tfw.inverse() * prev_frame->Tfw;
+	cout<<DT_inv.inverse()<<endl;
+	cout<<endl<<prev_frame->DT<<endl<<endl<<endl<<endl;
     Vector2d J_loss;
     Matrix<double, 6, 6> invCov_sum = Matrix6d::Zero();
     for( list<StVO::LineFeature *>::iterator it = matched_ls.begin();

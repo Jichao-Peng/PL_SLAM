@@ -97,7 +97,7 @@ public:
     Vector2d spl, epl, spl_obs, epl_obs;
     double   sdisp, edisp, angle, sdisp_obs, edisp_obs;
     Vector3d sP,eP;
-    Vector3d le, le_obs;
+    Vector3d le, le_obs;//存储的是归一化平面上的直线方程系数 a b c，并且除以sqrt(a^2+b^2)
     bool inlier;
 
     int level;
@@ -110,7 +110,7 @@ public:
     // NOTE
     // for uncertainty modeling only
     Matrix3d covSpt_proj2D, covEpt_proj2D;
-    Matrix3d covSpt3D, covEpt3D;
+    Matrix3d covSpt3D, covEpt3D; 	///起始点和终止点的不稳定性
     //
     double cutRatio[2];
     vector<double>      volumeArr;

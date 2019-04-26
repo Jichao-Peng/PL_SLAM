@@ -413,47 +413,25 @@ void StereoFrame::subPixelStereoRefine_ORBSLAM(const cv::KeyPoint &kpL,
 // TODO
 // TODO
 void StereoFrame::extractStereoFeatures_ORBSLAM( const int fast_th ) {
-
-//    clock_t time_st;
-//    //
-//    time_st = clock();
-    
     // Feature detection and description
     double min_line_length_th = Config::minLineLength() * std::min( cam->getWidth(), cam->getHeight() ) ;
+	//update  points_l, points_r;lines_l, lines_r; pdesc_l, pdesc_r, ldesc_l, ldesc_r;
     if( Config::lrInParallel() )
     {
-//        std::thread thread_1(&StereoFrame::detectLineFeatures,  this,
-//                             this->rgbImg_l, min_line_length_th, 0);
-//        std::thread thread_2(&StereoFrame::detectPointFeatures, this,
-//                             this->gryImg_l, fast_th, 0);
-//        std::thread thread_3(&StereoFrame::detectLineFeatures,  this,
-//                             this->rgbImg_r, min_line_length_th, 1);
-//        std::thread thread_4(&StereoFrame::detectPointFeatures, this,
-//                             this->gryImg_r, fast_th, 1);
-//        thread_1.join();
-//        thread_2.join();
-//        thread_3.join();
-//        thread_4.join();
         std::thread threadLeft(&StereoFrame::detectFeatures, this,
                                min_line_length_th, fast_th, 0);
         std::thread threadRight(&StereoFrame::detectFeatures, this,
                                 min_line_length_th, fast_th, 1);
         threadLeft.join();
         threadRight.join();
-        //        auto detect_l = std::async(std::launch::async, &StereoFrame::detectFeatures, this,
-        //                              min_line_length_th, fast_th, 0 );
-        //        auto detect_r = std::async(std::launch::async, &StereoFrame::detectFeatures, this,
-        //                              min_line_length_th, fast_th, 1 );
-        //        detect_l.wait();
-        //        detect_r.wait();
     }
     else
     {
+		//根据0和1去判断是用左图像还是右图像
         detectFeatures(min_line_length_th,fast_th,0);
         detectFeatures(min_line_length_th,fast_th,1);
     }
-//    std::cout << "time cost of feature extraction = " << double(clock() - time_st) / double(CLOCKS_PER_SEC) << std::endl;
-
+	
     if( Config::hasPoints() && !(points_l.size()==0) && !(points_r.size()==0) ) {
 
         double startTime = clock();
@@ -534,7 +512,7 @@ void StereoFrame::extractStereoFeatures_ORBSLAM( const int fast_th ) {
             std::cout << "vCandidates.size() = " << vCandidates.size() << std::endl;
 #endif
 
-            // Compare descriptor to right keypoints
+            // Compare descriptor to right keypoints 根据描述子找到最佳匹配
             for(size_t iC=0; iC<vCandidates.size(); iC++)
             {
                 //                std::cout << "iC = " << iC << std::endl;
@@ -564,7 +542,7 @@ void StereoFrame::extractStereoFeatures_ORBSLAM( const int fast_th ) {
             std::cout << "bestDist = " << bestDist << "; thOrbDist = "  << thOrbDist << std::endl;
 #endif
 
-            // Subpixel match by correlation
+            // Subpixel match by correlation 创建vDistIdx bestDist,iL
             if(bestDist<thOrbDist)
             {
                 const cv::KeyPoint &kpR = points_r[bestIdxR];
@@ -587,9 +565,12 @@ void StereoFrame::extractStereoFeatures_ORBSLAM( const int fast_th ) {
         }
 
         sort(vDistIdx.begin(),vDistIdx.end());
+		//中位数
         const float median = vDistIdx[vDistIdx.size()/2].first;
+		//中位数乘1.5f*1.4f 具体数值不知道怎么来的
         const float thDist = 1.5f*1.4f*median;
 
+		//根据阈值剔除未匹配点
         for(int i=vDistIdx.size()-1;i>=0;i--)
         {
             if(vDistIdx[i].first<thDist)
@@ -600,14 +581,15 @@ void StereoFrame::extractStereoFeatures_ORBSLAM( const int fast_th ) {
                 mvDepth[vDistIdx[i].second]=-1;
             }
         }
-
+		
+		// Point stereo matching
+		//更新 stereo_pt
         int pt_idx = 0;
         Mat pdesc_l_;
         stereo_pt.clear();
         for(int i=0; i<vDistIdx.size();i++) {
             if(vDistIdx[i].first >= thDist)
                 break;
-            //
             int iL = vDistIdx[i].second;
             Vector2d pl_; pl_ << points_l[iL].pt.x, points_l[iL].pt.y;
 
@@ -618,12 +600,6 @@ void StereoFrame::extractStereoFeatures_ORBSLAM( const int fast_th ) {
             pdesc_l_.push_back( pdesc_l.row(iL) );
             stereo_pt.push_back( new PointFeature(pl_, disparity,
                                                   P_, pt_idx, points_l[iL].octave) );
-            ////
-            //points_r[lr_tdx].class_id = pt_idx;
-            //image_pt_r.push_back(points_r[lr_tdx]);
-            //points_l[lr_qdx].class_id = pt_idx;
-            //image_pt_l.push_back(points_l[lr_qdx]);
-
             pt_idx ++;
         }
 
@@ -1025,8 +1001,10 @@ void StereoFrame::detectFeatures(double min_line_length, int fast_th, int isRigh
     if( Config::plInParallel() && Config::hasPoints() && Config::hasLines() )
     {
         if (isRight == 0) {
+			//检测线
             std::thread threadLine(&StereoFrame::detectLineFeatures,  this,
                                    this->rgbImg_l, min_line_length, 0);
+			//检测点
             std::thread threadPoint(&StereoFrame::detectPointFeatures, this,
                                     this->gryImg_l, fast_th, 0);
             threadLine.join();
@@ -1378,7 +1356,6 @@ double StereoFrame::lineSegmentOverlapStereo( double spl_obs, double epl_obs, do
 //
 void StereoFrame::getJacob2D_3D(const double &u, const double &v, const double &d,
                                 Matrix3d & jacMat) {
-    //
     double b = this->cam->getB();
     double d_2  = d * d;
     //
@@ -1442,10 +1419,10 @@ void StereoFrame::getCovMat2D_3D(const double &u, const double &v, const double 
     cov2D(0, 0) = pow( u_std, 2 );
     cov2D(1, 1) = pow( u_std, 2 );
     cov2D(2, 2) = pow( d_std, 2 );
-    //
+    //雅克比矩阵是相机坐标系下的XYZ对u，v，d的雅克比矩阵
     Matrix3d jacMat;
     getJacob2D_3D(u, v, d, jacMat);
-    //
+    //求得相机坐标系的坐标协方差矩阵
     covMat = jacMat * cov2D * jacMat.transpose();
 }
 
@@ -1455,27 +1432,28 @@ void StereoFrame::estimateStereoUncertainty() {
         return ;
     //
     for (int i=0; i<stereo_ls.size(); ++i) {
-        //
+        //得到像素坐标的不确定性
         double spl_std = 1.0;  // 2.0; //
         double epl_std = 1.0;  // 2.0; //
-        //        double spl_std = Config::ratioDispSTD() / 0.15, epl_std = Config::ratioDispSTD() / 0.15;
-        //
         // TODO
-        // fit the coefficient with synthetic data
+        // fit the coefficient with synthetic data 得到视差不确定性
         double sdisp_std, edisp_std;
+		//判断是否水平
         if (fabs(stereo_ls[i]->le[0]) > 0.15) {
+			//ratioDispSTD 0.15 不确定性和视差成正比
             sdisp_std = Config::ratioDispSTD() * stereo_ls[i]->sdisp;
             edisp_std = Config::ratioDispSTD() * stereo_ls[i]->edisp;
-            //            sdisp_cov = this->cam->getFx() * this->cam->getB() / stereo_ls[i]->sP(2) * 0.2;
-            //            edisp_cov = this->cam->getFx() * this->cam->getB() / stereo_ls[i]->eP(2) * 0.2;
+			//stereo_ls[i]->sdisp=this->cam->getFx() * this->cam->getB() / stereo_ls[i]->sP(2)视差的计算公式
         }
         else {
+			//水平方向上的比率就大一点 ratioDispSTDHor 0.9
             sdisp_std = Config::ratioDispSTDHor() * stereo_ls[i]->sdisp;
             edisp_std = Config::ratioDispSTDHor() * stereo_ls[i]->edisp;
         }
 
 
         // back project the 2d cov to 3d cov
+		// 求得相机坐标系的坐标协方差矩阵 covSpt3D
         getCovMat2D_3D(stereo_ls[i]->spl[0], stereo_ls[i]->spl[1], spl_std,
                 stereo_ls[i]->sdisp, sdisp_std, stereo_ls[i]->covSpt3D);
         getCovMat2D_3D(stereo_ls[i]->epl[0], stereo_ls[i]->epl[1], epl_std,
@@ -1558,16 +1536,17 @@ void StereoFrame::projectPrev3DPoint(const Matrix4d & prev_Tfw,
     //
     Vector4d pt_world;
     Vector3d pt_cam;
-    // start point projection
+    // 用上一帧的结果算出世界坐标系下的坐标点
     pt_world << point_prev->P, 1;
     pt_world = prev_Tfw * pt_world;
+	//然后根据恒速模型预测的当前帧的位姿，预测当前帧的相机坐标点
     pt_world = this->Tfw.inverse() * pt_world;
-    //
+    // 
     pt_cam << (pt_world)(0),
             (pt_world)(1),
             (pt_world)(2);
+	 //投影预测点
     point_proj_l = cam->projection(pt_cam);
-    //
     double disp = cam->getDisparity(pt_cam(2));
     point_proj_r = point_proj_l;
     point_proj_r(0) += disp;

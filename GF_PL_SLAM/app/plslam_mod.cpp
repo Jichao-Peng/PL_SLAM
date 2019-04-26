@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
 
     // read inputs
     //    int frame_offset = 0, frame_number = 0, frame_step = 1;
-
+	//依次传入 运行文件 kitti 配置文件（kitti-02.yaml 00(color) poselog.txt）
     std::cout << std::endl << "% PL-SLAM Version 1.00" << std::endl;
     if(argc != 5)
     {
@@ -80,9 +80,9 @@ int main(int argc, char **argv) {
     string camera_model = cam_config["cam_model"].as<string>();
     PinholeStereoCamera*  cam_pin;
     bool rectify = false;
-    if( camera_model == "Pinhole" )
+    if( camera_model == "Pinhole" )//针孔
     {
-        // if EuRoC or Falcon yaml file
+        // if EuRoC or Falcon yaml file //kitti no defined
         if( cam_config["Kl"].IsDefined() )
         {
             rectify = true;
@@ -155,12 +155,14 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    // setup image directories
+	//获得相机配置文件cam_pin
+	
+    // setup image directories 获得数据集目录
     string img_dir = string(argv[3]);
     string img_dir_l = img_dir + "/" + dset_config["images_subfolder_l"].as<string>();
     string img_dir_r = img_dir + "/" + dset_config["images_subfolder_r"].as<string>();
 
-    // get a sorted list of files in the img directories
+    // get a sorted list of files in the img directories 判断该目录是否存在
     boost::filesystem::path img_dir_path_l(img_dir_l.c_str());
     if (!boost::filesystem::exists(img_dir_path_l))
     {
@@ -174,7 +176,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    // get all files in the img directories
+    // get all files in the img directories  获得该目录所有图片文件 imgs_l imgs_r
     size_t max_len_l = 0;
     std::list<std::string> imgs_l;
     boost::filesystem::directory_iterator end_itr;
@@ -211,6 +213,7 @@ int main(int argc, char **argv) {
         }
     }
 
+	//排序（图片名字可能是序号可能是世界戳）
     imgs_l.sort(compareTimestamp);
     imgs_r.sort(compareTimestamp);
 
@@ -221,6 +224,7 @@ int main(int argc, char **argv) {
     //                           std::back_inserter(img_lr_pair));
     //    std::cout << std::endl << "Number of stereo image pairs: " << img_lr_pair.size() << std::endl;
 
+	//根据序号或者时间戳对左右图像进行配对
     std::vector<std::string> imgs_l_paired;
     std::vector<std::string> imgs_r_paired;
     std::list<std::string>::iterator it_r = imgs_r.begin();
@@ -254,20 +258,17 @@ int main(int argc, char **argv) {
 #ifdef HAS_MRPT
     string scene_cfg_name;
     string strBenchmark = argv[1];
+	//此处应该相等，调用scene_config.ini
     if( strBenchmark.compare("kitti") == 0 || strBenchmark.compare("malaga") == 0 )
         scene_cfg_name = "../config/scene_config.ini";
     else
         scene_cfg_name = "../config/scene_config_indoor.ini";
     slamScene scene(scene_cfg_name);
-    Matrix4d Tcw, Tfw = Matrix4d::Identity(), Tfw_prev = Matrix4d::Identity(), T_inc;
-    Vector6d cov_eig;
-    Matrix6d cov;
-    Tcw = Matrix4d::Identity();
     scene.setStereoCalibration( cam_pin->getK(), cam_pin->getB() );
-    scene.initializeScene(Tfw);
+    scene.initializeScene(Matrix4d::Identity());
 #endif
 
-
+	//创建时间戳文件
     vector<double> time_list;
     //
     if ( strBenchmark.compare("kitti") == 0 ) {
@@ -288,7 +289,8 @@ int main(int argc, char **argv) {
     }
 
 
-    // save the pose per frame into text
+    // save the pose per frame into text创建log日志文件
+	{
     ofstream fAllFrameTrack;
     std::string fNameAllFrameTrack = std::string(argv[4]) + "_AllFrameTrajectory.txt";
     std::cout << std::endl << "Saving AllFrame Trajectory to " << fNameAllFrameTrack << std::endl;
@@ -303,9 +305,7 @@ int main(int argc, char **argv) {
     fLog.open(fNameLog.c_str());
     fLog << fixed;
     //fLog << "#TimeStamp Tx Ty Tz Qx Qy Qz Qw" << std::endl;
-
-
-
+	}
     // create PLSLAM object
     PLSLAM::MapHandler* map = new PLSLAM::MapHandler(cam_pin);
 
@@ -317,8 +317,7 @@ int main(int argc, char **argv) {
 
     cout << "created StereoFrameHandler!" << endl;
 
-    //    for (std::map<std::string, std::string>::iterator it_l = sorted_imgs_l.begin(), it_r = sorted_imgs_r.begin();
-    //         it_l != sorted_imgs_l.end(), it_r != sorted_imgs_r.end(); ++it_l, ++it_r, frame_counter++) {
+	//对图像进行遍历
     for (int i = 0; i < imgs_l_paired.size(); ++ i, frame_counter++) {
 
         std::cout << "------------------------------------------   Frame #" << frame_counter
@@ -328,13 +327,14 @@ int main(int argc, char **argv) {
         //            break ;
         clock_t startTime = clock();
 
-        // load images
+        //  加载该帧 load images
+		{
         boost::filesystem::path img_path_l = img_dir_path_l / boost::filesystem::path(imgs_l_paired[i].c_str());
         boost::filesystem::path img_path_r = img_dir_path_r / boost::filesystem::path(imgs_r_paired[i].c_str());
         Mat img_l( imread(img_path_l.string(), CV_LOAD_IMAGE_UNCHANGED) );  assert(!img_l.empty());
         Mat img_r( imread(img_path_r.string(), CV_LOAD_IMAGE_UNCHANGED) );  assert(!img_r.empty());
-
-        // grab the time stamp from image file name
+		}
+        // grab the time stamp from image file name 加载时间戳
         double time_stamp;
         if ( strBenchmark.compare("kitti") == 0 ) {
             // set time_stamp with the time.txt record
@@ -348,7 +348,7 @@ int main(int argc, char **argv) {
                            (double)((long double)time_stamp_r / 1000000000) ) / 2.0;
         }
 
-        // if images are distorted
+        // if images are distorted 矫正
         if( rectify )
         {
             Mat img_l_rec, img_r_rec;
@@ -357,8 +357,8 @@ int main(int argc, char **argv) {
             img_r = img_r_rec;
         }
 
-
-#ifdef SIMU_MOTION_BLUR
+		//对图像进行滤波修正
+		#ifdef SIMU_MOTION_BLUR
 
     // Update kernel size for a normalized box filter
     int kernel_size = 5; // 9;
@@ -369,13 +369,13 @@ int main(int argc, char **argv) {
 
 #endif
 
-
+		//计算加载图像用时
         double costTime = double(clock() - startTime) / double(CLOCKS_PER_SEC);
-#ifdef TIMECOST_VERBOSE
+		#ifdef TIMECOST_VERBOSE
         std::cout << "s1. image loading time = " << costTime << std::endl;
-#endif
+		#endif
 
-        // initialize
+        // initialize 初始化
         if( frame_counter == 0 )
         {
             StVO->initialize(img_l,img_r,0, time_stamp);
@@ -393,7 +393,7 @@ int main(int argc, char **argv) {
             StVO->curr_frame->log_.time_track = double(clock() - startTime) / double(CLOCKS_PER_SEC);
             #ifdef TIMECOST_VERBOSE
             std::cout << "s2. total time on data association = " << StVO->curr_frame->log_.time_track << std::endl;
-#endif
+			#endif
             //
             // NOTE
             // When only line features are used, optimizing the pose from scratch will lead to better results
@@ -413,7 +413,7 @@ int main(int argc, char **argv) {
             StVO->curr_frame->log_.time_pose_optim = double(clock() - startTime) / double(CLOCKS_PER_SEC);
             #ifdef TIMECOST_VERBOSE
             std::cout << "s3. pose optimization time = " << StVO->curr_frame->log_.time_pose_optim << std::endl;
-#endif
+			#endif
             StVO->curr_frame->log_.time_track += StVO->curr_frame->log_.time_pose_optim;
 
             //
@@ -431,10 +431,10 @@ int main(int argc, char **argv) {
             // viz only
             #ifdef DO_VIZ
             // StVO->plotMatchedLines( true, true );
-     // StVO->plotMatchedPointLine(false);
-     StVO->appendPlotCutLine(true);
-     // StVO->appendPlotOptLine(true);
-#endif
+			// StVO->plotMatchedPointLine(false);
+			StVO->appendPlotCutLine(true);
+			// StVO->appendPlotOptLine(true);
+			#endif
             //
             // check if a new keyframe is needed
             if( StVO->needNewKF() )
@@ -464,14 +464,14 @@ int main(int argc, char **argv) {
                 std::cout << "local BA time = " << costTime << std::endl;
 
                 // update scene
-#ifdef HAS_MRPT
+				#ifdef HAS_MRPT
                 StVO->curr_frame->plotStereoFrameLeft( false );
                 scene.setImage( StVO->curr_frame->stereo_frame_match );
                 //                imwrite("../config/aux/img_aux.png", StVO->curr_frame->stereo_frame_match);
                 //                scene.setImage( "../config/aux/img_aux.png" );
                 //
                 scene.updateScene( map );
-#endif
+				#endif
             }
 
             //            StVO->curr_frame->plotStereoFrameLeft( true );
@@ -582,3 +582,7 @@ int main(int argc, char **argv) {
     return 0;
 
 }
+
+
+
+

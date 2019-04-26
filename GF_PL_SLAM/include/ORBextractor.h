@@ -96,13 +96,14 @@ protected:
                                            const int &maxX, const int &minY, const int &maxY, const int &nFeatures, const int &level);
 
     void ComputeKeyPointsOld(std::vector<std::vector<cv::KeyPoint> >& allKeypoints);
-    std::vector<cv::Point> pattern;
+    
+	std::vector<cv::Point> pattern;
 
     int nfeatures;
     double scaleFactor;
     int nlevels;
-    int iniThFAST;
-    int minThFAST;
+    int iniThFAST;//20
+    int minThFAST;//7
 
     std::vector<int> mnFeaturesPerLevel;
 
