@@ -32,6 +32,7 @@
 #include "lineIterator.h"
 #include "matching.h"
 #include "timer.h"
+#include "config.h"
 
 namespace StVO{
 
@@ -439,7 +440,6 @@ void StereoFrame::matchStereoLines( vector<KeyLine> lines_l, vector<KeyLine> lin
         Vector3d le_l; le_l << sp_l.cross(ep_l); le_l = le_l / std::sqrt( le_l(0)*le_l(0) + le_l(1)*le_l(1) );//计算线段参数
         Vector3d sp_r; sp_r << lines_r[i2].startPointX, lines_r[i2].startPointY, 1.0;
         Vector3d ep_r; ep_r << lines_r[i2].endPointX,   lines_r[i2].endPointY,   1.0;
-        Vector3d le_r; le_r << sp_r.cross(ep_r);//计算右图像线段的参数向量
 
         ////返还两条线段在y方向上的重叠比率
         double overlap = lineSegmentOverlapStereo( sp_l(1), ep_l(1), sp_r(1), ep_r(1) );
@@ -921,5 +921,6 @@ void StereoFrame::filterLineSegmentDisparity( double &disp_s, double &disp_e )
         disp_e = -1.0;
     }
 }
+
 
 }

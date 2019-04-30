@@ -626,10 +626,47 @@ MatXf pInv(MatXf x)
     
 } 
 
+void getStereoJacob2D_3D(const double &px, const double &py, const double &pz,double f,double b,Matrix3d & jacMat) {
+
+    // u v d（视差）对 X Y Z的雅克比矩阵
+    double pz_2  = pz * pz;
+    //
+    jacMat(0, 0) = f/pz;
+    jacMat(1, 0) = 0.0f;
+    jacMat(2, 0) = 0.0f;
+    //
+    jacMat(0, 1) = 0.0f;
+    jacMat(1, 1) = f/pz;
+    jacMat(2, 1) = 0.0f;
+    //
+    jacMat(0, 2) = - f * px / pz_2;
+    jacMat(1, 2) = - f * py / pz_2;
+    jacMat(2, 2) = - f * b / pz_2;
+}
+void getStereoJacob3D_2D(const double &u, const double &v, const double &d,double b,double f,double cx,double cy,Matrix3d & jacMat) {
+    double d_2  = d * d;
+    //
+    jacMat(0, 0) = b/d;
+    jacMat(1, 0) = 0.0f;
+    jacMat(2, 0) = 0.0f;
+    //
+    jacMat(0, 1) = 0.0f;
+    jacMat(1, 1) = b/d;
+    jacMat(2, 1) = 0.0f;
+    //
+    jacMat(0, 2) = -(u - cx) * b / d_2;
+    jacMat(1, 2) = -(v - cy) * b / d_2;
+    jacMat(2, 2) = -f * b / d_2;
+}
 
 
-
-
+void getJacobL_P(const Vector3d sp,const Vector3d ep,Matrix3d & jacMat,int sp_or_ep)
+{
+    if(sp_or_ep==1)
+        jacMat=skew(sp);
+    else if(sp_or_ep==0)
+        jacMat=-skew(ep);
+}
 
 
 

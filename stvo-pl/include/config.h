@@ -103,6 +103,10 @@ public:
     static double&  minError()          { return getInstance().min_error; }
     static double&  minErrorChange()    { return getInstance().min_error_change; }
     static double&  inlierK()           { return getInstance().inlier_k; }  //1.0
+    
+    static bool&    useLineConfCut()     { return getInstance().use_line_conf_cut; }
+    static double&  ratioDispSTD()       { return getInstance().ratio_disp_std; }
+    static double&  ratioDispSTDHor()    { return getInstance().ratio_disp_std_hor; }
 
     // SLAM parameters (keyframe selection)
     double min_entropy_ratio;
@@ -173,5 +177,8 @@ public:
     double min_error_change;
     double inlier_k;
 
+    bool   use_line_conf_cut;
+    double ratio_disp_std;
+    double ratio_disp_std_hor;
 };
 

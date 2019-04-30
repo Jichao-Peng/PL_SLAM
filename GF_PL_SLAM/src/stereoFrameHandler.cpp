@@ -131,10 +131,10 @@ void StereoFrameHandler::insertStereoPair(const Mat & img_l_, const Mat & img_r_
 		per line works much better than the theoretical submodular solver with additional info from point features, 
 		submodular solver clearly out-performs other line cutting approach; future work would definitely involve the comparison between line-only and point + line*/
 
+		//double rngCutRatio[2] = {-0.5, 1.5};
         double rngCutRatio[2] = {0, 1.0};
+		//0.05的下降率 范围0-1
         estimateProjUncertainty_submodular( 0.05, rngCutRatio );
-        
-//        double rngCutRatio[2] = {-0.5, 1.5}; estimateProjUncertainty_submodular( 0.05, rngCutRatio );
 
         time_ed = clock();
         curr_frame->log_.time_ln_cut = float(time_ed - time_st) / CLOCKS_PER_SEC;
@@ -1311,7 +1311,7 @@ void StereoFrameHandler::getPoseCovOnLine(const Matrix4d DT_inv,
 }
 
 
-
+//DT_inv 上一帧到当前帧  
 void StereoFrameHandler::getPoseInfoOnLine(const Matrix4d DT_inv,
                                            const Vector2d J_loss,
                                            const StVO::LineFeature * line,
@@ -1327,13 +1327,14 @@ void StereoFrameHandler::getPoseInfoOnLine(const Matrix4d DT_inv,
 
     // get the cov matrix of residual
     Matrix3d J_proj;
+	//预测上一帧的两个端点在当前帧相机坐标系的位置
     Vector3d cur_sP_tmp = J_dt * sP_tmp + DT_inv.col(3).head(3);
+	// u v d（视差）对 X Y Z的雅克比矩阵 实际只用到了u v对XYZ的雅克比矩阵
     curr_frame->getJacob3D_2D(cur_sP_tmp[0], cur_sP_tmp[1], cur_sP_tmp[2], J_proj);
     double cov_sR_tmp = J_loss.transpose() *
             ( J_proj.block(0,0,2,3) * J_dt * cov_sP_tmp
               * J_dt.transpose() * J_proj.block(0,0,2,3).transpose() )
             * J_loss;
-    //
     Vector3d cur_eP_tmp = J_dt * eP_tmp + DT_inv.col(3).head(3);
     curr_frame->getJacob3D_2D(cur_eP_tmp[0], cur_eP_tmp[1], cur_eP_tmp[2], J_proj);
     double cov_eR_tmp = J_loss.transpose() *
@@ -1343,7 +1344,7 @@ void StereoFrameHandler::getPoseInfoOnLine(const Matrix4d DT_inv,
     //
     Matrix<double, 2, 2> cov_r;
     cov_r << cov_sR_tmp, 0, 0, cov_eR_tmp;
-
+	
     // get the Jacobian wrt residual
     Matrix<double, 6, 1> Jac_sr2x;
     double gx   = cur_sP_tmp(0);
@@ -1377,6 +1378,7 @@ void StereoFrameHandler::getPoseInfoOnLine(const Matrix4d DT_inv,
     Matrix<double, 6, 2> Jac_r2x(6, 2);
     Jac_r2x << Jac_sr2x, Jac_er2x;
 
+	//信息矩阵不满秩 cov_r.inverse()不可以近似为单位矩阵
     info_pose = Jac_r2x * cov_r.inverse() * Jac_r2x.transpose();
     //    Matrix<double, 2, 6> Jac_r2x_inv = (Jac_r2x.transpose()*Jac_r2x).inverse() * Jac_r2x.transpose();
     //    cov_pose = Jac_r2x_inv.transpose() * cov_r * Jac_r2x_inv;
@@ -1605,12 +1607,11 @@ void StereoFrameHandler::estimateProjUncertainty_submodular(const double stepCut
         { -stepCutRatio, -stepCutRatio }
     };
     //    Matrix4d rel_Tfw = prev_frame->Tfw.inverse() * curr_frame->Tfw;
-	//上一帧到当前帧  这里应该和上一帧一直一样的吧
-    Matrix4d DT_inv = curr_frame->Tfw.inverse() * prev_frame->Tfw;
-	cout<<DT_inv.inverse()<<endl;
-	cout<<endl<<prev_frame->DT<<endl<<endl<<endl<<endl;
+	//DT_inv 上一帧到当前帧  
+    Matrix4d DT_inv = prev_frame->DT.inverse();
     Vector2d J_loss;
     Matrix<double, 6, 6> invCov_sum = Matrix6d::Zero();
+	//遍历每个特征线
     for( list<StVO::LineFeature *>::iterator it = matched_ls.begin();
          it != matched_ls.end(); it++) {
         // compute the initial info matrix per line
@@ -1619,12 +1620,14 @@ void StereoFrameHandler::estimateProjUncertainty_submodular(const double stepCut
         //
         (*it)->cutRatio[0] = 0;
         (*it)->cutRatio[1] = 0;
+		//根据切割系数计算位姿的信息矩阵invCovPose
         getPoseInfoOnLine( DT_inv, J_loss, *it, (*it)->cutRatio, (*it)->invCovPose );
-        //
+        //累加信息矩阵
         invCov_sum += (*it)->invCovPose;
     }
 
     // add the point term to the base info mat
+	// 计算点特征的信息矩阵
     for( list<StVO::PointFeature *>::iterator it = matched_pt.begin();
          it != matched_pt.end(); it++) {
         // compute the initial info matrix per line
@@ -1645,7 +1648,7 @@ void StereoFrameHandler::estimateProjUncertainty_submodular(const double stepCut
         vector<double> metricArr;
         double metric_tmp;
         if (Config::cutWithMaxVol()) {
-            //            metric_tmp = getLogVolume( invCov_sum );
+            //老版 metric_tmp = getLogVolume( invCov_sum );
             metric_tmp = logdet(invCov_sum);
             //            if (fabs(metric_tmp - getLogVolume( invCov_sum )) > 0.0001)
             //                std::cout << "ERROR 1!" << std::endl;
@@ -1660,6 +1663,7 @@ void StereoFrameHandler::estimateProjUncertainty_submodular(const double stepCut
         //
         // deduct current info matrix from the sum matrix
         invCov_sum -= (*it)->invCovPose;
+		//两个系数相加大于1说明两个端点碰到一起了
         while ((*it)->cutRatio[0] + (*it)->cutRatio[1] <= 1.0) {
 
             bool hitLower = false;
@@ -1668,11 +1672,11 @@ void StereoFrameHandler::estimateProjUncertainty_submodular(const double stepCut
 
             double metric_init = metricArr.back();
 
-            // search for 8 neighbor of <rt_1, rt_2>
+            // search for 8 neighbor of <rt_1, rt_2> 八个领域都算一遍，找出个最好的更新
             for (int j=0; j<8; ++j) {
                 double cutRatio_tmp[2] = { (*it)->cutRatio[0] + neighborStep[j][0],
                                            (*it)->cutRatio[1] + neighborStep[j][1] };
-                // apply the searching range on neighborhood
+                // 两个系数相加不大于1，两个系数在0-1之间
                 if ( cutRatio_tmp[0] + cutRatio_tmp[1] > 1.0 )
                     continue ;
                 //
@@ -1714,27 +1718,14 @@ void StereoFrameHandler::estimateProjUncertainty_submodular(const double stepCut
                 (*it)->invCovPose   = invCovPose_cand;
                 metricArr.push_back(metric_init);
             }
-            else
+            else //说明上一次八循环没有找到更好的结果，提前结束了
                 // early termination
                 break ;
         }
 
-        // //
-        // // print out info after solving the P3L line cutting problem
-        // if ((*it)->cutRatio[0] > 0 || (*it)->cutRatio[1] > 0) {
-
-        //     std::cout << "cut ratio = " << (*it)->cutRatio[0]
-        //               << "; " << (*it)->cutRatio[1] << std::endl;
-
-        //     //            std::cout << "volume track: ";
-        //     //            for (int kk=0; kk<volumeArr.size(); ++kk)
-        //     //                std::cout << volumeArr[kk] << " ";
-        //     //            std::cout << std::endl;
-        // }
-
-        // update the info in LineFeature object accordingly
+        // 更新线的起始点和终止点
         updateEndPointByRatio( *it );
-        // add new current info matrix back to sum matrix
+        // add new current info matrix back to sum matrix 更新总矩阵
         invCov_sum += (*it)->invCovPose;
     }
 }

@@ -109,7 +109,8 @@ private:
     void optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &g, double &e);
     void optimizeFunctionsRobust(Matrix4d DT, Matrix6d &H, Vector6d &g, double &e);
     void optimizePoseDebug();
-
+    void getLineJacobi(const LineFeature* line,Matrix4d DT,Vector2d& err_i,Vector6d& J_aux);
+    void getPoseInfoOnLine(const LineFeature * line,Matrix<double, 6, 6> & info_pose);
 };
 
 }

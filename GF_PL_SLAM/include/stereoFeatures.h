@@ -110,7 +110,7 @@ public:
     // NOTE
     // for uncertainty modeling only
     Matrix3d covSpt_proj2D, covEpt_proj2D;
-    Matrix3d covSpt3D, covEpt3D; 	///起始点和终止点的不稳定性
+    Matrix3d covSpt3D, covEpt3D; 	///起始点和终止点的不稳定性 estimateStereoUncertainty()
     //
     double cutRatio[2];
     vector<double>      volumeArr;
@@ -119,7 +119,7 @@ public:
     vector<Vector2d>    lPt2D;
     vector<Matrix3d>    covlPt2D;
     vector<double>      varLoss2D;
-    Matrix<double, 6, 6> invCovPose;
+    Matrix<double, 6, 6> invCovPose;	//位姿的信息矩阵
     int fst_idx, lst_idx;
 
     // NOTE

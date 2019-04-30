@@ -24,6 +24,7 @@
 #include <eigen3/Eigen/Core>
 #include <config.h>
 #include "auxiliar.h"
+#include <pinholeStereoCamera.h>
 using namespace Eigen;
 
 namespace StVO{
@@ -106,23 +107,32 @@ public:
                  Vector3d le_, Vector3d le_obs_, double angle_, int idx_, int level_, bool inlier_, double sigma2_,
                  Matrix3d covE_an_, Matrix3d covS_an_);
 
+    void getCov3DStereo(PinholeStereoCamera* cam);
+    
     ~LineFeature(){};
 
     LineFeature* safeCopy();
 
     int idx;
     Vector2d spl,epl, spl_obs, epl_obs;//端点坐标和匹配帧看到的端点坐标
+    
     double   sdisp, edisp, angle, sdisp_obs, edisp_obs;
+    
     Vector3d sP,eP;
+    
     Vector3d le, le_obs;//线段参数
+    
     bool inlier;
 
+    Matrix3d covSpt3D, covEpt3D; 	///起始点和终止点的不稳定性 estimateStereoUncertainty()
+    
     int level;
+    
     double sigma2 = 1.0;
 
     Matrix3d covE_an, covS_an;
 
-
+    
 
 };
 

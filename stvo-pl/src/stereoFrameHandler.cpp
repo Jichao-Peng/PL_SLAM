@@ -622,8 +622,56 @@ void StereoFrameHandler::levenbergMarquardtOptimization(Matrix4d &DT, Matrix6d &
     DT_cov = H.inverse();  //DT_cov = Matrix6d::Identity();
     err_   = err;
 }
+
+void StereoFrameHandler::getLineJacobi(const LineFeature* line,Matrix4d DT,Vector2d& err_i,Vector6d& J_aux)
+{
+    Vector3d sP_ = DT.block(0,0,3,3) * (line)->sP + DT.col(3).head(3);
+    Vector2d spl_proj = cam->projection( sP_ );
+    Vector3d eP_ = DT.block(0,0,3,3) * (line)->eP + DT.col(3).head(3);
+    Vector2d epl_proj = cam->projection( eP_ );
+    Vector3d l_obs = (line)->le_obs;
+    //计算点线距离误差
+    err_i(0) = l_obs(0) * spl_proj(0) + l_obs(1) * spl_proj(1) + l_obs(2);
+    err_i(1) = l_obs(0) * epl_proj(0) + l_obs(1) * epl_proj(1) + l_obs(2);
+    double err_i_norm = err_i.norm();
+    double ds   = err_i(0);
+    double de   = err_i(1);
+    double lx   = l_obs(0);
+    double ly   = l_obs(1);
+    // estimate variables for J, H, and g
+    // -- start point
+    double gx   = sP_(0);
+    double gy   = sP_(1);
+    double gz   = sP_(2);
+    double gz2  = gz*gz;
+    double fgz2 = cam->getFx() / std::max(Config::homogTh(),gz2);
+    Vector6d Js_aux;
+    Js_aux << + fgz2 * lx * gz,
+              + fgz2 * ly * gz,
+              - fgz2 * ( gx*lx + gy*ly ),
+              - fgz2 * ( gx*gy*lx + gy*gy*ly + gz*gz*ly ),
+              + fgz2 * ( gx*gx*lx + gz*gz*lx + gx*gy*ly ),
+              + fgz2 * ( gx*gz*ly - gy*gz*lx );
+    // -- end point
+    gx   = eP_(0);
+    gy   = eP_(1);
+    gz   = eP_(2);
+    gz2  = gz*gz;
+    fgz2 = cam->getFx() / std::max(Config::homogTh(),gz2);
+    Vector6d Je_aux;
+    Je_aux << + fgz2 * lx * gz,
+              + fgz2 * ly * gz,
+              - fgz2 * ( gx*lx + gy*ly ),
+              - fgz2 * ( gx*gy*lx + gy*gy*ly + gz*gz*ly ),
+              + fgz2 * ( gx*gx*lx + gz*gz*lx + gx*gy*ly ),
+              + fgz2 * ( gx*gz*ly - gy*gz*lx );
+    //综合两个雅克比矩阵
+    // jacobian
+    J_aux = ( Js_aux * ds + Je_aux * de ) / std::max(Config::homogTh(),err_i_norm);
+}
+
 //这个函数就主要是用于计算海森矩阵和雅克比矩阵以及残差
-void StereoFrameHandler::optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &g, double &e )
+void StereoFrameHandler:: optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &g, double &e )
 {
 
     // define hessians, gradients, and residuals
@@ -696,63 +744,22 @@ void StereoFrameHandler::optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &g
         if( (*it)->inlier )
         {
             //
-            Vector3d sP_ = DT.block(0,0,3,3) * (*it)->sP + DT.col(3).head(3);
-            Vector2d spl_proj = cam->projection( sP_ );
-            Vector3d eP_ = DT.block(0,0,3,3) * (*it)->eP + DT.col(3).head(3);
-            Vector2d epl_proj = cam->projection( eP_ );
-            Vector3d l_obs = (*it)->le_obs;
-            // projection error
+ 
             Vector2d err_i;
-            //计算点线距离误差
-            err_i(0) = l_obs(0) * spl_proj(0) + l_obs(1) * spl_proj(1) + l_obs(2);
-            err_i(1) = l_obs(0) * epl_proj(0) + l_obs(1) * epl_proj(1) + l_obs(2);
+            Vector6d J_aux;
+            getLineJacobi(*it,DT,err_i,J_aux);
             double err_i_norm = err_i.norm();
-            // estimate variables for J, H, and g
-            // -- start point
-            double gx   = sP_(0);
-            double gy   = sP_(1);
-            double gz   = sP_(2);
-            double gz2  = gz*gz;
-            double fgz2 = cam->getFx() / std::max(Config::homogTh(),gz2);
-            double ds   = err_i(0);
-            double de   = err_i(1);
-            double lx   = l_obs(0);
-            double ly   = l_obs(1);
-            Vector6d Js_aux;
-            Js_aux << + fgz2 * lx * gz,
-                      + fgz2 * ly * gz,
-                      - fgz2 * ( gx*lx + gy*ly ),
-                      - fgz2 * ( gx*gy*lx + gy*gy*ly + gz*gz*ly ),
-                      + fgz2 * ( gx*gx*lx + gz*gz*lx + gx*gy*ly ),
-                      + fgz2 * ( gx*gz*ly - gy*gz*lx );
-            // -- end point
-            gx   = eP_(0);
-            gy   = eP_(1);
-            gz   = eP_(2);
-            gz2  = gz*gz;
-            fgz2 = cam->getFx() / std::max(Config::homogTh(),gz2);
-            Vector6d Je_aux, J_aux;
-            Je_aux << + fgz2 * lx * gz,
-                      + fgz2 * ly * gz,
-                      - fgz2 * ( gx*lx + gy*ly ),
-                      - fgz2 * ( gx*gy*lx + gy*gy*ly + gz*gz*ly ),
-                      + fgz2 * ( gx*gx*lx + gz*gz*lx + gx*gy*ly ),
-                      + fgz2 * ( gx*gz*ly - gy*gz*lx );
-            //综合两个雅克比矩阵
-            // jacobian
-            J_aux = ( Js_aux * ds + Je_aux * de ) / std::max(Config::homogTh(),err_i_norm);
-
             // define the residue
             double s2 = (*it)->sigma2;
             double r = err_i_norm * sqrt(s2);
 
             // if employing robust cost function
             double w  = 1.0;
-            w = robustWeightCauchy(r) ;
+            w = robustWeightCauchy(r);
 
             // estimating overlap between line segments
             bool has_overlap = true;
-            double overlap = prev_frame->lineSegmentOverlap( (*it)->spl, (*it)->epl, spl_proj, epl_proj );
+            double overlap = prev_frame->lineSegmentOverlap( (*it)->spl, (*it)->epl, cam->projection(DT.block(0,0,3,3) * (*it)->sP + DT.col(3).head(3)), cam->projection(DT.block(0,0,3,3) * (*it)->eP + DT.col(3).head(3)) );
             if( has_overlap )
                 w *= overlap;
 
@@ -767,7 +774,6 @@ void StereoFrameHandler::optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &g
             e_l += r * r * w;
             N_l++;
         }
-
     }
 
     // sum H, g and err from both points and lines
@@ -1796,13 +1802,45 @@ Matrix23d StereoFrameHandler:: getPointHp(Vector6d x,Vector3d Pc)
     double pc_z2=pc_z*pc_z;
     
     dePc<<fx/pc_z,0,-fx*pc_x/pc_z2,0,fy/pc_z,-fy*pc_y/pc_z2;
-    
-    
     //旋转向量
     dePw=fast_skewexp(x.tail(3));
  
     
     return dePc*dePw;
 }
+
+void StereoFrameHandler::getPoseInfoOnLine(const LineFeature * line,Matrix<double, 6, 6> & info_pose) {
+    Matrix3d J_proj;
+    Matrix4d DT_inv = prev_frame->DT.inverse();
+    Vector2d J_loss(line->le(0),line->le(1));
+    Matrix3d J_dt = DT_inv.block(0,0,3,3);
+    Vector3d cur_sP_tmp = J_dt * line->sP + DT_inv.col(3).head(3);//预测上一帧的两个端点在当前帧相机坐标系的位置
+    Vector3d cur_eP_tmp = J_dt * line->eP + DT_inv.col(3).head(3);
+    
+	// u v d（视差）对 X Y Z的雅克比矩阵 实际只用到了u v对XYZ的雅克比矩阵
+    getStereoJacob2D_3D(cur_sP_tmp[0], cur_sP_tmp[1], cur_sP_tmp[2],cam->getFx(),cam->getB(),J_proj);
+    double cov_sR_tmp = J_loss.transpose() *
+            ( J_proj.block(0,0,2,3) * J_dt * line->covSpt3D
+              * J_dt.transpose() * J_proj.block(0,0,2,3).transpose() )
+            * J_loss;
+    
+    getStereoJacob2D_3D(cur_eP_tmp[0], cur_eP_tmp[1], cur_eP_tmp[2],cam->getFx(),cam->getB(),J_proj);
+    double cov_eR_tmp = J_loss.transpose() *
+            ( J_proj.block(0,0,2,3) * J_dt * line->covEpt3D
+              * J_dt.transpose() * J_proj.block(0,0,2,3).transpose() )
+            * J_loss;
+    //
+    Matrix<double, 2, 2> cov_r_temp;
+    cov_r_temp << cov_sR_tmp, 0, 0, cov_eR_tmp;
+	Vector2d err_i;
+    Vector6d J_aux;
+    getLineJacobi(line,DT_inv,err_i,J_aux);
+    Vector2d Je(err_i(0)/err_i.norm(),err_i(1)/err_i.norm());
+    Matrix<double, 1, 1> cov_r = Je.transpose()*cov_r_temp*Je;
+	//信息矩阵不满秩 cov_r.inverse()不可以近似为单位矩阵
+    info_pose = J_aux * cov_r.inverse() * J_aux.transpose();
+
+}
+
 
 }

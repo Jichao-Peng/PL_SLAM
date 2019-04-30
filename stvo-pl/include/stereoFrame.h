@@ -93,7 +93,7 @@ public:
     void pointDescriptorMAD( const vector<vector<DMatch>> matches, double &nn_mad, double &nn12_mad );
     //线特征的MAD中位数绝对偏差
     void lineDescriptorMAD( const vector<vector<DMatch>> matches, double &nn_mad, double &nn12_mad );
-
+    void estimateStereoUncertainty();
     //绘制双目帧中的点特征和线特征
     Mat  plotStereoFrame();
                     

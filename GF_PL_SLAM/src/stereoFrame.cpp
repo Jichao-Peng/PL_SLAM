@@ -1375,7 +1375,7 @@ void StereoFrame::getJacob2D_3D(const double &u, const double &v, const double &
 void StereoFrame::getJacob3D_2D(const double &px, const double &py, const double &pz,
                                 Matrix3d & jacMat) {
 
-    //
+    // u v d（视差）对 X Y Z的雅克比矩阵
     double f = this->cam->getFx();
     double b = this->cam->getB();
     double pz_2  = pz * pz;
@@ -1392,7 +1392,7 @@ void StereoFrame::getJacob3D_2D(const double &px, const double &py, const double
     jacMat(1, 2) = - f * py / pz_2;
     jacMat(2, 2) = - f * b / pz_2;
 
-    //
+    // 
     // NOTE (when integrated with ML codebase ONLY)
     // instead of computing Jacobian wrt the image frame, we are doing it on normailzed camera frame,
     // which is identical with the code used for line residual & pose optimization
@@ -1536,12 +1536,11 @@ void StereoFrame::projectPrev3DPoint(const Matrix4d & prev_Tfw,
     //
     Vector4d pt_world;
     Vector3d pt_cam;
-    // 用上一帧的结果算出世界坐标系下的坐标点
+    // 用上一帧的结果算出上一个关键帧相机坐标系下的坐标点
     pt_world << point_prev->P, 1;
     pt_world = prev_Tfw * pt_world;
 	//然后根据恒速模型预测的当前帧的位姿，预测当前帧的相机坐标点
     pt_world = this->Tfw.inverse() * pt_world;
-    // 
     pt_cam << (pt_world)(0),
             (pt_world)(1),
             (pt_world)(2);

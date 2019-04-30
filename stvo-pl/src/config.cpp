@@ -110,6 +110,11 @@ Config::Config()
     lsd_log_eps       = 1.0;        // detection threshold (only for advanced refinement)
     lsd_density_th    = 0.6;        // minimal density of aligned region points in the enclosing rectangle
     lsd_n_bins        = 1024;       // number of bins in pseudo-ordering of gradient modulus
+    
+    //line select
+    use_line_conf_cut  = true;      // false; //        // true if cut line before feeding into optimization based on the level of uncertainty
+    ratio_disp_std     = 0.15;      // 0.5; // 0.3;  //
+    ratio_disp_std_hor = 0.9;       // 0.3; //
 }
 
 Config::~Config(){}

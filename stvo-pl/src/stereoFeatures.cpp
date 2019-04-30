@@ -153,6 +153,45 @@ LineFeature* LineFeature::safeCopy(){
         sigma2 *= Config::lsdScale();
     sigma2 = 1.f / (sigma2*sigma2);
 }*/
-
+void LineFeature::getCov3DStereo(PinholeStereoCamera* cam)
+{
+    //得到像素坐标的不确定性
+    double spl_std = 1.0;  // 2.0; //
+    double epl_std = 1.0;  // 2.0; //
+    // fit the coefficient with synthetic data 得到视差不确定性
+    double sdisp_std, edisp_std;
+    //判断是否水平
+    if (fabs(le(0)) > 0.15) {
+        //ratioDispSTD 0.15 不确定性和视差成正比
+        sdisp_std = Config::ratioDispSTD() * sdisp;
+        edisp_std = Config::ratioDispSTD() * edisp;
+        //sdisp=this->cam->getFx() * this->cam->getB() / sP(2)视差的计算公式
+    }
+    else {
+        //水平方向上的比率就大一点 ratioDispSTDHor 0.9
+        sdisp_std = Config::ratioDispSTDHor() * sdisp;
+        edisp_std = Config::ratioDispSTDHor() * edisp;
+    }
+        
+    //定义像素误差 
+    //求起始点相机坐标系协方差
+    Matrix3d cov2D=Matrix3d::Zero();
+    cov2D(0, 0) = pow( spl_std, 2 );
+    cov2D(1, 1) = pow( epl_std, 2 );
+    cov2D(2, 2) = pow( sdisp_std, 2 );
+    //雅克比矩阵是相机坐标系下的XYZ对u，v，d的雅克比矩阵
+    Matrix3d jacMat;
+    getStereoJacob3D_2D(spl(0),spl(1),sdisp,cam->getB(),cam->getFx(),cam->getCx(),cam->getCy(),jacMat);
+    //求得相机坐标系的坐标协方差矩阵
+    covSpt3D = jacMat * cov2D * jacMat.transpose();
+    
+    //求终止点相机坐标系协方差
+    cov2D(0, 0) = pow( spl_std, 2 );
+    cov2D(1, 1) = pow( epl_std, 2 );
+    cov2D(2, 2) = pow( sdisp_std, 2 );
+    getStereoJacob3D_2D(epl(0),epl(1),edisp,cam->getB(),cam->getFx(),cam->getCx(),cam->getCy(),jacMat);
+    //求得相机坐标系的坐标协方差矩阵
+    covEpt3D = jacMat * cov2D * jacMat.transpose();
+}
 
 }

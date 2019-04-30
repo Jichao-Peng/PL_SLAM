@@ -290,7 +290,7 @@ int main(int argc, char **argv) {
 
 
     // save the pose per frame into text创建log日志文件
-	{
+	
     ofstream fAllFrameTrack;
     std::string fNameAllFrameTrack = std::string(argv[4]) + "_AllFrameTrajectory.txt";
     std::cout << std::endl << "Saving AllFrame Trajectory to " << fNameAllFrameTrack << std::endl;
@@ -305,7 +305,7 @@ int main(int argc, char **argv) {
     fLog.open(fNameLog.c_str());
     fLog << fixed;
     //fLog << "#TimeStamp Tx Ty Tz Qx Qy Qz Qw" << std::endl;
-	}
+	
     // create PLSLAM object
     PLSLAM::MapHandler* map = new PLSLAM::MapHandler(cam_pin);
 
@@ -328,12 +328,11 @@ int main(int argc, char **argv) {
         clock_t startTime = clock();
 
         //  加载该帧 load images
-		{
         boost::filesystem::path img_path_l = img_dir_path_l / boost::filesystem::path(imgs_l_paired[i].c_str());
         boost::filesystem::path img_path_r = img_dir_path_r / boost::filesystem::path(imgs_r_paired[i].c_str());
         Mat img_l( imread(img_path_l.string(), CV_LOAD_IMAGE_UNCHANGED) );  assert(!img_l.empty());
         Mat img_r( imread(img_path_r.string(), CV_LOAD_IMAGE_UNCHANGED) );  assert(!img_r.empty());
-		}
+		
         // grab the time stamp from image file name 加载时间戳
         double time_stamp;
         if ( strBenchmark.compare("kitti") == 0 ) {
@@ -388,6 +387,7 @@ int main(int argc, char **argv) {
         {
             // PL-StVO
             startTime = clock();
+			//得到匹配点匹配线，和线切割
             StVO->insertStereoPair( img_l, img_r, frame_counter, time_stamp );
             StVO->curr_frame->log_.frame_time_stamp = time_stamp;
             StVO->curr_frame->log_.time_track = double(clock() - startTime) / double(CLOCKS_PER_SEC);
@@ -395,19 +395,14 @@ int main(int argc, char **argv) {
             std::cout << "s2. total time on data association = " << StVO->curr_frame->log_.time_track << std::endl;
 			#endif
             //
-            // NOTE
+            // NOTE 线匹配可能会不可靠，如果只用线
             // When only line features are used, optimizing the pose from scratch will lead to better results
             // The reason could be that, line feature matching are not reliable at this moment, therefore leads
             // to highly unstable pose estimation as well as prediction;
             // On the contrary, the robustness of pose tracking will be dramatically improved with pose prediction
             // when point feature matchings are used
             // In the future, it's worth upgrading the line matching code (based on my previous work done at MagicLeap)
-            //
-            // if (Config::hasPoints() == false && Config::hasLines() == true)
-            //     StVO->optimizePose();
-            // else
-            //     StVO->optimizePose(StVO->prev_frame->DT);
-            //            StVO->optimizePose();
+  
             startTime = clock();
             StVO->optimizePose(StVO->prev_frame->DT);
             StVO->curr_frame->log_.time_pose_optim = double(clock() - startTime) / double(CLOCKS_PER_SEC);

@@ -83,7 +83,9 @@ double vector_mean(vector<double> v);
 double vector_stdv(vector<double> v);
 double vector_stdv(vector<double> v, double v_mean);
 void vector_mean_stdv_mad( vector<double> residues, double &mean, double &stdv );
-
+void getStereoJacob2D_3D(const double &px, const double &py, const double &pz,double f,double b,Matrix3d & jacMat);
+void getStereoJacob3D_2D(const double &u, const double &v, const double &d,double b,double f,double cx,double cy,Matrix3d & jacMat);
+void getJacobL_P(const Vector3d sp,const Vector3d ep,Matrix3d & jacMat,int sp_or_ep);
 double robustWeightCauchy(double norm_res);
 std::vector<float> toQuaternion(const Matrix3d &M);
 struct compare_descriptor_by_NN_dist
