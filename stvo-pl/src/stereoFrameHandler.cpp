@@ -744,11 +744,52 @@ void StereoFrameHandler:: optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &
         if( (*it)->inlier )
         {
             //
- 
+            Vector3d sP_ = DT.block(0,0,3,3) * (*it)->sP + DT.col(3).head(3);
+            Vector2d spl_proj = cam->projection( sP_ );
+            Vector3d eP_ = DT.block(0,0,3,3) * (*it)->eP + DT.col(3).head(3);
+            Vector2d epl_proj = cam->projection( eP_ );
+            Vector3d l_obs = (*it)->le_obs;
+            // projection error
             Vector2d err_i;
-            Vector6d J_aux;
-            getLineJacobi(*it,DT,err_i,J_aux);
+            //计算点线距离误差
+            err_i(0) = l_obs(0) * spl_proj(0) + l_obs(1) * spl_proj(1) + l_obs(2);
+            err_i(1) = l_obs(0) * epl_proj(0) + l_obs(1) * epl_proj(1) + l_obs(2);
             double err_i_norm = err_i.norm();
+            double ds   = err_i(0);
+            double de   = err_i(1);
+            double lx   = l_obs(0);
+            double ly   = l_obs(1);
+            // estimate variables for J, H, and g
+            // -- start point
+            double gx   = sP_(0);
+            double gy   = sP_(1);
+            double gz   = sP_(2);
+            double gz2  = gz*gz;
+            double fgz2 = cam->getFx() / std::max(Config::homogTh(),gz2);
+            Vector6d Js_aux;
+            Js_aux << + fgz2 * lx * gz,
+                      + fgz2 * ly * gz,
+                      - fgz2 * ( gx*lx + gy*ly ),
+                      - fgz2 * ( gx*gy*lx + gy*gy*ly + gz*gz*ly ),
+                      + fgz2 * ( gx*gx*lx + gz*gz*lx + gx*gy*ly ),
+                      + fgz2 * ( gx*gz*ly - gy*gz*lx );
+            // -- end point
+            gx   = eP_(0);
+            gy   = eP_(1);
+            gz   = eP_(2);
+            gz2  = gz*gz;
+            fgz2 = cam->getFx() / std::max(Config::homogTh(),gz2);
+            Vector6d Je_aux, J_aux;
+            Je_aux << + fgz2 * lx * gz,
+                      + fgz2 * ly * gz,
+                      - fgz2 * ( gx*lx + gy*ly ),
+                      - fgz2 * ( gx*gy*lx + gy*gy*ly + gz*gz*ly ),
+                      + fgz2 * ( gx*gx*lx + gz*gz*lx + gx*gy*ly ),
+                      + fgz2 * ( gx*gz*ly - gy*gz*lx );
+            //综合两个雅克比矩阵
+            // jacobian
+            J_aux = ( Js_aux * ds + Je_aux * de ) / std::max(Config::homogTh(),err_i_norm);
+
             // define the residue
             double s2 = (*it)->sigma2;
             double r = err_i_norm * sqrt(s2);
@@ -759,7 +800,7 @@ void StereoFrameHandler:: optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &
 
             // estimating overlap between line segments
             bool has_overlap = true;
-            double overlap = prev_frame->lineSegmentOverlap( (*it)->spl, (*it)->epl, cam->projection(DT.block(0,0,3,3) * (*it)->sP + DT.col(3).head(3)), cam->projection(DT.block(0,0,3,3) * (*it)->eP + DT.col(3).head(3)) );
+            double overlap = prev_frame->lineSegmentOverlap( (*it)->spl, (*it)->epl, spl_proj, epl_proj );
             if( has_overlap )
                 w *= overlap;
 
