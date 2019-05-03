@@ -372,7 +372,6 @@ void StereoFrameHandler::optimizePose()
         if( mode == 0 )      gaussNewtonOptimization(DT_,DT_cov,err,Config::maxIters());
         else if( mode == 1 ) gaussNewtonOptimizationRobust(DT_,DT_cov,err,Config::maxIters());
         else if( mode == 2 ) levenbergMarquardtOptimization(DT_,DT_cov,err,Config::maxIters());
-
         // remove outliers (implement some logic based on the covariance's eigenvalues and optim error)
         if( isGoodSolution(DT_,DT_cov,err) )
         {

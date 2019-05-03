@@ -40,7 +40,7 @@ using namespace PLSLAM;
 void showHelp();
 bool getInputArgs(int argc, char **argv, std::string &dataset_name, int &frame_offset, int &frame_number, int &frame_step, std::string &config_file);
 
-//#define NO_SECENE
+#define NO_SECENE
 
 int main(int argc, char **argv)
 {
@@ -175,8 +175,10 @@ int main(int argc, char **argv)
             StVO->optimizePose();
             //cout << endl << "VO optimizePose: " << timer.stop() << endl;
             // check if a new keyframe is 
+            #ifndef NO_SECENE
             scene.frame+=1;
             scene.setText(scene.frame,0,StVO->n_inliers_pt,StVO->n_inliers_ls);
+            #endif
             if(map->prev_kf!=NULL)
                 StVO->T_w_curr=map->prev_kf->T_w_kf*StVO->curr_frame->T_kf_f;
             else
@@ -218,7 +220,7 @@ int main(int argc, char **argv)
         fout << setprecision(7) << " "<< StVO->T_w_curr(0, 3) << " " << StVO->T_w_curr(1, 3) << " " << StVO->T_w_curr(2, 3) << " "<< q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
     }
     fout.close();
-
+    cout<<"over"<<endl;
     // finish SLAM
     map->finishSLAM();
     

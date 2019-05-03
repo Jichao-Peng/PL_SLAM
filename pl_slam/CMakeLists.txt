@@ -56,7 +56,6 @@ include_directories(
   ${OpenCV_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${YAML_CPP_INCLUDE_DIRS}
-  ${PROJECT_SOURCE_DIR}/../stvo-pl/include/
   ${PROJECT_SOURCE_DIR}/3rdparty/DBoW2/include/
   ${PROJECT_SOURCE_DIR}/3rdparty/line_descriptor/include/
   ${G2O_INCLUDE_DIR}
@@ -69,28 +68,35 @@ list(APPEND LINK_LIBS
   ${Boost_LIBRARIES}
   ${YAML_CPP_LIBRARIES}
   ${G2O_LIBS}
-  ${PROJECT_SOURCE_DIR}/../stvo-pl/lib/libstvo.so
   ${PROJECT_SOURCE_DIR}/3rdparty/DBoW2/lib/libDBoW2.so
   ${PROJECT_SOURCE_DIR}/3rdparty/line_descriptor/lib/liblinedesc.so
 )
 
-# Set source files 
 if(HAS_MRPT)
 list(APPEND SOURCEFILES
-  src/mapHandler.cpp
-  src/mapFeatures.cpp
-  src/keyFrame.cpp
-  src/slamConfig.cpp
+  src/sceneRepresentation.cpp
   src/slamScene.cpp
 )
-else()
+endif()
+
 list(APPEND SOURCEFILES
+  src/auxiliar.cpp
+  src/config.cpp
+  src/dataset.cpp
+  src/gridStructure.cpp
+  src/lineIterator.cpp
+  src/matching.cpp
+  src/pinholeStereoCamera.cpp
+  src/stereoFeatures.cpp
+  src/stereoFrame.cpp
+  src/stereoFrameHandler.cpp
+  src/timer.cpp
+  src/customLog.cpp
   src/mapHandler.cpp
   src/mapFeatures.cpp
   src/keyFrame.cpp
   src/slamConfig.cpp
 )
-endif()
 
 # List all files (headers) contained by StVO-PL library
 file(GLOB_RECURSE all_include_files RELATIVE "${CMAKE_SOURCE_DIR}" *.h *.hpp)

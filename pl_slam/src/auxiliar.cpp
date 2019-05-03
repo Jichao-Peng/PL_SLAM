@@ -609,20 +609,26 @@ std::vector<float> toQuaternion(const Matrix3d &M)
     return v;
 }
 
-MatXf pInv(MatXf x) 
-{ 
+MatXf pInv(Matrix23d x) 
+{   
     JacobiSVD<MatXf> svd(x,ComputeFullU | ComputeFullV); 
     double pinvtoler=1.e-8; 
     //tolerance 
-    MatXf singularValues_inv = svd.singularValues(); 
-    for ( long i=0; i<x.cols(); ++i) 
+    Vector3d singularValues_inv;
+    if(svd.singularValues().rows()<3)
+        singularValues_inv<<svd.singularValues(),0;
+    else
+        singularValues_inv<<svd.singularValues();
+    for ( int i=0; i<x.cols(); ++i) 
     { 
         if ( singularValues_inv(i) > pinvtoler ) 
             singularValues_inv(i)=1.0/singularValues_inv(i); 
         else singularValues_inv(i)=0; 
         
     } 
-    return svd.matrixV()*singularValues_inv.asDiagonal()*svd.matrixU().transpose(); 
+    Matrix<double,3,2> Diag;
+    Diag<<singularValues_inv(0),0,0,singularValues_inv(1),0,0;
+    return svd.matrixV()*Diag*svd.matrixU().transpose(); 
     
 } 
 
