@@ -73,7 +73,9 @@ PointFeature* PointFeature::safeCopy(){
 
 LineFeature::LineFeature( Vector3d sP_, Vector3d eP_, Vector3d le_obs_) :
     sP(sP_), eP(eP_), le_obs(le_obs_), level(0)
-{}
+{
+    
+}
 
 
 LineFeature::LineFeature( Vector3d sP_, Vector3d eP_, Vector3d le_obs_, Vector2d spl_obs_, Vector2d epl_obs_) :
@@ -117,11 +119,11 @@ LineFeature::LineFeature( Vector2d spl_, double sdisp_, Vector3d sP_,
 LineFeature::LineFeature( Vector2d spl_, double sdisp_, Vector3d sP_, Vector2d spl_obs_, double sdisp_obs_,
                           Vector2d epl_, double edisp_, Vector3d eP_, Vector2d epl_obs_, double edisp_obs_,
                           Vector3d le_, Vector3d le_obs_, double angle_, int idx_, int level_, bool inlier_, double sigma2_,
-                          Matrix3d covE_an_, Matrix3d covS_an_) :
+                          Matrix3d covEpt3D, Matrix3d covSpt3D) :
 
     spl(spl_), sdisp(sdisp_), sP(sP_), spl_obs(spl_obs_), sdisp_obs(sdisp_obs_),
     epl(epl_), edisp(edisp_), eP(eP_), epl_obs(epl_obs_), edisp_obs(edisp_obs_),
-    le(le_), le_obs(le_obs_), angle(angle_), idx(idx_), level(level_), inlier(inlier_), sigma2(sigma2_), covE_an(covE_an_), covS_an(covS_an_)
+    le(le_), le_obs(le_obs_), angle(angle_), idx(idx_), level(level_), inlier(inlier_), sigma2(sigma2_), covEpt3D(covEpt3D), covSpt3D(covSpt3D)
 {
     for( int i = 0; i < level; i++ )
         sigma2 *= Config::lsdScale();
@@ -131,7 +133,7 @@ LineFeature::LineFeature( Vector2d spl_, double sdisp_, Vector3d sP_, Vector2d s
 LineFeature* LineFeature::safeCopy(){
     return new LineFeature( spl, sdisp, sP, spl_obs, sdisp_obs,
                             epl, edisp, eP, epl_obs, edisp_obs,
-                            le, le_obs, angle, idx, level, inlier, sigma2, covE_an, covS_an );
+                            le, le_obs, angle, idx, level, inlier, sigma2, covEpt3D, covSpt3D);
 }
 
 /*LineFeature::LineFeature( Vector2d spl_, double sdisp_, Vector3d sP_,

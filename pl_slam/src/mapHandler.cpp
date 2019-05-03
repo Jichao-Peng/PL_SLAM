@@ -1026,6 +1026,7 @@ void MapHandler::handlerThread() {
         //cout<<"cur id: "<<curr_kf_mt->kf_idx<<'\t'<<"pre id: "<<prev_kf_mt->kf_idx<<"que num"<<kf_queue.size()<<endl;
         lk.unlock();
 
+#ifdef LOCAL_MAP
         // notify threads
         {
             std::lock_guard<std::mutex> lk(lba_mutex);
@@ -1045,7 +1046,8 @@ void MapHandler::handlerThread() {
         std::unique_lock<std::mutex> lba_lk(lba_mutex);
         if( lba_thread_status != LBA_IDLE )
             lba_join.wait(lba_lk, [this]{return (lba_thread_status == LBA_IDLE);});
-
+#endif
+#ifdef LOOP_CLOSE
         std::unique_lock<std::mutex> lc_lk(lc_mutex);
         if ( lc_thread_status != LC_IDLE )
             lc_join.wait(lc_lk, [this]{return (lc_thread_status == LC_IDLE);});
@@ -1056,12 +1058,11 @@ void MapHandler::handlerThread() {
             loopClosureOptimizationCovGraphG2O();
             lc_state = LC_IDLE;
         }
-
+#endif
     }
 
 
 }
-
 void MapHandler::startThreads() {
 
     if (threads_started) return;
@@ -1070,19 +1071,23 @@ void MapHandler::startThreads() {
     std::thread handler(&MapHandler::handlerThread, this);
     handler.detach();
 
+#ifdef LOCAL_MAP
     {
         std::lock_guard<std::mutex> lk(lba_mutex);
         lba_thread_status = LBA_IDLE;
     }
     std::thread localMapping(&MapHandler::localMappingThread, this);
     localMapping.detach();
-
+#endif
+    
+#ifdef LOOP_CLOSE
     {
         std::lock_guard<std::mutex> lk(lc_mutex);
         lc_thread_status = LC_IDLE;
     }
-//     std::thread loopClosure(&MapHandler::loopClosureThread, this);
-//     loopClosure.detach();
+    std::thread loopClosure(&MapHandler::loopClosureThread, this);
+    loopClosure.detach();
+#endif
 }
 
 void MapHandler::killThreads() {
@@ -1132,7 +1137,6 @@ void MapHandler::localMappingThread() {
 		//prev_kf_mt上一个关键帧，curr_kf_mt当前关键帧
         //这一步会根据前一关键帧和当前关键帧增加新的地图点，并且建立已有地图点和当前关键帧特征点的对应关系，并且会更新full graph
         lookForCommonMatches( prev_kf_mt, curr_kf_mt );
-        
         // form local map 建立局部地图（最多四个关键帧）
         formLocalMap(curr_kf_mt);
 
@@ -1149,7 +1153,7 @@ void MapHandler::localMappingThread() {
 
         lba_join.notify_one();
     }
-
+    
     lk.lock();
     lba_thread_status = LBA_TERMINATED;
     lk.unlock();

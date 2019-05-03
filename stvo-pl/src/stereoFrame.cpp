@@ -466,6 +466,8 @@ void StereoFrame::matchStereoLines( vector<KeyLine> lines_l, vector<KeyLine> lin
                 stereo_ls.push_back( new LineFeature(Vector2d(sp_l(0),sp_l(1)),disp_s,sP_,
                                                      Vector2d(ep_l(0),ep_l(1)),disp_e,eP_,
                                                      le_l,angle_l,ls_idx,lines_l[i1].octave) );
+                stereo_ls.back()->getCov3DStereo(cam);
+                
                 ls_idx++;
             }
             else
@@ -476,6 +478,7 @@ void StereoFrame::matchStereoLines( vector<KeyLine> lines_l, vector<KeyLine> lin
                 stereo_ls.push_back( new LineFeature(Vector2d(sp_l(0),sp_l(1)),disp_s,sP_,
                                                      Vector2d(ep_l(0),ep_l(1)),disp_e,eP_,
                                                      le_l,angle_l,-1,lines_l[i1].octave) );
+                stereo_ls.back()->getCov3DStereo(cam);
             }
         }
     }

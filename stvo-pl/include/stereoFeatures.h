@@ -130,9 +130,7 @@ public:
     
     double sigma2 = 1.0;
 
-    Matrix3d covE_an, covS_an;
-
-    
+    Matrix<double, 6, 6> info_pose;
 
 };
 

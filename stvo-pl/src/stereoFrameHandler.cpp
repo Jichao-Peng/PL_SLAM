@@ -194,7 +194,6 @@ void StereoFrameHandler::matchF2FLines()
     for (int i1 = 0; i1 < matches_12.size(); ++i1) {
         const int i2 = matches_12[i1];
         if (i2 < 0) continue;
-
         prev_frame->stereo_ls[i1]->sdisp_obs = curr_frame->stereo_ls[i2]->sdisp;
         prev_frame->stereo_ls[i1]->edisp_obs = curr_frame->stereo_ls[i2]->edisp;
         prev_frame->stereo_ls[i1]->spl_obs   = curr_frame->stereo_ls[i2]->spl;
@@ -380,17 +379,14 @@ void StereoFrameHandler::optimizePose()
             //cout<<"  P_L: "<<curr_frame->points_l.size()<<"  P_R: "<<curr_frame->points_r.size()<<"  S_P: "<<curr_frame->stereo_pt.size()<<"  M_P"<<matched_pt.size()<<endl;
             //cout<<"  L_L: "<<curr_frame->lines_l.size()<<"  L_R: "<<curr_frame->lines_r.size()<<"  S_L: "<<curr_frame->stereo_ls.size()<<"  M_L"<<matched_ls.size()<<endl;
             removeOutliers(DT_);
+            gfPointSeclet(DT_);
+            gfLineSeclet();
             // refine without outliers
             // 去除外点之后，再进行一次优化
             if( n_inliers >= Config::minFeatures() )
             {
                 //这里的DT初始值还是单位矩阵（不使用恒速模型）
-                if( mode == 0 )      
-                {
-                    gaussNewtonOptimization(DT,DT_cov,err,Config::maxItersRef());
-                    gfPointSeclet(DT);
-                    gaussNewtonOptimization(DT,DT_cov,err,Config::maxItersRef());
-                }
+                if( mode == 0 )      gaussNewtonOptimization(DT,DT_cov,err,Config::maxItersRef());
                 else if( mode == 1 ) gaussNewtonOptimizationRobust(DT,DT_cov,err,Config::maxItersRef());
                 else if( mode == 2 ) levenbergMarquardtOptimization(DT,DT_cov,err,Config::maxItersRef());
             }
@@ -1282,7 +1278,7 @@ void StereoFrameHandler::gfPointSeclet(Matrix4d DT)
             
         while(1)
         {
-            double value_min=99999999.9;
+            double value_min=std::numeric_limits<double>::max();
             PointFeature* discardId;
             for( auto it = matched_pt.begin(); it!=matched_pt.end(); it++)
             {
@@ -1298,10 +1294,13 @@ void StereoFrameHandler::gfPointSeclet(Matrix4d DT)
                     }
                 }
             }
-            //更新总集
-            HcTHc=HcTHc-discardId->HcTHc;
-            //去除内点
-            discardId->inlier = false;
+            if(!discardId)
+            {
+                //更新总集
+                HcTHc=HcTHc-discardId->HcTHc;
+                //去除内点
+                discardId->inlier = false;
+            }
             n_inliers--;
             n_inliers_pt--;
             discardNUm--;
@@ -1310,6 +1309,57 @@ void StereoFrameHandler::gfPointSeclet(Matrix4d DT)
     }
     cout<<"time: "<<timer.stop()<<endl;
 }
+
+void StereoFrameHandler::gfLineSeclet()
+{
+    Timer timer;
+    int size=n_inliers_ls;
+    int discardNUm=n_inliers_ls/4;
+    Matrix6d info_pose=Matrix6d::Zero();
+    Matrix6d info_pose_=Matrix6d::Zero();
+    timer.start();
+    if (Config::hasLines()) {
+        for( auto it = matched_ls.begin(); it!=matched_ls.end(); it++)
+            getPoseInfoOnLine(*it);
+        
+        for( auto it = matched_ls.begin(); it!=matched_ls.end(); it++)
+            if( (*it)->inlier )
+                info_pose= info_pose+(*it)->info_pose;
+            
+        while(1)
+        {
+            double value_min=std::numeric_limits<double>::max();
+            LineFeature* discardId;
+            for( auto it = matched_ls.begin(); it!=matched_ls.end(); it++)
+            {
+                if( (*it)->inlier )
+                {
+                    info_pose_=info_pose-(*it)->info_pose;
+                    double det=info_pose_.determinant();
+                    //找到去掉该点后，info_pose_的行列式值最小的那个
+                    if(det<value_min)
+                    {
+                        value_min=det;
+                        discardId=*it;
+                    }
+                }
+            }
+            //更新总集
+            if(!discardId)
+            {
+                info_pose=info_pose-discardId->info_pose;
+                //去除内点
+                discardId->inlier = false;
+            }
+            n_inliers--;
+            n_inliers_ls--;
+            discardNUm--;
+            if(discardNUm==0||n_inliers_ls==0) break;
+        }
+    }
+    cout<<"time: "<<timer.stop()<<endl;
+}
+
 void StereoFrameHandler::prefilterOutliers(Matrix4d DT)
 {
 
@@ -1850,7 +1900,7 @@ Matrix23d StereoFrameHandler:: getPointHp(Vector6d x,Vector3d Pc)
     return dePc*dePw;
 }
 
-void StereoFrameHandler::getPoseInfoOnLine(const LineFeature * line,Matrix<double, 6, 6> & info_pose) {
+void StereoFrameHandler::getPoseInfoOnLine(LineFeature * line) {
     Matrix3d J_proj;
     Matrix4d DT_inv = prev_frame->DT.inverse();
     Vector2d J_loss(line->le(0),line->le(1));
@@ -1870,7 +1920,7 @@ void StereoFrameHandler::getPoseInfoOnLine(const LineFeature * line,Matrix<doubl
             ( J_proj.block(0,0,2,3) * J_dt * line->covEpt3D
               * J_dt.transpose() * J_proj.block(0,0,2,3).transpose() )
             * J_loss;
-    //
+    
     Matrix<double, 2, 2> cov_r_temp;
     cov_r_temp << cov_sR_tmp, 0, 0, cov_eR_tmp;
 	Vector2d err_i;
@@ -1879,8 +1929,7 @@ void StereoFrameHandler::getPoseInfoOnLine(const LineFeature * line,Matrix<doubl
     Vector2d Je(err_i(0)/err_i.norm(),err_i(1)/err_i.norm());
     Matrix<double, 1, 1> cov_r = Je.transpose()*cov_r_temp*Je;
 	//信息矩阵不满秩 cov_r.inverse()不可以近似为单位矩阵
-    info_pose = J_aux * cov_r.inverse() * J_aux.transpose();
-
+    line->info_pose = J_aux * cov_r.inverse() * J_aux.transpose();
 }
 
 
