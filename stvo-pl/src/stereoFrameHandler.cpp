@@ -1259,7 +1259,7 @@ void StereoFrameHandler::gfPointSeclet(Matrix4d DT)
 {
     Timer timer;
     int size=n_inliers_pt;
-    int discardNUm=n_inliers_pt/4;
+    int discardNUm=n_inliers_pt/2;
     Matrix6d HcTHc=Matrix6d::Zero();
     Matrix6d HcTHc_=Matrix6d::Zero();
     timer.start();
@@ -1314,7 +1314,7 @@ void StereoFrameHandler::gfLineSeclet()
 {
     Timer timer;
     int size=n_inliers_ls;
-    int discardNUm=n_inliers_ls/4;
+    int discardNUm=n_inliers_ls/2;
     Matrix6d info_pose=Matrix6d::Zero();
     Matrix6d info_pose_=Matrix6d::Zero();
     timer.start();

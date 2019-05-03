@@ -113,14 +113,9 @@ int main(int argc, char **argv)
     string scene_cfg_name;
     if( (dataset_dir.find("KITTI")!=std::string::npos) ||
         (dataset_dir.find("malaga")!=std::string::npos)  )
-    {
-        cout<<1234567<<endl;
         scene_cfg_name = "../config/scene_config.ini";
-    }
-    else{
-        cout<<123456<<endl;
+    else
         scene_cfg_name = "../config/scene_config_indoor.ini";
-    }
     //场景类
     #ifndef NO_SECENE
         slamScene scene(scene_cfg_name);
