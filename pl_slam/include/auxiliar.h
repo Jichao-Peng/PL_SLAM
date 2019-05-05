@@ -59,6 +59,7 @@ Matrix4d inverse_se3(Matrix4d T);
 Matrix4d expmap_se3(Vector6d x);
 Vector6d logmap_se3(Matrix4d T);
 Matrix6d adjoint_se3(Matrix4d T);
+Matrix6d adjoint_se3(Vector6d x);
 Matrix6d uncTinv_se3(Matrix4d T, Matrix6d covT );
 Matrix6d unccomp_se3(Matrix4d T1, Matrix6d covT1, Matrix6d covTinc );
 Vector6d reverse_se3(Vector6d x);

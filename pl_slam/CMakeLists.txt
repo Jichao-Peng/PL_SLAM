@@ -96,7 +96,10 @@ list(APPEND SOURCEFILES
   src/mapFeatures.cpp
   src/keyFrame.cpp
   src/slamConfig.cpp
-)
+  src/errorFun/form1.cpp
+  src/errorFun/form2.cpp
+  src/errorFun/form3.cpp
+  )
 
 # List all files (headers) contained by StVO-PL library
 file(GLOB_RECURSE all_include_files RELATIVE "${CMAKE_SOURCE_DIR}" *.h *.hpp)

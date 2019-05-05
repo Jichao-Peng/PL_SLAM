@@ -125,6 +125,7 @@ Config& Config::getInstance()
     return instance;
 }
 
+
 template<typename T>
 inline T loadSafe(const YAML::Node &config, std::string param, T default_value = T()) {
 

@@ -474,7 +474,7 @@ void StereoFrame::matchStereoLines( vector<KeyLine> lines_l, vector<KeyLine> lin
             {
                 ldesc_l_aux.push_back( ldesc_l_.row(i1) );
                 //不是初始化状态时，线特征索引先不填写
-                //存储了起始点和终止点的2D坐标，3D坐标，视差，金字塔层级，索引
+                //存储了起始点和终止点的2D坐标，3D坐标，视差，索引,金字塔层级
                 stereo_ls.push_back( new LineFeature(Vector2d(sp_l(0),sp_l(1)),disp_s,sP_,
                                                      Vector2d(ep_l(0),ep_l(1)),disp_e,eP_,
                                                      le_l,angle_l,-1,lines_l[i1].octave) );

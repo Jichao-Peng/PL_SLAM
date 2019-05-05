@@ -27,7 +27,9 @@
 
 typedef Matrix<double,6,6> Matrix6d;
 typedef Matrix<double,6,1> Vector6d;
-
+#define ERROR_FORM_1
+//#define ERROR_FORM_2
+// #define ERROR_FORM_3
 class StereoFrame;
 
 namespace StVO{
@@ -99,7 +101,6 @@ private:
 
     void prefilterOutliers( Matrix4d DT );
     // good point features selection
-    void gfPointSeclet_Greedy(Matrix4d DT);
     void gfPointSeclet(Matrix4d DT);
     void gfLineSeclet();
     void removeOutliers( Matrix4d DT );

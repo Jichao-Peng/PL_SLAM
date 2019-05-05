@@ -37,11 +37,9 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
     PointFeature( Vector3d P_, Vector2d pl_obs_);
-    PointFeature( Vector2d pl_, double disp_, Vector3d P_ );
     PointFeature( Vector2d pl_, double disp_, Vector3d P_, int idx_ );
     PointFeature( Vector2d pl_, double disp_, Vector3d P_, int idx_, int level );
     PointFeature( Vector2d pl_, double disp_, Vector3d P_, int idx_, int level, Matrix3d covP_an_ );
-    PointFeature( Vector2d pl_, double disp_, Vector3d P_, Vector2d pl_obs_ );
     PointFeature( Vector2d pl_, double disp_, Vector3d P_, Vector2d pl_obs_,
                   int idx_, int level_, double sigma2_, Matrix3d covP_an_, bool inlier_,Vector3d P_obs );
     ~PointFeature(){};
@@ -54,7 +52,7 @@ public:
     Vector3d P,P_obs;                 //特征点的3D坐标 相机坐标系下的
     bool inlier;                //是否为内点
     int level;
-    double sigma2 = 1.0;
+    double sigma2 = 1.0;//金字塔尺度转化比例
     Matrix3d covP_an;
     
     Matrix23d Hp; 
@@ -64,48 +62,30 @@ public:
 
 };
 
+typedef Vector6d Plucker;
+
 class LineFeature
 {
 
 public:
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-
-    LineFeature( Vector3d sP_, Vector3d eP_, Vector3d le_obs_);
-
+//*
     LineFeature( Vector3d sP_, Vector3d eP_, Vector3d le_obs_, Vector2d spl_obs_, Vector2d epl_obs_);
 
-    LineFeature( Vector2d spl_, double sdisp_, Vector3d sP_,
-                 Vector2d epl_, double edisp_, Vector3d eP_,
-                 Vector3d le_,  int idx_);
-
+//*
     LineFeature( Vector2d spl_, double sdisp_, Vector3d sP_,
                  Vector2d epl_, double edisp_, Vector3d eP_,
                  Vector3d le_,  double angle_, int idx_);
-
+//*
     LineFeature( Vector2d spl_, double sdisp_, Vector3d sP_,
                  Vector2d epl_, double edisp_, Vector3d eP_,
                  Vector3d le_,  double angle_, int idx_, int level);
-
-    /*LineFeature( Vector2d spl_, double sdisp_, Vector3d sP_,
-                 Vector2d epl_, double edisp_, Vector3d eP_,
-                 Vector3d le_,  double angle_, int idx_, int level, Matrix3d covS_an_, Matrix3d covE_an_);*/
-
-    LineFeature( Vector2d spl_, double sdisp_, Vector3d sP_,
-                 Vector2d epl_, double edisp_, Vector3d eP_, Vector3d le_);
-
-    LineFeature( Vector2d spl_, double sdisp_, Vector3d sP_,
-                 Vector2d epl_, double edisp_, Vector3d eP_,
-                 Vector3d le_, Vector3d le_obs_);
-
-    /*LineFeature( Vector2d spl_, double sdisp_, Vector3d sP_,
-                 Vector2d epl_, double edisp_, Vector3d eP_,
-                 Vector3d le_,  double angle_, int idx_, int level, Vector2d spr_, Vector2d epr_);*/
-
+//*
     LineFeature( Vector2d spl_, double sdisp_, Vector3d sP_, Vector2d spl_obs_, double sdisp_obs_,
                  Vector2d epl_, double edisp_, Vector3d eP_, Vector2d epl_obs_, double edisp_obs_,
                  Vector3d le_, Vector3d le_obs_, double angle_, int idx_, int level_, bool inlier_, double sigma2_,
-                 Matrix3d covE_an_, Matrix3d covS_an_);
+                 Matrix3d covEpt3D, Matrix3d covSpt3D, Plucker plucCam_obs);
 
     void getCov3DStereo(PinholeStereoCamera* cam);
     
@@ -120,6 +100,8 @@ public:
     
     Vector3d sP,eP;
     
+    Plucker plucCam,plucCam_obs;
+    
     Vector3d le, le_obs;//线段参数
     
     bool inlier;
@@ -128,7 +110,7 @@ public:
     
     int level;
     
-    double sigma2 = 1.0;
+    double sigma2 = 1.0;//金字塔尺度转化比例
 
     Matrix<double, 6, 6> info_pose;
 

@@ -22,7 +22,7 @@
 
 #pragma once
 #include <string>
-
+#include "pinholeStereoCamera.h"
 class Config
 {
 
@@ -30,7 +30,7 @@ public:
 
     Config();
     ~Config();
-
+    
     static void loadFromFile( const std::string &config_file );
 
     static Config& getInstance();
@@ -108,6 +108,17 @@ public:
     static double&  ratioDispSTD()       { return getInstance().ratio_disp_std; }
     static double&  ratioDispSTDHor()    { return getInstance().ratio_disp_std_hor; }
 
+    static Matrix3d getLineK()
+    {
+        Matrix3d K=Matrix3d::Zero();
+        K(0,0)=cam->getFy();
+        K(1,1)=cam->getFx();
+        K(2,0)=-cam->getFy()*cam->getCx();
+        K(2,1)=-cam->getFx()*cam->getCy();
+        K(2,2)=cam->getFx()*cam->getFy();
+        return K;
+    };
+    
     // SLAM parameters (keyframe selection)
     double min_entropy_ratio;
     double max_kf_t_dist;
@@ -180,5 +191,7 @@ public:
     bool   use_line_conf_cut;
     double ratio_disp_std;
     double ratio_disp_std_hor;
+    
+    static PinholeStereoCamera* cam;
 };
 

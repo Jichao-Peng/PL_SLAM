@@ -66,8 +66,8 @@ typedef Matrix<float,6,6> Matrix6f;
 typedef Matrix<float,7,1> Vector7f;
 typedef DBoW2::TemplatedVocabulary<DBoW2::FORB::TDescriptor, DBoW2::FORB> Vocabulary;
 
-// #define LOCAL_MAP
-// #define LOOP_CLOSE
+//#define LOCAL_MAP
+//#define LOOP_CLOSE
 
 namespace PLSLAM
 {

@@ -40,7 +40,9 @@ using namespace PLSLAM;
 void showHelp();
 bool getInputArgs(int argc, char **argv, std::string &dataset_name, int &frame_offset, int &frame_number, int &frame_step, std::string &config_file);
 
-#define NO_SECENE
+//#define NO_SECENE
+
+PinholeStereoCamera* Config::cam=NULL;//将相机参数传入配置文件
 
 int main(int argc, char **argv)
 {
@@ -106,9 +108,10 @@ int main(int argc, char **argv)
     string dataset_dir = dataset_path.string();
     //传入相机配置文件，建立相机模型
     PinholeStereoCamera*  cam_pin = new PinholeStereoCamera((dataset_path / "dataset_params.yaml").string());
+    Config::cam=cam_pin;
     //数据集类
+    frame_offset=0;
     Dataset dataset(dataset_dir, *cam_pin, frame_offset, frame_number, frame_step);
-
     // create scene  std::string::npos 表示string最大值，表示不存在的未知
     string scene_cfg_name;
     if( (dataset_dir.find("KITTI")!=std::string::npos) ||
@@ -137,6 +140,8 @@ int main(int argc, char **argv)
 
     // initialize and run PL-StVO
     int frame_counter = 0;
+    float ninliers_ls=0.0;
+    float ninliers_pt=0.0;
     StereoFrameHandler* StVO = new StereoFrameHandler(cam_pin);
     Mat img_l, img_r;
     ofstream fout("/media/zhijian/Document/grow/slam/slamDataSet/KITTI/data_odometry_poses/dataset/poses/my00.txt");
@@ -179,6 +184,10 @@ int main(int argc, char **argv)
             scene.frame+=1;
             scene.setText(scene.frame,0,StVO->n_inliers_pt,StVO->n_inliers_ls);
             #endif
+            ninliers_pt=(ninliers_pt*(frame_counter-1)+StVO->n_inliers_pt)/(frame_counter);
+            ninliers_ls=(ninliers_ls*(frame_counter-1)+StVO->n_inliers_ls)/(frame_counter);
+            cout<<"npt: "<<ninliers_pt<<endl;
+            cout<<"nls: "<<ninliers_ls<<endl;
             if(map->prev_kf!=NULL)
                 StVO->T_w_curr=map->prev_kf->T_w_kf*StVO->curr_frame->T_kf_f;
             else

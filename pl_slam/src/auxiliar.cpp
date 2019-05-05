@@ -190,6 +190,21 @@ Matrix6d adjoint_se3(Matrix4d T){
     return AdjT;
 }
 
+Matrix6d adjoint_se3(Vector6d x)
+{
+    Vector3d t, w;
+    //旋转向量
+    w = x.tail(3);
+    //位移
+    t = x.head(3);
+    Matrix6d result;
+    result.block(0,0,3,3)=skew(w);
+    result.block(0,3,3,3)=skew(t);
+    result.block(3,0,3,3)=Matrix3d::Zero();
+    result.block(3,3,3,3)=skew(w);
+    return result;
+}
+
 Matrix6d uncTinv_se3(Matrix4d T, Matrix6d covT ){
     Matrix6d covTinv = Matrix6d::Zero();
     Matrix6d adjTinv;
