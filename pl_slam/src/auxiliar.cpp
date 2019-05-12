@@ -690,7 +690,41 @@ void getJacobL_P(const Vector3d sp,const Vector3d ep,Matrix3d & jacMat,int sp_or
 }
 
 
+#include <limits>
+std::string DoubleToString(const double value, unsigned int precisionAfterPoint = 8)
+{
+   std::ostringstream out;
+   // 清除默认精度
+   out.precision(std::numeric_limits<double>::digits10);
+   out << value;
 
+   std::string res = std::move(out.str());
+   auto pos = res.find('.');
+   if (pos == std::string::npos)
+       return res;
+
+   auto splitLen = pos + 1 + precisionAfterPoint;
+   if (res.size() <= splitLen)
+       return res;
+
+   return res.substr(0, splitLen);
+}
+
+void transKitti(Matrix4d pose,string& s)
+{
+    for(int i=0;i<3;i++)
+        for(int j=0;j<4;j++)
+            s=s+DoubleToString(pose(i,j))+" ";
+    s.erase(s.end() - 1);
+}
+void transOther(Matrix4d pose,String& s)
+{
+    vector<float> q = toQuaternion(pose.block(0,0,3,3));
+    for(int i=0;i<3;i++)
+        s=s+DoubleToString(pose(i,3))+" ";
+
+    s=s+DoubleToString(q[3])+" "+DoubleToString(q[0])+" "+DoubleToString(q[1])+" "+DoubleToString(q[2]);
+}
 
 
 

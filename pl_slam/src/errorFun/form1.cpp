@@ -351,7 +351,7 @@ void StereoFrameHandler:: optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &
 
             // if employing robust cost function
             double w  = 1.0;
-            w = robustWeightCauchy(r);
+           // w = robustWeightCauchy(r);
 
             // estimating overlap between line segments
 //             bool has_overlap = true;

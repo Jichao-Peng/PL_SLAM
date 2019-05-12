@@ -23,7 +23,7 @@
 #pragma once
 
 #include <iostream>
-
+#include "string.h"
 #include <cv.h>
 #include <opencv2/features2d/features2d.hpp>
 #include <line_descriptor_custom.hpp>
@@ -73,7 +73,7 @@ bool is_finite(const MatrixXd x);
 bool is_nan(const MatrixXd x);
 double angDiff(double alpha, double beta);
 double angDiff_d(double alpha, double beta);
-
+void transKitti(Matrix4d pose,string& s);
 // Auxiliar functions and structs for vectors
 double vector_stdv_mad( VectorXf residues);
 double vector_stdv_mad( vector<double> residues);

@@ -597,6 +597,8 @@ double StereoFrame::lineSegmentOverlapStereo( double spl_obs, double epl_obs, do
 
 }
 
+
+//好像是如果预测线段和实际线段重合得多的话，就权重大一点
 double StereoFrame::lineSegmentOverlap( Vector2d spl_obs, Vector2d epl_obs, Vector2d spl_proj, Vector2d epl_proj  )
 {
 
