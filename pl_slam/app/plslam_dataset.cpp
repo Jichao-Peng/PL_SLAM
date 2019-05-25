@@ -144,7 +144,8 @@ int main(int argc, char **argv)
     float ninliers_pt=0.0;
     StereoFrameHandler* StVO = new StereoFrameHandler(cam_pin);
     Mat img_l, img_r;
-    ofstream fout("/media/zhijian/Document/grow/slam/slamDataSet/KITTI/data_odometry_poses/dataset/poses/my00.txt");
+    ofstream fout("/media/zhijian/Document/grow/slam/slamDataSet/KITTI/data_odometry_poses/my00.txt");
+    ofstream fout2("/media/zhijian/Document/grow/slam/slamDataSet/KITTI/data_odometry_poses/xyz.txt");
     //当数据集不空时
     while (dataset.nextFrame(img_l, img_r))
     {
@@ -193,6 +194,10 @@ int main(int argc, char **argv)
             else
                 StVO->T_w_curr=StVO->curr_frame->T_kf_f;
             
+            //看看每帧的线都是什么样子
+            for (list<LineFeature*>::iterator it = StVO->matched_ls.begin(); it != StVO->matched_ls.end(); ++it)
+                fout2<<(*it)->spl(0)<<" "<<(*it)->spl(1)<<" "<<(*it)->sdisp<<" "<<(*it)->epl(0)<<" "<<(*it)->epl(1)<<" "<<(*it)->edisp<<" ";
+            fout2<<endl;
             if( StVO->needNewKF() )
             {
 //                 cout <<         "#KeyFrame:     " << map->max_kf_idx + 1;
@@ -230,6 +235,7 @@ int main(int argc, char **argv)
         fout << s << endl;
     }
     fout.close();
+    fout2.close();
     cout<<"over"<<endl;
     // finish SLAM
     map->finishSLAM();

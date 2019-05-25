@@ -706,7 +706,7 @@ double StereoFrame::lineSegmentOverlap( Vector2d spl_obs, Vector2d epl_obs, Vect
     return overlap;
 
 }
-
+//把线特征，点特征画上去
 Mat StereoFrame::plotStereoFrame()
 {
 
@@ -739,7 +739,7 @@ Mat StereoFrame::plotStereoFrame()
             circle( img_l_aux, p, radius, Scalar(b,g,r), thick);
         }
     }
-
+    
     // plot line segment features
     for( auto ls_it = stereo_ls.begin(); ls_it != stereo_ls.end(); ls_it++)
     {
@@ -751,7 +751,7 @@ Mat StereoFrame::plotStereoFrame()
             line( img_l_aux, p, q, Scalar(b,g,r), thick);
         }
     }
-
+    
     return img_l_aux;
 }
 

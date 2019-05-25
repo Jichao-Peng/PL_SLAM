@@ -1402,7 +1402,8 @@ int MapHandler::levMarquardtOptimizationLBA( vector<double> X_aux, vector<int> k
     // point observations
     int Npt = 0, Npt_obs = 0;
     if( pt_obs_list.size() != 0 )
-        Npt = pt_obs_list.back()(1)+1;//因为索引从0开始，所以+1
+        Npt = pt_obs_list.back()(1)+1;
+    //因为索引从0开始，所以+1
     for( vector<Vector6i>::iterator pt_it = pt_obs_list.begin(); pt_it != pt_obs_list.end(); pt_it++ )
     {
         int lm_idx_map = (*pt_it)(0);// LM idx 所有地图点中的索引，同一地图点的所有观测这一项都相同
@@ -2993,7 +2994,7 @@ void MapHandler::removeRedundantKFs()
 // -----------------------------------------------------------------------------------------------------------------------------
 // Loop Closure functions
 // -----------------------------------------------------------------------------------------------------------------------------
-
+//回环检测
 void MapHandler::loopClosure()
 {
 
@@ -3003,6 +3004,7 @@ void MapHandler::loopClosure()
     int kf_prev_idx, kf_curr_idx;
     kf_curr_idx = max_kf_idx;
     timer.start();
+    //进行相似性选取kf_prev_idx
     bool is_lc_candidate = lookForLoopCandidates(kf_curr_idx,kf_prev_idx);
     time(4) = timer.stop(); // ms
 
@@ -3108,10 +3110,9 @@ void MapHandler::insertKFBowVectorL( KeyFrame* kf  )
     }
     conf_matrix[idx][idx] = dbow_voc_l.score( kf->descDBoW_L, kf->descDBoW_L );
 }
-
+//生成关键帧的词典树，并计算分数
 void MapHandler::insertKFBowVectorPL( KeyFrame* kf  )
 {
-
     // Point Features
     // --------------------------------------------------------------
     // transform Mat to vector<Mat>
@@ -3120,6 +3121,7 @@ void MapHandler::insertKFBowVectorPL( KeyFrame* kf  )
     for ( int i = 0; i < kf->stereo_frame->pdesc_l.rows; i++ )
         curr_desc.push_back( kf->stereo_frame->pdesc_l.row(i) );
     // transform to DBoW2::BowVector
+    //依照点特征生成该帧的词袋
     dbow_voc_p.transform( curr_desc, kf->descDBoW_P );
 
     // estimate dispersion of point features
@@ -3129,7 +3131,9 @@ void MapHandler::insertKFBowVectorPL( KeyFrame* kf  )
         pt_x.push_back( pt->pl(0) );
         pt_y.push_back( pt->pl(1) );
     }
+    //计算特征点x和y分布的标准差
     double std_pt = vector_stdv( pt_x ) + vector_stdv( pt_y );
+    //特征点数量
     int    n_pt   = pt_x.size();
 
     // Line Segment Features
@@ -3142,6 +3146,7 @@ void MapHandler::insertKFBowVectorPL( KeyFrame* kf  )
     // transform to DBoW2::BowVector
     dbow_voc_l.transform( curr_desc, kf->descDBoW_L );
 
+    //这里用线段的中点代替
     // estimate dispersion of point features
     vector<double> ls_x, ls_y;
     for (LineFeature* ls : kf->stereo_frame->stereo_ls)
@@ -3165,15 +3170,20 @@ void MapHandler::insertKFBowVectorPL( KeyFrame* kf  )
     {
         if( map_keyframes[i] != NULL )
         {
+            //估算点词袋的得分
             score_p = dbow_voc_p.score( kf->descDBoW_P, map_keyframes[i]->descDBoW_P );
+            //估算线词袋的得分
             score_l = dbow_voc_l.score( kf->descDBoW_L, map_keyframes[i]->descDBoW_L );
             score = 0.0;
+            //得分加权
             score += ( score_p * n_pt   + score_l * n_ls   ) / n_pl;    // strategy#1
+            //在结合标准差
             score += ( score_p * std_pt + score_l * std_ls ) / std_pl;  // strategy#2
             conf_matrix[idx][i] = score;
             conf_matrix[i][idx] = score;
         }
     }
+    //自身和自身的相似度也计算一下
     score_p = dbow_voc_p.score( kf->descDBoW_P, kf->descDBoW_P );
     score_l = dbow_voc_l.score( kf->descDBoW_L, kf->descDBoW_L);
     score = 0.0;
@@ -3189,28 +3199,34 @@ bool MapHandler::lookForLoopCandidates( int kf_curr_idx, int &kf_prev_idx )
 
     // find the best matches
     vector<Vector2d> max_confmat;
+    //至少从lcKFDist()（50）帧之前选
     for(int i = 0; i < kf_curr_idx - SlamConfig::lcKFDist(); i++)
     {
         if( map_keyframes[i] != NULL )
         {
             Vector2d aux;
+            //初始化（序号，跟当前帧相似度）
             aux(0) = i;
             aux(1) = conf_matrix[i][kf_curr_idx];
             max_confmat.push_back( aux );
         }
     }
-
+    
     // if there are enough matches..
     if( max_confmat.size() > SlamConfig::lcKFMaxDist() )
     {
+        //按相似度得分排列
         sort( max_confmat.begin(), max_confmat.end(), sort_confmat_by_score() );
 
         // find the minimum score in the covisibility graph
+        //找到相似度最小的值
         double lc_min_score = 1.0;
         for( int i = 0; i < kf_curr_idx; i++ )
         {
+            //共视特征数量大于阈值，关键帧序号相差小于阈值
             if( full_graph[i][kf_curr_idx] >= SlamConfig::minLMCovGraph() || kf_curr_idx - i <= SlamConfig::minKFLocalMap()+3 )
             {
+                //找到相似度最小的值
                 double score_i = conf_matrix[i][kf_curr_idx];
                 if( score_i < lc_min_score && score_i > 0.001 )
                     lc_min_score = score_i;
@@ -3227,11 +3243,13 @@ bool MapHandler::lookForLoopCandidates( int kf_curr_idx, int &kf_prev_idx )
             {
                 int idx = int( max_confmat[i](0) );
                 // frame closest && connected by the cov_graph && score > lc_dbow_score_min
+                //最匹配的帧，左右50帧之内，分数都大于最低分的0.8，则个数加一
                 if( abs(idx-idx_max) <= SlamConfig::lcKFMaxDist() &&
                     max_confmat[i](1) >= lc_min_score * 0.8 )
                     Nkf_closest++;
             }
-
+            
+            //，这个个数大于4就认为这个最大相似度帧是回环
             // update in case of being loop closure candidate
             if( Nkf_closest >= SlamConfig::lcNKFClosest() )
             {

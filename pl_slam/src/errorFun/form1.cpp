@@ -153,7 +153,7 @@ void StereoFrameHandler::levenbergMarquardtOptimization(Matrix4d &DT, Matrix6d &
             break;
         // add lambda to hessian
         for(int i = 0; i < 6; i++)
-            H(i,i) += lambda;// * H(i,i) ;
+            H(i,i) += lambda;// * H(i,i) ;// * sqrt(H(i,i))
         // update step
         ColPivHouseholderQR<Matrix6d> solver(H);
         DT_inc = solver.solve(g);
