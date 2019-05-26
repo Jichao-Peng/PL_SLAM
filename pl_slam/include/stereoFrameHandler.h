@@ -27,8 +27,8 @@
 
 typedef Matrix<double,6,6> Matrix6d;
 typedef Matrix<double,6,1> Vector6d;
-//#define ERROR_FORM_1
-#define ERROR_FORM_2
+#define ERROR_FORM_1
+//#define ERROR_FORM_2
 // #define ERROR_FORM_3
 class StereoFrame;
 

@@ -351,13 +351,13 @@ void StereoFrameHandler:: optimizeFunctions(Matrix4d DT, Matrix6d &H, Vector6d &
 
             // if employing robust cost function
             double w  = 1.0;
-           // w = robustWeightCauchy(r);
+            w = robustWeightCauchy(r);
 
             // estimating overlap between line segments
-//             bool has_overlap = true;
-//             double overlap = prev_frame->lineSegmentOverlap( (*it)->spl, (*it)->epl, spl_proj, epl_proj );
-//             if( has_overlap )
-//                 w *= overlap;
+            bool has_overlap = true;
+            double overlap = prev_frame->lineSegmentOverlap( (*it)->spl, (*it)->epl, spl_proj, epl_proj );
+            if( has_overlap )
+                w *= overlap;
 
             // if down-weighting far samples
             /*double zdist = max( sP_(2), eP_(2) ) / ( cam->getB()*cam->getFx());

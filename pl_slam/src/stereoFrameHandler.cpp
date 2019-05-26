@@ -380,8 +380,8 @@ void StereoFrameHandler::optimizePose()
             //cout<<"  P_L: "<<curr_frame->points_l.size()<<"  P_R: "<<curr_frame->points_r.size()<<"  S_P: "<<curr_frame->stereo_pt.size()<<"  M_P"<<matched_pt.size()<<endl;
             //cout<<"  L_L: "<<curr_frame->lines_l.size()<<"  L_R: "<<curr_frame->lines_r.size()<<"  S_L: "<<curr_frame->stereo_ls.size()<<"  M_L"<<matched_ls.size()<<endl;
             removeOutliers(DT_);
-            gfPointSeclet(DT_);
-            gfLineSeclet();
+            //gfPointSeclet(DT_);
+            //gfLineSeclet();
             // refine without outliers
             // 去除外点之后，再进行一次优化
             if( n_inliers >= Config::minFeatures() )

@@ -39,7 +39,7 @@ using namespace PLSLAM;
 
 void showHelp();
 bool getInputArgs(int argc, char **argv, std::string &dataset_name, int &frame_offset, int &frame_number, int &frame_step, std::string &config_file);
-
+void LoadImages(const string &strPathToSequence, vector<string> &vstrImageLeft,vector<string> &vstrImageRight, vector<double> &vTimestamps);
 //#define NO_SECENE
 
 PinholeStereoCamera* Config::cam=NULL;//将相机参数传入配置文件
@@ -106,6 +106,12 @@ int main(int argc, char **argv)
     cout << endl << "Initializing PL-SLAM...." << flush;
 
     string dataset_dir = dataset_path.string();
+    vector<string> vstrImageLeft;
+    vector<string> vstrImageRight;
+    vector<double> vTimestamps;
+    LoadImages(dataset_dir, vstrImageLeft, vstrImageRight, vTimestamps);
+    int nImages=vstrImageLeft.size();
+    
     //传入相机配置文件，建立相机模型
     PinholeStereoCamera*  cam_pin = new PinholeStereoCamera((dataset_path / "dataset_params.yaml").string());
     Config::cam=cam_pin;
@@ -137,21 +143,32 @@ int main(int argc, char **argv)
     cout << " ... done. " << endl;
 
     Timer timer;
-
+    vector<vector<float>> stateTrack(nImages,vector<float>(6,0));
+    
     // initialize and run PL-StVO
     int frame_counter = 0;
     float ninliers_ls=0.0;
     float ninliers_pt=0.0;
     StereoFrameHandler* StVO = new StereoFrameHandler(cam_pin);
     Mat img_l, img_r;
-    ofstream fout("/media/zhijian/Document/grow/slam/slamDataSet/KITTI/data_odometry_poses/my00.txt");
+    ofstream fout("/media/zhijian/Document/grow/slam/expriment/kitti/pl_slam/origin_00.txt");
     ofstream fout2("/media/zhijian/Document/grow/slam/slamDataSet/KITTI/data_odometry_poses/xyz.txt");
     //当数据集不空时
+    //开始的时间
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+    //提取特征
+    std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
+    //估计位姿
+    std::chrono::steady_clock::time_point t3 = std::chrono::steady_clock::now();
+    //全部的时间
+    std::chrono::steady_clock::time_point t4 = std::chrono::steady_clock::now();
     while (dataset.nextFrame(img_l, img_r))
     {
+        frame_counter++;
         cout << "------------------------------------------   Frame #" << frame_counter
                  << "   ----------------------------------------" << endl;
-        if( frame_counter == 0 ) // initialize
+        t1 = std::chrono::steady_clock::now();
+        if( frame_counter == 1 ) // initialize
         {
             timer.start();
             //双目的初始化
@@ -160,6 +177,8 @@ int main(int argc, char **argv)
             PLSLAM::KeyFrame* kf = new PLSLAM::KeyFrame( StVO->prev_frame, 0 );
             //地图初始化
             map->initialize( kf );
+            t2 = std::chrono::steady_clock::now();
+            t3 = std::chrono::steady_clock::now();
             // update scene
             #ifndef NO_SECENE
                 scene.initViewports( img_l.cols, img_r.rows );
@@ -168,27 +187,26 @@ int main(int argc, char **argv)
                 scene.updateSceneSafe( map );
             #endif
             StVO->T_w_curr=StVO->curr_frame->T_kf_f;
+            StVO->n_inliers_pt=0;StVO->n_inliers_ls=0;
+            stateTrack[frame_counter-1][5]=StVO->n_inliers_ls;
             cout << endl << "VO initialize: " << timer.stop() << endl;
         }
         else // run
         {
             // PL-StVO
-            //frame_counter>0
             timer.start();
-            StVO->insertStereoPair( img_l, img_r, frame_counter );
+            StVO->insertStereoPair( img_l, img_r, frame_counter-1 );
+            t2 = std::chrono::steady_clock::now();
             //cout << endl << "VO insertStereoPair: " << timer.stop() << endl;
             timer.start();
             StVO->optimizePose();
+            t3 = std::chrono::steady_clock::now();
             //cout << endl << "VO optimizePose: " << timer.stop() << endl;
             // check if a new keyframe is 
             #ifndef NO_SECENE
             scene.frame+=1;
             scene.setText(scene.frame,0,StVO->n_inliers_pt,StVO->n_inliers_ls);
             #endif
-            ninliers_pt=(ninliers_pt*(frame_counter-1)+StVO->n_inliers_pt)/(frame_counter);
-            ninliers_ls=(ninliers_ls*(frame_counter-1)+StVO->n_inliers_ls)/(frame_counter);
-            cout<<"npt: "<<ninliers_pt<<endl;
-            cout<<"nls: "<<ninliers_ls<<endl;
             if(map->prev_kf!=NULL)
                 StVO->T_w_curr=map->prev_kf->T_w_kf*StVO->curr_frame->T_kf_f;
             else
@@ -229,7 +247,20 @@ int main(int argc, char **argv)
             // update StVO
             StVO->updateFrame();
         }
-        frame_counter++;
+        t4 = std::chrono::steady_clock::now();
+//         ninliers_pt=(ninliers_pt*(frame_counter-1)+StVO->n_inliers_pt)/(frame_counter);
+//         ninliers_ls=(ninliers_ls*(frame_counter-1)+StVO->n_inliers_ls)/(frame_counter);
+        stateTrack[frame_counter-1][0]=std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count();
+        stateTrack[frame_counter-1][1]=std::chrono::duration_cast<std::chrono::duration<double> >(t3 - t2).count();
+        stateTrack[frame_counter-1][2]=std::chrono::duration_cast<std::chrono::duration<double> >(t4 - t1).count();
+        stateTrack[frame_counter-1][4]=StVO->n_inliers_pt;
+        stateTrack[frame_counter-1][5]=StVO->n_inliers_ls;
+        double T=0;
+        if(frame_counter<nImages)
+            T = vTimestamps[frame_counter]-vTimestamps[frame_counter-1];
+        else if(frame_counter>0)
+            T =  vTimestamps[frame_counter-1]-vTimestamps[frame_counter-2];
+        stateTrack[frame_counter-1][3]=T;
         string s;
         transKitti(StVO->T_w_curr,s);
         fout << s << endl;
@@ -239,6 +270,50 @@ int main(int argc, char **argv)
     cout<<"over"<<endl;
     // finish SLAM
     map->finishSLAM();
+    
+        // Tracking time statistics
+    for(int kind=0;kind<6;kind++)
+    {
+        sort(stateTrack[kind].begin(),stateTrack[kind].end());
+        float totaltime = 0;
+        for(int ni=0; ni<nImages; ni++)
+        {
+            totaltime+=stateTrack[ni][kind];
+        }
+        switch (kind)
+        {
+            case 0:
+                cout << "-------" << endl << endl;
+                cout << "median detect time: " << stateTrack[nImages/2][kind] << endl;
+                cout << "mean detect time: " << totaltime/nImages << endl;
+                break;
+            case 1:
+                cout << "-------" << endl << endl;
+                cout << "median optimizePose time: " << stateTrack[nImages/2][kind] << endl;
+                cout << "mean optimizePose time: " << totaltime/nImages << endl;
+                break;
+            case 2:
+                cout << "-------" << endl << endl;
+                cout << "median tracking time: " << stateTrack[nImages/2][kind] << endl;
+                cout << "mean tracking time: " << totaltime/nImages << endl;
+                break;
+            case 3:
+                cout << "-------" << endl << endl;
+                cout << "real median tracking time: " << stateTrack[nImages/2][kind] << endl;
+                cout << "real mean tracking time: " << totaltime/nImages << endl;
+                break;
+            case 4:
+                cout << "-------" << endl << endl;
+                cout << "median n_inliers_pt: " << stateTrack[nImages/2][kind] << endl;
+                cout << "mean n_inliers_pt: " << totaltime/nImages << endl;
+                break;
+            case 5:
+                cout << "-------" << endl << endl;
+                cout << "median n_inliers_ls: " << stateTrack[nImages/2][kind] << endl;
+                cout << "mean n_inliers_ls: " << totaltime/nImages << endl;
+                break;
+        }
+    }
     
     #ifndef NO_SECENE
         scene.updateScene( map );
@@ -292,4 +367,41 @@ bool getInputArgs(int argc, char **argv, std::string &dataset_name, int &frame_o
     }
 
     return true;
+}
+
+
+void LoadImages(const string &strPathToSequence, vector<string> &vstrImageLeft,
+                vector<string> &vstrImageRight, vector<double> &vTimestamps)
+{
+    ifstream fTimes;
+    string strPathTimeFile = strPathToSequence + "/times.txt";
+    fTimes.open(strPathTimeFile.c_str());
+    while(!fTimes.eof())
+    {
+        string s;
+        getline(fTimes,s);
+        if(!s.empty())
+        {
+            stringstream ss;
+            ss << s;
+            double t;
+            ss >> t;
+            vTimestamps.push_back(t);
+        }
+    }
+
+    string strPrefixLeft = strPathToSequence + "/image_0/";
+    string strPrefixRight = strPathToSequence + "/image_1/";
+
+    const int nTimes = vTimestamps.size();
+    vstrImageLeft.resize(nTimes);
+    vstrImageRight.resize(nTimes);
+
+    for(int i=0; i<nTimes; i++)
+    {
+        stringstream ss;
+        ss << setfill('0') << setw(6) << i;
+        vstrImageLeft[i] = strPrefixLeft + ss.str() + ".png";
+        vstrImageRight[i] = strPrefixRight + ss.str() + ".png";
+    }
 }
