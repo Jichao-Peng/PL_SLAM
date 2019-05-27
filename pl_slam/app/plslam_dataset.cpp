@@ -151,7 +151,7 @@ int main(int argc, char **argv)
     float ninliers_pt=0.0;
     StereoFrameHandler* StVO = new StereoFrameHandler(cam_pin);
     Mat img_l, img_r;
-    ofstream fout("/media/zhijian/Document/grow/slam/expriment/kitti/pl_slam/origin_00.txt");
+//     ofstream fout("/media/zhijian/Document/grow/slam/expriment/kitti/pl_slam/origin_00.txt");
     ofstream fout2("/media/zhijian/Document/grow/slam/slamDataSet/KITTI/data_odometry_poses/xyz.txt");
     //当数据集不空时
     //开始的时间
@@ -190,6 +190,7 @@ int main(int argc, char **argv)
             StVO->n_inliers_pt=0;StVO->n_inliers_ls=0;
             stateTrack[frame_counter-1][5]=StVO->n_inliers_ls;
             cout << endl << "VO initialize: " << timer.stop() << endl;
+            StVO->map_frames.push_back(new MapFrame(map->map_keyframes.size(),StVO->curr_frame->T_kf_f));
         }
         else // run
         {
@@ -244,6 +245,7 @@ int main(int argc, char **argv)
                     scene.updateScene();
                 #endif
             }
+            StVO->map_frames.push_back(new MapFrame(map->map_keyframes.size(),StVO->curr_frame->T_kf_f));
             // update StVO
             StVO->updateFrame();
         }
@@ -261,13 +263,8 @@ int main(int argc, char **argv)
         else if(frame_counter>0)
             T =  vTimestamps[frame_counter-1]-vTimestamps[frame_counter-2];
         stateTrack[frame_counter-1][3]=T;
-        string s;
-        transKitti(StVO->T_w_curr,s);
-        fout << s << endl;
+        cout<<endl<<map->map_keyframes.size()<<'\t'<<StVO->map_frames.size()<<'\t'<<StVO->map_frames.back()->KfId<<endl;
     }
-    fout.close();
-    fout2.close();
-    cout<<"over"<<endl;
     // finish SLAM
     map->finishSLAM();
     
@@ -325,7 +322,14 @@ int main(int argc, char **argv)
     #ifndef NO_SECENE
         scene.updateSceneGraphs( map );
     #endif
-
+    cout<<endl<<map->map_keyframes.size()<<'\t'<<StVO->map_frames.size()<<'\t'<<StVO->map_frames.back()->KfId<<endl;
+//     string s;
+//     transKitti(StVO->T_w_curr,s);
+//     fout << s << endl;
+//     fout.close();
+    StVO->SaveTrajectoryKITTI("/media/zhijian/Document/grow/slam/expriment/kitti/pl_slam/origin_00.txt",map->map_keyframes);
+    fout2.close();
+    cout<<"over"<<endl;
     // wait until the scene is closed
     #ifndef NO_SECENE
         while( scene.isOpen() );

@@ -225,7 +225,7 @@ void slamScene::initViewports(int W, int H){
     setLegend();
     image = theScene->createViewport("image");
     //W H 设置图像窗口的宽度和高度
-    image->setViewportPosition(20, 20, W/2, H/2);
+    image->setViewportPosition(20, 20, W, H);
 
     // Re-paint the scene
     win->unlockAccess3DScene();
@@ -659,7 +659,7 @@ void slamScene::setComparison(Matrix4d xcomp_){
 void slamScene::setImage(const Mat &image_){
 
     Mat aux;
-    Size img_sz(0.5*image_.cols, 0.5*image_.rows);
+    Size img_sz(image_.cols, image_.rows);
     cv::resize( image_, aux, img_sz );
 
     bool color;

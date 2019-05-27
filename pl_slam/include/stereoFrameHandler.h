@@ -24,6 +24,7 @@
 #include <stereoFrame.h>
 #include <stereoFeatures.h>
 #include "auxiliar.h"
+#include "keyFrame.h"
 
 typedef Matrix<double,6,6> Matrix6d;
 typedef Matrix<double,6,1> Vector6d;
@@ -33,6 +34,14 @@ typedef Matrix<double,6,1> Vector6d;
 class StereoFrame;
 
 namespace StVO{
+
+class MapFrame
+{
+public:
+    int KfId;                               //参考关键帧的Id
+    Matrix4d T_wrtKF;                       //相对参考关键帧的位姿 Kf->Twf*Kf->Tkf
+    MapFrame(int a,Matrix4d m):KfId(a),T_wrtKF(m){};
+};
 
 class StereoFrameHandler
 {
@@ -60,7 +69,7 @@ public:
 
     void plotStereoFrameProjerr(Matrix4d DT, int iter);
     void plotLeftPair();
-
+    void SaveTrajectoryKITTI(const string &filename,const vector<PLSLAM::KeyFrame*> KF);
     // adaptative fast
     int orb_fast_th;    //orb特征提取FAST的threshold（阈值）
     double llength_th;  
@@ -81,6 +90,7 @@ public:
     list< PointFeature* > matched_pt;   //匹配的特征点集合 
     list< LineFeature*  > matched_ls;   //匹配的线特征集合
 
+    vector<MapFrame*> map_frames;
     StereoFrame* prev_frame;            //前一帧
     StereoFrame* curr_frame;            //当前帧
     PinholeStereoCamera *cam;           //针孔相机模型
@@ -114,5 +124,8 @@ private:
     void getLineJacobi(const LineFeature* line,Matrix4d DT,Vector2d& err_i,Vector6d& J_aux);
     void getPoseInfoOnLine(LineFeature * line);
 };
+
+
+
 
 }

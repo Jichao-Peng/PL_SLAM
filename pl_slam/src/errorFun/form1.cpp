@@ -47,14 +47,14 @@ void StereoFrameHandler::gaussNewtonOptimization(Matrix4d &DT, Matrix6d &DT_cov,
             break;
         }
         //平均进行四次迭代
-        cout<<err_prev-err<<' ';
+        //cout<<err_prev-err<<' ';
         // update previous values
         err_prev = err;
         iterTimeTemp++;
     }
     //计算平均迭代次数
     iterTimes=(iterTimes*(time-1)+iterTimeTemp)/time;
-    cout<<endl<<"times: "<<iterTimes<<endl;
+    //cout<<endl<<"times: "<<iterTimes<<endl;
     DT_cov = H.inverse();  //DT_cov = Matrix6d::Identity(); 协方差矩阵就是海塞矩阵的逆
     err_   = err;
 }
